@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tr('QK Matrix Rain')</title>
+    <link rel="icon" type="image/svg+xml" href="images/qk-matrix-rain.svg">
+
+    <!-- iCUE Widget Metadata -->
+    <meta name="x-icue-widget-preview" content="resources/MatrixRainPreview.png">
+
+    <!-- Properties: Group 1 - Settings -->
+    <meta name="x-icue-property" content="customTitle"
+        data-label="tr('Custom Title')" data-type="textfield" data-default="''">
+
+    <meta name="x-icue-property" content="charSize"
+        data-label="tr('Character Size')" data-type="tab-buttons"
+        data-values="[{'key':'small','value':'S'},{'key':'medium','value':'M'},{'key':'large','value':'L'}]"
+        data-default="'medium'">
+    <meta name="x-icue-property" content="speed"
+        data-label="tr('Speed')" data-type="slider"
+        data-default="5" data-min="1" data-max="10" data-step="1">
+    <meta name="x-icue-property" content="density"
+        data-label="tr('Density')" data-type="slider"
+        data-default="5" data-min="1" data-max="10" data-step="1">
+    <meta name="x-icue-property" content="trailStrength"
+        data-label="tr('Trail Strength')" data-type="slider"
+        data-default="5" data-min="1" data-max="10" data-step="1">
+
+    <!-- Properties: Group 2 - Appearance (DP-mapped) -->
+    <meta name="x-icue-property" content="accentColor"
+        data-label="tr('Accent Color')" data-type="color" data-default="'#00FF41'">
+    <meta name="x-icue-property" content="backgroundColor"
+        data-label="tr('Background Color')" data-type="color" data-default="'#000000'">
+    <meta name="x-icue-property" content="transparency"
+        data-label="tr('Transparency')" data-type="slider"
+        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+
+    <!-- Property Groups -->
+    <script type="application/json" id="x-icue-groups">
+    [
+        {
+            "title": "tr('QK Matrix Rain')",
+            "properties": ["charSize", "speed", "density", "trailStrength", "customTitle"]
+        },
+        {
+            "title": "tr('Appearance')",
+            "properties": ["accentColor", "backgroundColor", "transparency"]
+        }
+    ]
+    </script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    
+        .widget-title {
+            display: none;
+            font-family: 'Jost', sans-serif; font-weight: 700;
+            font-size: 3vh;
+            text-align: center;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.3vw;
+            position: absolute;
+            top: 1.5vh;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            pointer-events: none;
+            position: relative;
+        }
+</style>
+</head>
+<body>
+    <div class="widget-title" id="widget-title"></div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // ================================================================
+        // Configuration
+        // ================================================================
+        var cfg = {
+            charSizeKey: 'medium',
+            charSize: 14,
+            speed: 5,
+            density: 5,
+            trailStrength: 5,
+            accentColor: '#00FF41',
+            bgColor: '#000000',
+            transparency: 0
+        };
+
+        var CHAR_SIZES = { small: 2, medium: 3, large: 4.5 };
+
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        var columns = [];
+        var W, H, numCols;
+
+        // Characters: half-width katakana + digits + latin
+        var CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*(){}[]|;:<>?~';
+        // Add katakana-like characters (Unicode half-width katakana)
+        CHARS += '\uFF66\uFF67\uFF68\uFF69\uFF6A\uFF6B\uFF6C\uFF6D\uFF6E\uFF6F\uFF70\uFF71\uFF72\uFF73\uFF74\uFF75\uFF76\uFF77\uFF78\uFF79\uFF7A\uFF7B\uFF7C\uFF7D\uFF7E\uFF7F\uFF80\uFF81\uFF82\uFF83\uFF84\uFF85\uFF86\uFF87\uFF88\uFF89\uFF8A\uFF8B\uFF8C\uFF8D\uFF8E\uFF8F\uFF90\uFF91\uFF92\uFF93\uFF94\uFF95\uFF96';
+
+        // ================================================================
+        // Color helpers
+        // ================================================================
+        function hexToRGB(hex) {
+            return [
+                parseInt(hex.slice(1, 3), 16),
+                parseInt(hex.slice(3, 5), 16),
+                parseInt(hex.slice(5, 7), 16)
+            ];
+        }
+
+        // ================================================================
+        // Column state
+        // ================================================================
+        function Column(x) {
+            this.x = x;
+            this.y = -(Math.random() * H);
+            this.speed = 0.5 + Math.random() * 1.5;
+            this.length = 5 + Math.floor(Math.random() * 20);
+            this.chars = [];
+            for (var i = 0; i < this.length; i++) {
+                this.chars.push(CHARS[Math.floor(Math.random() * CHARS.length)]);
+            }
+        }
+
+        Column.prototype.reset = function() {
+            this.y = -(Math.random() * H * 0.5);
+            this.speed = 0.5 + Math.random() * 1.5;
+            this.length = 5 + Math.floor(Math.random() * 20);
+            this.chars = [];
+            for (var i = 0; i < this.length; i++) {
+                this.chars.push(CHARS[Math.floor(Math.random() * CHARS.length)]);
+            }
+        };
+
+        function initColumns() {
+            columns = [];
+            numCols = Math.ceil(W / cfg.charSize);
+            var fillRate = 0.3 + (cfg.density / 10) * 0.5;
+
+            for (var i = 0; i < numCols; i++) {
+                if (Math.random() < fillRate) {
+                    columns.push(new Column(i * cfg.charSize));
+                }
+            }
+        }
+
+        // ================================================================
+        // Resize
+        // ================================================================
+        function resize() {
+            var dpr = window.devicePixelRatio || 1;
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        // ================================================================
+        // Render
+        // ================================================================
+        function render() {
+            var rgb = hexToRGB(cfg.accentColor);
+            var bgRGB = hexToRGB(cfg.bgColor);
+            var speedMul = cfg.speed / 5;
+            var cs = cfg.charSize;
+
+            // Semi-transparent background overlay for trail effect (controlled by trailStrength)
+            // Higher trailStrength = lower alpha = slower fade = longer trails
+            var trailAlpha = 0.10 - (cfg.trailStrength / 10) * 0.08;
+            ctx.fillStyle = 'rgba(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ',' + trailAlpha + ')';
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.font = cs + 'px monospace';
+            ctx.textAlign = 'center';
+
+            for (var c = 0; c < columns.length; c++) {
+                var col = columns[c];
+                col.y += col.speed * speedMul * cs * 0.15;
+
+                // Randomly mutate characters
+                if (Math.random() < 0.05) {
+                    var mutIdx = Math.floor(Math.random() * col.chars.length);
+                    col.chars[mutIdx] = CHARS[Math.floor(Math.random() * CHARS.length)];
+                }
+
+                for (var i = 0; i < col.length; i++) {
+                    var charY = col.y - i * cs;
+                    if (charY < -cs || charY > H + cs) continue;
+
+                    var fade = 1 - (i / col.length);
+                    if (i === 0) {
+                        // Head character: bright white-ish
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    } else if (i <= 2) {
+                        // Near-head: bright accent
+                        ctx.fillStyle = 'rgba(' + Math.min(255, rgb[0] + 80) + ',' + Math.min(255, rgb[1] + 80) + ',' + Math.min(255, rgb[2] + 80) + ',' + (0.9 * fade) + ')';
+                    } else {
+                        // Body: accent color with fade
+                        ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (0.7 * fade) + ')';
+                    }
+
+                    ctx.fillText(col.chars[i], col.x + cs / 2, charY);
+                }
+
+                // Reset column when it falls off screen
+                if (col.y - col.length * cs > H) {
+                    col.reset();
+                }
+            }
+
+            // Spawn new columns occasionally
+            var fillRate = 0.3 + (cfg.density / 10) * 0.5;
+            if (columns.length < numCols * fillRate && Math.random() < 0.02 * cfg.density) {
+                var x = Math.floor(Math.random() * numCols) * cs;
+                var exists = false;
+                for (var i = 0; i < columns.length; i++) {
+                    if (Math.abs(columns[i].x - x) < cs) { exists = true; break; }
+                }
+                if (!exists) {
+                    columns.push(new Column(x));
+                }
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        // ================================================================
+        // Settings
+        // ================================================================
+        function computeCharSize() {
+            var vmin = Math.min(W || window.innerWidth, H || window.innerHeight) / 100;
+            var factor = CHAR_SIZES[cfg.charSizeKey] || CHAR_SIZES.medium;
+            cfg.charSize = Math.max(8, Math.round(factor * vmin));
+        }
+
+        function readSettings() {
+            if (typeof charSize !== 'undefined') {
+                var cs = charSize || 'medium';
+                // Handle both value ('small') and title ('S') formats
+                var titleMap = { 'S': 'small', 'M': 'medium', 'L': 'large' };
+                if (titleMap[cs]) cs = titleMap[cs];
+                if (CHAR_SIZES[cs]) cfg.charSizeKey = cs;
+            }
+            if (typeof speed !== 'undefined') cfg.speed = Math.max(1, Math.min(10, Number(speed) || 5));
+            if (typeof density !== 'undefined') cfg.density = Math.max(1, Math.min(10, Number(density) || 5));
+            if (typeof trailStrength !== 'undefined') cfg.trailStrength = Math.max(1, Math.min(10, Number(trailStrength) || 5));
+            if (typeof accentColor !== 'undefined') cfg.accentColor = accentColor;
+            if (typeof backgroundColor !== 'undefined') cfg.bgColor = backgroundColor;
+            if (typeof transparency !== 'undefined') cfg.transparency = Number(transparency) || 0;
+            if (typeof customTitle !== 'undefined') {
+                var wt = document.getElementById('widget-title');
+                wt.textContent = customTitle;
+                wt.style.display = customTitle ? 'block' : 'none';
+            }
+            computeCharSize();
+        }
+
+        function applySettings() {
+            // Clear canvas fully on settings change
+            var bgRGB = hexToRGB(cfg.bgColor);
+            ctx.fillStyle = 'rgb(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ')';
+            ctx.fillRect(0, 0, W, H);
+            // Transparency applied to body background only (not canvas content)
+            var opacity = 1 - (cfg.transparency / 100);
+            document.body.style.backgroundColor = 'rgba(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ',' + opacity + ')';
+        }
+
+        // ================================================================
+        // iCUE lifecycle
+        // ================================================================
+        function onInit() {
+            readSettings();
+            resize();
+            applySettings();
+            initColumns();
+            requestAnimationFrame(render);
+        }
+
+        function onDataUpdated() {
+            var oldCharSize = cfg.charSize;
+            var oldDensity = cfg.density;
+            readSettings();
+            applySettings();
+            if (cfg.charSize !== oldCharSize || cfg.density !== oldDensity) {
+                initColumns();
+            }
+        }
+
+        window.addEventListener('resize', function() {
+            resize();
+            computeCharSize();
+            applySettings();
+            initColumns();
+        });
+
+        icueEvents = {
+            "onICUEInitialized": onInit,
+            "onDataUpdated": onDataUpdated
+        };
+
+        if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {
+            onInit();
+        }
+
+        if (typeof iCUE_initialized === 'undefined') {
+            onInit();
+        }
+    </script>
+</body>
+</html>
