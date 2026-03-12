@@ -40,7 +40,7 @@ The server captures system audio via **WASAPI loopback** (no microphone needed; 
 
 ## Setup
 
-Download the widget files from the [Releases](https://github.com/QuadraKev/qk-xe-visualizer/releases) page, or clone the repository.
+Download the widget files from the [Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases) page, or clone the repository.
 
 **1. Install server dependencies:**
 
@@ -54,7 +54,7 @@ pip install PyAudioWPatch numpy websockets winrt-runtime winrt-Windows.Media.Con
 python NowPlayingServer.py
 ```
 
-The server is shared with the [QK Pump Visualizer](https://github.com/QuadraKev/qk-pump-visualizer). A single instance serves both widgets, so there is no need to run it twice.
+The server is shared with the [QK Pump Visualizer](../qk-pump-visualizer). A single instance serves both widgets, so there is no need to run it twice.
 
 By default, it listens on port `16329`. You can change this with `--port`:
 
