@@ -23,7 +23,7 @@ The classic 2048 sliding tile puzzle game for the Corsair Xeneon Edge dashboard 
 
 ## Setup
 
-1. Download the widget files from the [Releases](https://github.com/QuadraKev/qk-2048/releases) page.
+1. Download the widget files from the [Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases) page.
 2. Copy the widget files into your iCUE widgets directory (typically `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets`).
 3. Restart iCUE for the new widget to appear in the widget picker.
 4. Add the widget to your device dashboard in iCUE.

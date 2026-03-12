@@ -9,7 +9,7 @@ The QuadraKev Pump (QK Pump) Visualizer is a circular audio visualizer widget fo
 The widget has two components:
 
 - **`QKPumpVisualizer.html`** - the iCUE widget itself, rendered on the pump LCD
-- **`server/NowPlayingServer.py`** - the companion Python server (shared with the [QK XE Visualizer](https://github.com/QuadraKev/qk-xe-visualizer)), which captures system audio and media metadata and pushes it to the widget over WebSocket
+- **`server/NowPlayingServer.py`** - the companion Python server (shared with the [QK XE Visualizer](../qk-xe-visualizer)), which captures system audio and media metadata and pushes it to the widget over WebSocket
 
 The server captures system audio via **WASAPI loopback** and computes a dual-resolution FFT spectrum (standard FFT for treble, downsampled high-resolution bass FFT for frequencies below 2kHz). Track info is read from **Windows SMTC**, the same source used by the Windows volume overlay. Data is pushed to the widget at up to 60fps.
 
@@ -38,7 +38,7 @@ The server captures system audio via **WASAPI loopback** and computes a dual-res
 
 ## Setup
 
-Download the widget files from the [Releases](https://github.com/QuadraKev/qk-pump-visualizer/releases) page, or clone the repository.
+Download the widget files from the [Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases) page, or clone the repository.
 
 **1. Install server dependencies:**
 
@@ -52,7 +52,7 @@ pip install PyAudioWPatch numpy websockets winrt-runtime winrt-Windows.Media.Con
 python NowPlayingServer.py
 ```
 
-The server is shared with the [QK XE Visualizer](https://github.com/QuadraKev/qk-xe-visualizer). A single instance serves both widgets, so there is no need to run it twice.
+The server is shared with the [QK XE Visualizer](../qk-xe-visualizer). A single instance serves both widgets, so there is no need to run it twice.
 
 By default, it listens on port `16329`. You can change this with `--port`:
 
@@ -120,7 +120,7 @@ Both modes show track title and artist text centered on the display.
 
 ## Companion Server
 
-This widget uses the same Python server as the [QK XE Visualizer](https://github.com/QuadraKev/qk-xe-visualizer). See that project for full server documentation, including:
+This widget uses the same Python server as the [QK XE Visualizer](../qk-xe-visualizer). See that project for full server documentation, including:
 
 - Audio pipeline details (WASAPI loopback, dual-resolution FFT)
 - SMTC media info integration

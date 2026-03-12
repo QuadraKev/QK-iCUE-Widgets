@@ -36,7 +36,7 @@ A spinning wireframe of the selected die rotates behind the result. Each die typ
 
 ## Setup
 
-1. Download the ZIP file from the [Releases](https://github.com/QuadraKev/qk-dice-roller/releases) page.
+1. Download the ZIP file from the [Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases) page.
 2. Extract its contents into your iCUE widgets directory (typically `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets`).
 3. Restart iCUE for the new widget to appear in the widget picker.
 4. Add the widget to your Xeneon Edge dashboard in iCUE.

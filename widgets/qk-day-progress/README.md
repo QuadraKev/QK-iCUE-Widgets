@@ -23,7 +23,7 @@ On the pump LCD (1:1 circular display), the widget switches to a concentric ring
 
 **1. Install the widget in iCUE:**
 
-- Download the widget files from the [Releases](https://github.com/QuadraKev/qk-day-progress/releases) page.
+- Download the widget files from the [Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases) page.
 - Copy the project folder into your iCUE widgets directory
   - Typically `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets`
   - `QKDayProgress.html`, `QKDayProgress_translation.json` should be added to `\widgets`

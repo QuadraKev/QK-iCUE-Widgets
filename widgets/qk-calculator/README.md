@@ -28,7 +28,7 @@ Tap the number and operator buttons to perform calculations. The display shows t
 
 ## Setup
 
-1. Download the widget files from the [Releases](https://github.com/QuadraKev/qk-calculator/releases) page.
+1. Download the widget files from the [Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases) page.
 2. Copy files into your iCUE widgets directory (typically `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets`):
    - `QKCalculator.html` and `QKCalculator_translation.json` into `widgets\`
    - `qk-calculator.svg` into `widgets\images\`
