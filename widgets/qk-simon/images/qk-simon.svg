@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect x="8" y="8" width="38" height="38" rx="6" fill="#2ECC71"/>
+  <rect x="54" y="8" width="38" height="38" rx="6" fill="#E74C3C"/>
+  <rect x="8" y="54" width="38" height="38" rx="6" fill="#F1C40F"/>
+  <rect x="54" y="54" width="38" height="38" rx="6" fill="#3498DB"/>
+  <!-- Lit indicator on green -->
+  <rect x="8" y="8" width="38" height="38" rx="6" fill="#5DFF9E" opacity="0.5"/>
+</svg>

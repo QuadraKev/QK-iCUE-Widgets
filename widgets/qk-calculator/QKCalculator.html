@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tr('QK Calculator')</title>
+    <link rel="icon" type="image/svg+xml" href="images/qk-calculator.svg">
+
+    <!-- iCUE Widget Metadata -->
+    <meta name="x-icue-widget-preview" content="resources/CalculatorPreview.png">
+    <meta name="x-icue-restrictions"
+        data-restrictions='[{"device":"dashboard_lcd"}]'>
+    <meta name="x-icue-interactive">
+
+    <!-- Properties: Group 1 - Calculator -->
+    <meta name="x-icue-property" content="customTitle"
+        data-label="tr('Custom Title')" data-type="textfield" data-default="''">
+
+    <!-- Properties: Group 2 - Appearance (DP-mapped) -->
+    <meta name="x-icue-property" content="textColor"
+        data-label="tr('Text Color')" data-type="color" data-default="'#E0E0E0'">
+    <meta name="x-icue-property" content="accentColor"
+        data-label="tr('Accent Color')" data-type="color" data-default="'#FF9500'">
+    <meta name="x-icue-property" content="backgroundColor"
+        data-label="tr('Background Color')" data-type="color" data-default="'#1C1C1C'">
+    <meta name="x-icue-property" content="transparency"
+        data-label="tr('Transparency')" data-type="slider"
+        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+
+    <!-- Property Groups -->
+    <script type="application/json" id="x-icue-groups">
+    [
+        {
+            "title": "tr('Calculator')",
+            "properties": ["customTitle"]
+        },
+        {
+            "title": "tr('Appearance')",
+            "properties": ["textColor", "accentColor", "backgroundColor", "transparency"]
+        }
+    ]
+    </script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --text-color: #E0E0E0;
+            --accent-color: #FF9500;
+            --bg-color: #1C1C1C;
+            --widget-opacity: 1.0;
+            --btn-bg: rgba(255, 255, 255, 0.08);
+            --btn-op-bg: rgba(255, 255, 255, 0.04);
+            --btn-gap: 0.6vh;
+        }
+
+        @font-face {
+            font-family: 'OpenSansSemiBold';
+            src: url('qrc:/fonts/OpenSans-SemiBold.ttf');
+        }
+        @font-face {
+            font-family: 'BebasNeuePro-SemiExpBold';
+            src: url('qrc:/fonts/BebasNeuePro-SemiExpBold.otf');
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'OpenSansSemiBold', 'Segoe UI', sans-serif;
+            background: transparent;
+            color: var(--text-color);
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+        }
+
+        .widget-title {
+            display: none;
+            font-family: 'OpenSansSemiBold', 'Segoe UI', sans-serif;
+            font-size: 3vh;
+            text-align: center;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.3vw;
+            position: absolute;
+            top: 1vh;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* ---- Display ---- */
+        .display {
+            flex: 0 0 auto;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 2vh 3vh;
+            min-height: 18vh;
+            overflow: hidden;
+        }
+
+        .display-expression {
+            position: absolute;
+            top: 2vh;
+            right: 3vh;
+            font-family: 'OpenSansSemiBold', 'Segoe UI', sans-serif;
+            font-size: 3.5vh;
+            color: var(--text-color);
+            opacity: 0.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 6vh);
+            line-height: 1.2;
+        }
+
+        .display-value {
+            font-family: 'BebasNeuePro-SemiExpBold', 'Segoe UI', sans-serif;
+            font-size: 12vh;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            line-height: 1;
+            transition: font-size 0.15s ease;
+        }
+
+        .display-value.small { font-size: 8vh; }
+        .display-value.xsmall { font-size: 5.5vh; }
+
+        /* ---- Button Grid ---- */
+        .btn-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: var(--btn-gap);
+            padding: var(--btn-gap) var(--btn-gap) var(--btn-gap) var(--btn-gap);
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 1.2vh;
+            font-family: 'OpenSansSemiBold', 'Segoe UI', sans-serif;
+            font-size: 4.5vh;
+            cursor: pointer;
+            transition: background 0.12s, transform 0.08s;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Number buttons */
+        .btn-num {
+            background: var(--btn-bg);
+            color: var(--text-color);
+        }
+        .btn-num:active {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        /* Operator buttons */
+        .btn-op {
+            background: var(--btn-op-bg);
+            color: var(--accent-color);
+        }
+        .btn-op:active {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .btn-op.active {
+            background: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        /* Function buttons (C, +/-, %) */
+        .btn-fn {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+        .btn-fn:active {
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 1;
+        }
+
+        /* Equals button */
+        .btn-eq {
+            background: var(--accent-color);
+            color: #000;
+            font-weight: bold;
+        }
+        .btn-eq:active {
+            filter: brightness(1.2);
+        }
+
+        /* Zero spans 2 columns */
+        .btn-zero {
+            grid-column: span 2;
+        }
+
+        /* ---- Responsive: Wide (HS/HL/HXL) ---- */
+        @media (min-aspect-ratio: 200/100) {
+            .container {
+                flex-direction: row;
+            }
+            .display {
+                flex: 0 0 38%;
+                min-height: auto;
+                padding: 3vh 3vh;
+                justify-content: center;
+            }
+            .display-value {
+                font-size: 18vh;
+            }
+            .display-value.small { font-size: 13vh; }
+            .display-value.xsmall { font-size: 9vh; }
+            .display-expression {
+                top: 3vh;
+                right: 3vh;
+                max-width: calc(100% - 6vh);
+                font-size: 5vh;
+            }
+            .btn-grid {
+                flex: 1;
+                max-width: 55vh;
+            }
+            .btn {
+                font-size: 7vh;
+                border-radius: 1.5vh;
+            }
+            :root {
+                --btn-gap: 1vh;
+            }
+        }
+
+        /* ---- Responsive: Near-square (HM/VS) ---- */
+        @media (max-aspect-ratio: 180/100) and (min-aspect-ratio: 90/100) {
+            .display {
+                min-height: 20vh;
+                padding: 2vh 2.5vh;
+            }
+            .display-value {
+                font-size: 14vh;
+            }
+            .display-value.small { font-size: 10vh; }
+            .display-value.xsmall { font-size: 7vh; }
+            .display-expression {
+                top: 2vh;
+                right: 2.5vh;
+                max-width: calc(100% - 5vh);
+                font-size: 4vh;
+            }
+            .btn {
+                font-size: 5.5vh;
+            }
+        }
+
+        /* ---- Responsive: Portrait (M/L/XL vertical) ---- */
+        @media (max-aspect-ratio: 90/100) {
+            .display {
+                min-height: 15vw;
+                padding: 2vw 3vw;
+            }
+            .display-value {
+                font-size: 14vw;
+            }
+            .display-value.small { font-size: 10vw; }
+            .display-value.xsmall { font-size: 7vw; }
+            .display-expression {
+                top: 2vw;
+                right: 3vw;
+                max-width: calc(100% - 6vw);
+                font-size: 3.5vw;
+            }
+            .btn {
+                font-size: 5vw;
+                border-radius: 1.5vw;
+            }
+            .btn-grid {
+                gap: 0.8vw;
+                padding: 0.8vw;
+            }
+        }
+
+        /* ---- Responsive: Very tall portrait (L/XL vertical) ---- */
+        @media (max-aspect-ratio: 50/100) {
+            .btn-grid {
+                max-height: 80vw;
+            }
+            .display {
+                flex: 1;
+                justify-content: flex-end;
+                padding-bottom: 4vw;
+            }
+            .display-value {
+                font-size: 18vw;
+            }
+            .display-value.small { font-size: 13vw; }
+            .display-value.xsmall { font-size: 9vw; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="widget-title" id="widget-title"></div>
+        <div class="display">
+            <div class="display-expression" id="expression"></div>
+            <div class="display-value" id="display">0</div>
+        </div>
+        <div class="btn-grid" id="btn-grid">
+            <button class="btn btn-fn" data-action="clear">C</button>
+            <button class="btn btn-fn" data-action="sign">+/-</button>
+            <button class="btn btn-fn" data-action="percent">%</button>
+            <button class="btn btn-op" data-action="op" data-op="/">/</button>
+
+            <button class="btn btn-num" data-action="digit" data-digit="7">7</button>
+            <button class="btn btn-num" data-action="digit" data-digit="8">8</button>
+            <button class="btn btn-num" data-action="digit" data-digit="9">9</button>
+            <button class="btn btn-op" data-action="op" data-op="*">x</button>
+
+            <button class="btn btn-num" data-action="digit" data-digit="4">4</button>
+            <button class="btn btn-num" data-action="digit" data-digit="5">5</button>
+            <button class="btn btn-num" data-action="digit" data-digit="6">6</button>
+            <button class="btn btn-op" data-action="op" data-op="-">-</button>
+
+            <button class="btn btn-num" data-action="digit" data-digit="1">1</button>
+            <button class="btn btn-num" data-action="digit" data-digit="2">2</button>
+            <button class="btn btn-num" data-action="digit" data-digit="3">3</button>
+            <button class="btn btn-op" data-action="op" data-op="+">+</button>
+
+            <button class="btn btn-num btn-zero" data-action="digit" data-digit="0">0</button>
+            <button class="btn btn-num" data-action="decimal">.</button>
+            <button class="btn btn-eq" data-action="equals">=</button>
+        </div>
+    </div>
+
+    <script>
+    /* ---- Calculator State ---- */
+    const calc = {
+        displayValue: '0',
+        firstOperand: null,
+        operator: null,
+        waitingForSecond: false,
+        expression: ''
+    };
+
+    const displayEl = document.getElementById('display');
+    const expressionEl = document.getElementById('expression');
+
+    function updateDisplay() {
+        displayEl.textContent = calc.displayValue;
+        expressionEl.textContent = calc.expression;
+
+        // Adjust font size class based on digit count
+        const len = calc.displayValue.replace(/[^0-9.]/g, '').length;
+        displayEl.classList.remove('small', 'xsmall');
+        if (len > 12) {
+            displayEl.classList.add('xsmall');
+        } else if (len > 8) {
+            displayEl.classList.add('small');
+        }
+    }
+
+    function formatNumber(num) {
+        if (num === null || num === undefined || isNaN(num)) return 'Error';
+        if (!isFinite(num)) return num > 0 ? 'Infinity' : '-Infinity';
+
+        // If it's an integer and within safe range, show without decimals
+        if (Number.isInteger(num) && Math.abs(num) < 1e15) {
+            return num.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        }
+
+        // For decimals, show up to 10 significant digits
+        const str = num.toPrecision(10);
+        // Remove trailing zeros after decimal point
+        const cleaned = parseFloat(str).toString();
+
+        // If too long, use scientific notation
+        if (cleaned.length > 15) {
+            return num.toExponential(6);
+        }
+
+        return cleaned;
+    }
+
+    function inputDigit(digit) {
+        if (calc.waitingForSecond) {
+            calc.displayValue = digit;
+            calc.waitingForSecond = false;
+            clearActiveOp();
+        } else {
+            if (calc.displayValue === '0' && digit !== '0') {
+                calc.displayValue = digit;
+            } else if (calc.displayValue === '0' && digit === '0') {
+                return; // no leading zeros
+            } else {
+                if (calc.displayValue.replace(/[^0-9]/g, '').length >= 15) return; // max digits
+                calc.displayValue += digit;
+            }
+        }
+        updateDisplay();
+    }
+
+    function inputDecimal() {
+        if (calc.waitingForSecond) {
+            calc.displayValue = '0.';
+            calc.waitingForSecond = false;
+            clearActiveOp();
+            updateDisplay();
+            return;
+        }
+        if (!calc.displayValue.includes('.')) {
+            calc.displayValue += '.';
+        }
+        updateDisplay();
+    }
+
+    function handleOperator(nextOp) {
+        const current = parseFloat(calc.displayValue);
+
+        if (calc.operator && calc.waitingForSecond) {
+            // Change operator without computing
+            calc.operator = nextOp;
+            calc.expression = formatNumber(calc.firstOperand) + ' ' + opSymbol(nextOp);
+            updateDisplay();
+            setActiveOp(nextOp);
+            return;
+        }
+
+        if (calc.firstOperand === null) {
+            calc.firstOperand = current;
+        } else if (calc.operator) {
+            const result = compute(calc.firstOperand, current, calc.operator);
+            calc.displayValue = formatNumber(result);
+            calc.firstOperand = result;
+        }
+
+        calc.waitingForSecond = true;
+        calc.operator = nextOp;
+        calc.expression = formatNumber(calc.firstOperand) + ' ' + opSymbol(nextOp);
+        updateDisplay();
+        setActiveOp(nextOp);
+    }
+
+    function opSymbol(op) {
+        return { '+': '+', '-': '-', '*': 'x', '/': '/' }[op] || op;
+    }
+
+    function compute(a, b, op) {
+        switch (op) {
+            case '+': return a + b;
+            case '-': return a - b;
+            case '*': return a * b;
+            case '/': return b !== 0 ? a / b : NaN;
+            default: return b;
+        }
+    }
+
+    function handleEquals() {
+        if (calc.operator === null || calc.waitingForSecond) return;
+
+        const current = parseFloat(calc.displayValue);
+        const result = compute(calc.firstOperand, current, calc.operator);
+
+        calc.expression = formatNumber(calc.firstOperand) + ' ' + opSymbol(calc.operator) + ' ' + formatNumber(current) + ' =';
+        calc.displayValue = formatNumber(result);
+        calc.firstOperand = null;
+        calc.operator = null;
+        calc.waitingForSecond = false;
+        clearActiveOp();
+        updateDisplay();
+    }
+
+    function handleClear() {
+        calc.displayValue = '0';
+        calc.firstOperand = null;
+        calc.operator = null;
+        calc.waitingForSecond = false;
+        calc.expression = '';
+        clearActiveOp();
+        updateDisplay();
+    }
+
+    function handleSign() {
+        if (calc.displayValue === '0' || calc.displayValue === 'Error') return;
+        if (calc.displayValue.startsWith('-')) {
+            calc.displayValue = calc.displayValue.slice(1);
+        } else {
+            calc.displayValue = '-' + calc.displayValue;
+        }
+        updateDisplay();
+    }
+
+    function handlePercent() {
+        const current = parseFloat(calc.displayValue);
+        if (isNaN(current)) return;
+
+        if (calc.firstOperand !== null && (calc.operator === '+' || calc.operator === '-')) {
+            // Percent of first operand (e.g., 100 + 10% = 100 + 10)
+            calc.displayValue = formatNumber(calc.firstOperand * current / 100);
+        } else {
+            calc.displayValue = formatNumber(current / 100);
+        }
+        updateDisplay();
+    }
+
+    function setActiveOp(op) {
+        clearActiveOp();
+        const btns = document.querySelectorAll('.btn-op');
+        btns.forEach(btn => {
+            if (btn.dataset.op === op) btn.classList.add('active');
+        });
+    }
+
+    function clearActiveOp() {
+        document.querySelectorAll('.btn-op.active').forEach(btn => btn.classList.remove('active'));
+    }
+
+    /* ---- Event Handling ---- */
+    document.getElementById('btn-grid').addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+
+        e.stopPropagation();
+
+        const action = btn.dataset.action;
+        switch (action) {
+            case 'digit':
+                inputDigit(btn.dataset.digit);
+                break;
+            case 'decimal':
+                inputDecimal();
+                break;
+            case 'op':
+                handleOperator(btn.dataset.op);
+                break;
+            case 'equals':
+                handleEquals();
+                break;
+            case 'clear':
+                handleClear();
+                break;
+            case 'sign':
+                handleSign();
+                break;
+            case 'percent':
+                handlePercent();
+                break;
+        }
+    });
+
+    /* ---- iCUE Integration ---- */
+    function readSettings() {
+        try {
+            if (typeof textColor !== 'undefined') {
+                document.documentElement.style.setProperty('--text-color', textColor);
+            }
+            if (typeof accentColor !== 'undefined') {
+                document.documentElement.style.setProperty('--accent-color', accentColor);
+            }
+            if (typeof backgroundColor !== 'undefined') {
+                document.documentElement.style.setProperty('--bg-color', backgroundColor);
+            }
+            if (typeof transparency !== 'undefined') {
+                document.documentElement.style.setProperty('--widget-opacity', 1 - (transparency / 100));
+            }
+            if (typeof customTitle !== 'undefined') {
+                var wt = document.getElementById('widget-title');
+                wt.textContent = customTitle;
+                wt.style.display = customTitle ? 'block' : 'none';
+            }
+        } catch (e) {}
+    }
+
+    function onInit() {
+        readSettings();
+        updateDisplay();
+    }
+
+    icueEvents = {
+        "onICUEInitialized": onInit,
+        "onDataUpdated": readSettings
+    };
+
+    if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {
+        onInit();
+    }
+
+    // Standalone fallback
+    if (typeof iCUE_initialized === 'undefined') { onInit(); }
+    </script>
+</body>
+</html>

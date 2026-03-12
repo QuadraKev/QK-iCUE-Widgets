@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Probe v2</title>
+
+    <!-- iCUE Widget Metadata -->
+    <meta name="x-icue-widget-group" content="Monitoring">
+    <meta name="x-icue-interactive">
+    <meta name="x-icue-restrictions"
+        data-restrictions='[{"device":"dashboard_lcd"}]'>
+
+    <!-- Data source properties for probing -->
+    <meta name="x-icue-property" content="mediaSession" data-type="media-session">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        @font-face { font-family: 'OpenSans'; src: url('qrc:/fonts/OpenSans-Regular.ttf'); }
+        @font-face { font-family: 'OpenSansSemiBold'; src: url('qrc:/fonts/OpenSans-SemiBold.ttf'); }
+
+        body {
+            font-family: 'OpenSans', 'Consolas', monospace;
+            background: #0a0a0a; color: #e0e0e0;
+            width: 100vw; height: 100vh; overflow: auto;
+            padding: 1.5vh 2vw;
+        }
+        h1 { font-family: 'OpenSansSemiBold', sans-serif; font-size: 2.5vh; color: #00ffaa; margin-bottom: 1vh; }
+        .export-bar {
+            background: #1a1a2e; border: 2px solid #00ffaa; border-radius: 1vh;
+            padding: 1vh 2vw; margin-bottom: 1.5vh;
+            display: flex; align-items: center; flex-wrap: wrap; gap: 1.5vw;
+        }
+        .export-bar button {
+            font-family: 'OpenSansSemiBold', sans-serif; font-size: 1.8vh;
+            padding: 0.6vh 1.5vw; border: none; border-radius: 0.5vh;
+            cursor: pointer; color: #0a0a0a; background: #00ffaa;
+        }
+        .export-bar button:active { opacity: 0.7; }
+        .export-status { font-size: 1.6vh; color: #aaa; flex-basis: 100%; margin-top: 0.3vh; }
+        .export-status.ok { color: #00ff88; }
+        .export-status.err { color: #ff6666; }
+        .section { margin-bottom: 1.5vh; }
+        .section-title {
+            font-family: 'OpenSansSemiBold', sans-serif; font-size: 1.8vh; color: #88bbff;
+            margin-bottom: 0.5vh; border-bottom: 1px solid rgba(136, 187, 255, 0.2); padding-bottom: 0.2vh;
+        }
+        .result { font-size: 1.4vh; line-height: 2vh; padding: 0.15vh 0; display: flex; gap: 1vw; }
+        .label { color: #aaa; min-width: 28vw; flex-shrink: 0; }
+        .value { color: #e0e0e0; word-break: break-all; }
+        .pass { color: #00ff88; }
+        .fail { color: #ff6666; }
+        .warn { color: #ffaa44; }
+        .info { color: #88bbff; }
+    </style>
+</head>
+<body>
+    <h1>iCUE API Probe v2 — Media Focus</h1>
+    <div class="export-bar">
+        <button onclick="exportPost()">POST to localhost:9876</button>
+        <button onclick="exportClipboard()">Copy to Clipboard</button>
+        <button onclick="exportDownload()">Download .txt</button>
+        <div class="export-status" id="export-status">Probing...</div>
+    </div>
+    <div id="probe-output"></div>
+
+    <script>
+        const output = document.getElementById('probe-output');
+        function addSection(title) {
+            const div = document.createElement('div');
+            div.className = 'section';
+            div.innerHTML = '<div class="section-title">' + esc(title) + '</div>';
+            output.appendChild(div);
+            return div;
+        }
+        function addResult(section, label, value, cls) {
+            const div = document.createElement('div');
+            div.className = 'result';
+            div.innerHTML = '<span class="label">' + esc(label) + '</span><span class="value ' + (cls||'') + '">' + esc(String(value)) + '</span>';
+            section.appendChild(div);
+        }
+        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        // ── 1. Environment (brief) ──
+        function probeEnvironment() {
+            const s = addSection('Environment');
+            addResult(s, 'User Agent', navigator.userAgent, 'info');
+            addResult(s, 'Viewport', window.innerWidth + 'x' + window.innerHeight, 'info');
+            addResult(s, 'Screen', screen.width + 'x' + screen.height, 'info');
+        }
+
+        // ── 2. iCUE API — full enumeration ──
+        function probeICUE() {
+            const s = addSection('iCUE API (window.iCUE)');
+            if (typeof iCUE === 'undefined') {
+                addResult(s, 'iCUE object', 'NOT FOUND', 'fail');
+                return;
+            }
+            addResult(s, 'iCUE object', 'EXISTS', 'pass');
+
+            const allProps = new Set();
+            let obj = iCUE;
+            while (obj && obj !== Object.prototype) {
+                Object.getOwnPropertyNames(obj).forEach(function(p) { allProps.add(p); });
+                try { obj = Object.getPrototypeOf(obj); } catch(e) { break; }
+            }
+            var sorted = Array.from(allProps).sort();
+            for (var i = 0; i < sorted.length; i++) {
+                var prop = sorted[i];
+                try {
+                    var val = iCUE[prop];
+                    var type = typeof val;
+                    if (type === 'function') {
+                        addResult(s, 'iCUE.' + prop, '[function]', 'info');
+                    } else if (type === 'object' && val !== null) {
+                        addResult(s, 'iCUE.' + prop, '(' + type + ') keys: ' + Object.keys(val).join(', '), 'info');
+                    } else {
+                        addResult(s, 'iCUE.' + prop, '(' + type + ') ' + JSON.stringify(val), 'info');
+                    }
+                } catch (e) {
+                    addResult(s, 'iCUE.' + prop, 'ERROR: ' + e.message, 'warn');
+                }
+            }
+        }
+
+        // ── 3. Qt WebChannel exploration ──
+        function probeQtWebChannel() {
+            const s = addSection('Qt WebChannel');
+
+            // Check for qt global
+            addResult(s, 'window.qt', typeof qt !== 'undefined' ? 'EXISTS' : 'undefined',
+                typeof qt !== 'undefined' ? 'pass' : 'fail');
+
+            if (typeof qt !== 'undefined') {
+                try {
+                    var qtKeys = Object.keys(qt);
+                    addResult(s, 'qt keys', qtKeys.join(', ') || '(none)', 'info');
+                } catch(e) {
+                    addResult(s, 'qt keys', 'ERROR: ' + e.message, 'warn');
+                }
+
+                addResult(s, 'qt.webChannelTransport', typeof qt.webChannelTransport !== 'undefined' ? 'EXISTS' : 'undefined',
+                    typeof qt.webChannelTransport !== 'undefined' ? 'pass' : 'fail');
+
+                if (typeof qt.webChannelTransport !== 'undefined') {
+                    try {
+                        var tKeys = Object.getOwnPropertyNames(qt.webChannelTransport);
+                        addResult(s, 'transport props', tKeys.join(', '), 'info');
+                    } catch(e) {
+                        addResult(s, 'transport props', 'ERROR: ' + e.message, 'warn');
+                    }
+                }
+            }
+
+            // Check for QWebChannel constructor
+            addResult(s, 'QWebChannel', typeof QWebChannel !== 'undefined' ? 'EXISTS' : 'undefined',
+                typeof QWebChannel !== 'undefined' ? 'pass' : 'fail');
+
+            // Try to create a new WebChannel to enumerate ALL objects
+            if (typeof QWebChannel !== 'undefined' && typeof qt !== 'undefined' && qt.webChannelTransport) {
+                try {
+                    new QWebChannel(qt.webChannelTransport, function(channel) {
+                        addResult(s, 'channel.objects', 'connected!', 'pass');
+                        try {
+                            var objNames = Object.keys(channel.objects);
+                            addResult(s, 'object count', objNames.length, 'info');
+                            for (var i = 0; i < objNames.length; i++) {
+                                var name = objNames[i];
+                                var obj = channel.objects[name];
+                                var objProps = [];
+                                try {
+                                    var allP = new Set();
+                                    var o = obj;
+                                    while (o && o !== Object.prototype) {
+                                        Object.getOwnPropertyNames(o).forEach(function(p) { allP.add(p); });
+                                        try { o = Object.getPrototypeOf(o); } catch(e2) { break; }
+                                    }
+                                    objProps = Array.from(allP).filter(function(p) {
+                                        return p !== 'constructor' && p !== '__id__' &&
+                                               p !== '__objectSignals__' && p !== '__propertyCache__' &&
+                                               p !== 'toJSON' && p !== 'unwrapProperties' &&
+                                               p !== 'unwrapQObject' && p !== 'propertyUpdate' &&
+                                               p !== 'signalEmitted' && p !== 'deleteLater' &&
+                                               p !== 'deleteLater()' && p !== 'objectName' &&
+                                               p !== 'objectNameChanged' && p !== 'destroyed' &&
+                                               !p.startsWith('destroyed(');
+                                    }).sort();
+                                } catch(e2) {}
+
+                                addResult(s, 'objects.' + name, objProps.join(', ') || '(base QObject only)', 'pass');
+
+                                // Deep-dive: enumerate ALL props with types for non-iCUE objects
+                                if (name !== 'iCUE') {
+                                    for (var j = 0; j < objProps.length; j++) {
+                                        try {
+                                            var pName = objProps[j];
+                                            var pVal = obj[pName];
+                                            var pType = typeof pVal;
+                                            if (pType === 'function') {
+                                                addResult(s, '  ' + name + '.' + pName, '[function]', 'info');
+                                            } else if (pType === 'object' && pVal !== null) {
+                                                addResult(s, '  ' + name + '.' + pName, JSON.stringify(pVal).substring(0, 200), 'info');
+                                            } else {
+                                                addResult(s, '  ' + name + '.' + pName, '(' + pType + ') ' + JSON.stringify(pVal), 'info');
+                                            }
+                                        } catch(e3) {
+                                            addResult(s, '  ' + name + '.' + objProps[j], 'ERROR: ' + e3.message, 'warn');
+                                        }
+                                    }
+                                }
+
+                                // Check __propertyCache__ for current values
+                                try {
+                                    if (obj.__propertyCache__) {
+                                        addResult(s, '  ' + name + '.__propertyCache__', JSON.stringify(obj.__propertyCache__).substring(0, 300), 'info');
+                                    }
+                                } catch(e2) {}
+
+                                // Check signals
+                                try {
+                                    if (obj.__objectSignals__) {
+                                        var sigKeys = Object.keys(obj.__objectSignals__);
+                                        addResult(s, '  ' + name + '.__objectSignals__', JSON.stringify(obj.__objectSignals__).substring(0, 300), 'info');
+                                    }
+                                } catch(e2) {}
+                            }
+                        } catch(e) {
+                            addResult(s, 'enumerate objects', 'ERROR: ' + e.message, 'fail');
+                        }
+
+                        // After WebChannel probe, auto-POST
+                        setTimeout(autoPost, 2000);
+                    });
+                } catch(e) {
+                    addResult(s, 'QWebChannel init', 'ERROR: ' + e.message, 'fail');
+                }
+            }
+        }
+
+        // ── 4. Media Session API ──
+        function probeMediaSession() {
+            const s = addSection('Media Session API');
+            if (!('mediaSession' in navigator)) {
+                addResult(s, 'navigator.mediaSession', 'NOT AVAILABLE', 'fail');
+                return;
+            }
+            addResult(s, 'navigator.mediaSession', 'EXISTS', 'pass');
+            try {
+                addResult(s, 'playbackState', navigator.mediaSession.playbackState || '(empty)', 'info');
+            } catch (e) {
+                addResult(s, 'playbackState', 'ERROR: ' + e.message, 'warn');
+            }
+            try {
+                var md = navigator.mediaSession.metadata;
+                if (md) {
+                    addResult(s, 'metadata.title', md.title || '(empty)', 'pass');
+                    addResult(s, 'metadata.artist', md.artist || '(empty)', 'pass');
+                    addResult(s, 'metadata.album', md.album || '(empty)', 'pass');
+                } else {
+                    addResult(s, 'metadata', 'null (no active session)', 'warn');
+                }
+            } catch (e) {
+                addResult(s, 'metadata', 'ERROR: ' + e.message, 'warn');
+            }
+        }
+
+        // ── 5. Web Audio (brief) ──
+        function probeWebAudio() {
+            const s = addSection('Web Audio API');
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) { addResult(s, 'AudioContext', 'NOT AVAILABLE', 'fail'); return; }
+            addResult(s, 'AudioContext', 'EXISTS', 'pass');
+            try {
+                var ctx = new AC();
+                addResult(s, 'sampleRate', ctx.sampleRate, 'info');
+                addResult(s, 'createAnalyser', typeof ctx.createAnalyser === 'function' ? 'available' : 'N/A',
+                    typeof ctx.createAnalyser === 'function' ? 'pass' : 'fail');
+                addResult(s, 'createMediaStreamSource', typeof ctx.createMediaStreamSource === 'function' ? 'available' : 'N/A',
+                    typeof ctx.createMediaStreamSource === 'function' ? 'pass' : 'fail');
+                ctx.close();
+            } catch(e) { addResult(s, 'init', 'ERROR: ' + e.message, 'fail'); }
+        }
+
+        // ── 6. Media Devices (NO getUserMedia — it hangs) ──
+        function probeMediaDevices() {
+            const s = addSection('Media Devices (enumeration only)');
+            if (!navigator.mediaDevices) {
+                addResult(s, 'navigator.mediaDevices', 'NOT AVAILABLE', 'fail');
+                return;
+            }
+            addResult(s, 'navigator.mediaDevices', 'EXISTS', 'pass');
+            addResult(s, 'getUserMedia', typeof navigator.mediaDevices.getUserMedia === 'function' ? 'available' : 'N/A', 'info');
+
+            if (typeof navigator.mediaDevices.enumerateDevices === 'function') {
+                navigator.mediaDevices.enumerateDevices().then(function(devices) {
+                    devices.forEach(function(d, i) {
+                        addResult(s, d.kind + '[' + i + ']', (d.label || '(no label)') + ' id:' + d.deviceId.substring(0,20), 'info');
+                    });
+                }).catch(function(e) {
+                    addResult(s, 'enumerateDevices', 'ERROR: ' + e.message, 'fail');
+                });
+            }
+        }
+
+        // ── 7. Non-standard window globals ──
+        function probeWindowGlobals() {
+            const s = addSection('Non-Standard Window Globals');
+            const skip = new Set([
+                'window','self','document','name','location','customElements','history',
+                'navigation','locationbar','menubar','personalbar','scrollbars','statusbar',
+                'toolbar','status','closed','frames','length','top','opener','parent',
+                'frameElement','navigator','origin','external','screen','visualViewport',
+                'innerWidth','innerHeight','outerWidth','outerHeight','devicePixelRatio',
+                'clientInformation','screenX','screenY','screenLeft','screenTop','styleMedia',
+                'isSecureContext','crossOriginIsolated','performance','caches','scheduler',
+                'cookieStore','trustedTypes','crypto','indexedDB','sessionStorage','localStorage',
+                'chrome','speechSynthesis',
+                'alert','atob','blur','btoa','cancelAnimationFrame','cancelIdleCallback',
+                'clearInterval','clearTimeout','close','confirm','createImageBitmap','fetch',
+                'find','focus','getComputedStyle','getSelection','matchMedia','moveBy','moveTo',
+                'open','postMessage','print','prompt','queueMicrotask','reportError',
+                'requestAnimationFrame','requestIdleCallback','resizeBy','resizeTo','scroll',
+                'scrollBy','scrollTo','setInterval','setTimeout','stop','structuredClone',
+                'webkitCancelAnimationFrame','webkitRequestAnimationFrame','getScreenDetails',
+                'queryLocalFonts','showDirectoryPicker','showOpenFilePicker','showSaveFilePicker',
+                'webkitRequestFileSystem','webkitResolveLocalFileSystemURL',
+                // our own
+                'output','esc','addSection','addResult','probeEnvironment','probeICUE',
+                'probeQtWebChannel','probeMediaSession','probeWebAudio','probeMediaDevices',
+                'probeWindowGlobals','probeICUEMediaSession','runAllProbes','generateReport','setExportStatus',
+                'exportDownload','exportClipboard','exportPost','autoPost','autoPosted'
+            ]);
+
+            var found = 0;
+            var allKeys = Object.getOwnPropertyNames(window);
+            for (var i = 0; i < allKeys.length; i++) {
+                var key = allKeys[i];
+                if (skip.has(key)) continue;
+                if (/^[A-Z]/.test(key) && typeof window[key] === 'function') continue;
+                if (key.startsWith('on')) continue;
+                try {
+                    var val = window[key];
+                    var type = typeof val;
+                    var display;
+                    if (type === 'function') display = '[function]';
+                    else if (type === 'object' && val !== null) {
+                        try { display = '[object] keys: ' + Object.keys(val).slice(0,10).join(', '); }
+                        catch(e2) { display = '[object]'; }
+                    } else display = '(' + type + ') ' + JSON.stringify(val);
+                    addResult(s, key, display, 'pass');
+                    found++;
+                } catch(e) {
+                    addResult(s, key, 'ERROR: ' + e.message, 'warn');
+                    found++;
+                }
+            }
+            if (found === 0) addResult(s, '(none)', 'No non-standard globals', 'info');
+        }
+
+        // ── 8. Signal monitor — hook into iCUE signals for 5 seconds ──
+        function probeSignals() {
+            const s = addSection('iCUE Signal Monitor (5 second capture)');
+            if (typeof iCUE === 'undefined') {
+                addResult(s, 'iCUE', 'not available, cannot monitor', 'fail');
+                return;
+            }
+
+            var signalLog = [];
+            var origSignalEmitted = iCUE.signalEmitted;
+
+            // Hook signalEmitted
+            try {
+                iCUE.signalEmitted = function() {
+                    var args = Array.prototype.slice.call(arguments);
+                    signalLog.push({ t: Date.now(), args: JSON.stringify(args).substring(0, 500) });
+                    if (origSignalEmitted) origSignalEmitted.apply(iCUE, arguments);
+                };
+                addResult(s, 'hook installed', 'monitoring signalEmitted...', 'pass');
+            } catch(e) {
+                addResult(s, 'hook failed', e.message, 'fail');
+            }
+
+            // Also hook propertyUpdate
+            var origPropertyUpdate = iCUE.propertyUpdate;
+            try {
+                iCUE.propertyUpdate = function() {
+                    var args = Array.prototype.slice.call(arguments);
+                    signalLog.push({ t: Date.now(), type: 'propertyUpdate', args: JSON.stringify(args).substring(0, 500) });
+                    if (origPropertyUpdate) origPropertyUpdate.apply(iCUE, arguments);
+                };
+                addResult(s, 'propertyUpdate hook', 'monitoring...', 'pass');
+            } catch(e) {
+                addResult(s, 'propertyUpdate hook', 'failed: ' + e.message, 'fail');
+            }
+
+            // After 5 seconds, dump captured signals
+            setTimeout(function() {
+                iCUE.signalEmitted = origSignalEmitted;
+                iCUE.propertyUpdate = origPropertyUpdate;
+
+                if (signalLog.length === 0) {
+                    addResult(s, 'captured signals', '0 (no signals in 5s window)', 'warn');
+                } else {
+                    addResult(s, 'captured signals', signalLog.length + ' total', 'pass');
+                    for (var i = 0; i < Math.min(signalLog.length, 30); i++) {
+                        var entry = signalLog[i];
+                        var label = entry.type ? entry.type : 'signal';
+                        addResult(s, '  ' + label + ' @' + (entry.t % 100000), entry.args, 'info');
+                    }
+                }
+            }, 5000);
+        }
+
+        // ── Report generation ──
+        function generateReport() {
+            var lines = ['=== iCUE API Probe v2 Report ===', 'Date: ' + new Date().toISOString(), ''];
+            var sections = output.querySelectorAll('.section');
+            for (var si = 0; si < sections.length; si++) {
+                var section = sections[si];
+                var title = section.querySelector('.section-title');
+                if (title) {
+                    lines.push('────────────────────────────────────────────────────────────');
+                    lines.push(title.textContent);
+                    lines.push('────────────────────────────────────────────────────────────');
+                }
+                var results = section.querySelectorAll('.result');
+                for (var ri = 0; ri < results.length; ri++) {
+                    var r = results[ri];
+                    var label = r.querySelector('.label');
+                    var value = r.querySelector('.value');
+                    if (label && value) {
+                        var cls = value.classList.contains('pass') ? '[PASS]' :
+                                  value.classList.contains('fail') ? '[FAIL]' :
+                                  value.classList.contains('warn') ? '[WARN]' : '[INFO]';
+                        lines.push('  ' + cls + ' ' + label.textContent.padEnd(35) + ' ' + value.textContent);
+                    }
+                }
+                lines.push('');
+            }
+            return lines.join('\n');
+        }
+
+        function setExportStatus(msg, ok) {
+            var el = document.getElementById('export-status');
+            el.textContent = msg;
+            el.className = 'export-status ' + (ok ? 'ok' : 'err');
+        }
+
+        function exportDownload() {
+            try {
+                var text = generateReport();
+                var blob = new Blob([text], { type: 'text/plain' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url; a.download = 'api-probe-v2.txt';
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                setExportStatus('Download triggered', true);
+            } catch (e) { setExportStatus('Download failed: ' + e.message, false); }
+        }
+
+        function exportClipboard() {
+            navigator.clipboard.writeText(generateReport())
+                .then(function() { setExportStatus('Copied to clipboard!', true); })
+                .catch(function(e) { setExportStatus('Clipboard failed: ' + e.message, false); });
+        }
+
+        function exportPost() {
+            fetch('http://localhost:9876/probe-results', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: generateReport()
+            }).then(function(r) {
+                setExportStatus(r.ok ? 'POST sent!' : 'POST failed: HTTP ' + r.status, r.ok);
+            }).catch(function(e) {
+                setExportStatus('POST failed: ' + e.message, false);
+            });
+        }
+
+        var autoPosted = false;
+        function autoPost() {
+            if (autoPosted) return;
+            autoPosted = true;
+            setExportStatus('Auto-posting results...', true);
+            exportPost();
+        }
+
+        // ── 9. iCUE media-session property ──
+        function probeICUEMediaSession() {
+            const s = addSection('iCUE media-session Property (deep enumeration)');
+            if (typeof mediaSession === 'undefined') {
+                addResult(s, 'mediaSession global', 'NOT INJECTED (no music playing, or property not registered)', 'fail');
+                return;
+            }
+            addResult(s, 'mediaSession global', 'EXISTS', 'pass');
+            addResult(s, 'typeof', typeof mediaSession, 'info');
+
+            if (mediaSession === null) {
+                addResult(s, 'value', 'null', 'warn');
+                return;
+            }
+
+            if (typeof mediaSession !== 'object') {
+                addResult(s, 'value', String(mediaSession), 'info');
+                return;
+            }
+
+            // Enumerate all own properties
+            try {
+                var keys = Object.keys(mediaSession);
+                addResult(s, 'Object.keys()', keys.join(', ') || '(empty)', 'info');
+                addResult(s, 'key count', keys.length, 'info');
+
+                for (var i = 0; i < keys.length; i++) {
+                    var key = keys[i];
+                    try {
+                        var val = mediaSession[key];
+                        var type = typeof val;
+                        if (type === 'function') {
+                            addResult(s, '  .' + key, '[function]', 'info');
+                        } else if (type === 'object' && val !== null) {
+                            addResult(s, '  .' + key, '(' + type + ') ' + JSON.stringify(val).substring(0, 300), 'pass');
+                        } else {
+                            addResult(s, '  .' + key, '(' + type + ') ' + JSON.stringify(val), 'pass');
+                        }
+                    } catch(e) {
+                        addResult(s, '  .' + key, 'ERROR: ' + e.message, 'warn');
+                    }
+                }
+            } catch(e) {
+                addResult(s, 'Object.keys()', 'ERROR: ' + e.message, 'fail');
+            }
+
+            // Also walk prototype chain for non-enumerable properties
+            try {
+                var allProps = new Set();
+                var obj = mediaSession;
+                while (obj && obj !== Object.prototype) {
+                    Object.getOwnPropertyNames(obj).forEach(function(p) { allProps.add(p); });
+                    try { obj = Object.getPrototypeOf(obj); } catch(e) { break; }
+                }
+                var extra = Array.from(allProps).filter(function(p) { return keys.indexOf(p) === -1; }).sort();
+                if (extra.length > 0) {
+                    addResult(s, 'non-enumerable/prototype props', extra.join(', '), 'info');
+                }
+            } catch(e) {}
+
+            // JSON stringify the whole thing
+            try {
+                addResult(s, 'JSON.stringify()', JSON.stringify(mediaSession).substring(0, 500), 'pass');
+            } catch(e) {
+                addResult(s, 'JSON.stringify()', 'ERROR: ' + e.message, 'warn');
+            }
+        }
+
+        // ── Run all probes ──
+        function runAllProbes() {
+            probeEnvironment();
+            probeICUE();
+            probeQtWebChannel();  // This is async (WebChannel callback) — triggers autoPost when done
+            probeMediaSession();
+            probeICUEMediaSession();
+            probeWebAudio();
+            probeMediaDevices();  // async but won't hang (no getUserMedia)
+            probeWindowGlobals();
+            probeSignals();       // 5-second capture window
+
+            // Fallback auto-POST after 8 seconds if WebChannel probe didn't trigger it
+            // (after signal monitor completes at 5s + buffer)
+            setTimeout(function() {
+                autoPost();
+            }, 8000);
+        }
+
+        // Run on load
+        if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {
+            runAllProbes();
+        } else {
+            window.addEventListener('DOMContentLoaded', function() {
+                setTimeout(runAllProbes, 500);
+            });
+        }
+    </script>
+</body>
+</html>

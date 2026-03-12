@@ -1,0 +1,211 @@
+=== iCUE API Probe v2 Report ===
+Date: 2026-03-12T05:35:46.385Z
+
+────────────────────────────────────────────────────────────
+Environment
+────────────────────────────────────────────────────────────
+  [INFO] User Agent                          Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) QtWebEngine/6.9.3 Chrome/130.0.0.0 Safari/537.36
+  [INFO] Viewport                            2537x697
+  [INFO] Screen                              2560x720
+
+────────────────────────────────────────────────────────────
+iCUE API (window.iCUE)
+────────────────────────────────────────────────────────────
+  [PASS] iCUE object                         EXISTS
+  [INFO] iCUE.__id__                         (string) "{b72a275b-8bd6-42d4-a301-c7bc1fdeab75}"
+  [INFO] iCUE.__objectSignals__              (object) keys: 0
+  [INFO] iCUE.__propertyCache__              (object) keys: 0, 1, 2, 3
+  [INFO] iCUE.allTimeZones                   [function]
+  [INFO] iCUE.allTimeZones()                 [function]
+  [INFO] iCUE.constructor                    [function]
+  [INFO] iCUE.default24HourFormat            [function]
+  [INFO] iCUE.default24HourFormat()          [function]
+  [INFO] iCUE.defaultTimeZone                [function]
+  [INFO] iCUE.defaultTimeZone()              [function]
+  [INFO] iCUE.deleteLater                    [function]
+  [INFO] iCUE.deleteLater()                  [function]
+  [INFO] iCUE.destroyed                      (object) keys: connect, disconnect
+  [INFO] iCUE.destroyed()                    (object) keys: connect, disconnect
+  [INFO] iCUE.destroyed(QObject*)            (object) keys: connect, disconnect
+  [INFO] iCUE.formatUserLocaleDate           [function]
+  [INFO] iCUE.formatUserLocaleDate()         [function]
+  [INFO] iCUE.formatUserLocaleDate(QString)  [function]
+  [INFO] iCUE.formatUserLocaleDate(QString,QString) [function]
+  [INFO] iCUE.formatUserLocaleTime           [function]
+  [INFO] iCUE.formatUserLocaleTime()         [function]
+  [INFO] iCUE.formatUserLocaleTime(QString)  [function]
+  [INFO] iCUE.formatUserLocaleTime(QString,QString) [function]
+  [INFO] iCUE.fpsLimit                       (number) 10
+  [INFO] iCUE.fpsLimitChanged                (object) keys: connect, disconnect
+  [INFO] iCUE.iCUELanguage                   (string) "en"
+  [INFO] iCUE.ipRegistryApiKey               (string) "wb090t0kergul3yf"
+  [INFO] iCUE.objectName                     (string) ""
+  [INFO] iCUE.objectNameChanged              (object) keys: connect, disconnect
+  [INFO] iCUE.propertyUpdate                 [function]
+  [INFO] iCUE.signalEmitted                  [function]
+  [INFO] iCUE.toJSON                         [function]
+  [INFO] iCUE.undefined                      (object) keys: connect, disconnect
+  [INFO] iCUE.unwrapProperties               [function]
+  [INFO] iCUE.unwrapQObject                  [function]
+
+────────────────────────────────────────────────────────────
+Qt WebChannel
+────────────────────────────────────────────────────────────
+  [PASS] window.qt                           EXISTS
+  [INFO] qt keys                             webChannelTransport
+  [PASS] qt.webChannelTransport              EXISTS
+  [INFO] transport props                     send, onmessage
+  [PASS] QWebChannel                         EXISTS
+  [PASS] channel.objects                     connected!
+  [INFO] object count                        2
+  [PASS] objects.backend                     data, dataChanged, dataScript, dataScriptChanged, fpsLimit, fpsLimitChanged, htmlSourceChanged, htmlSourceChanged(), iCUEGlobalObject, localStoragePath, requestUpdate, requestUpdate(), tick, tickChanged, tr, tr(QString), undefined, updateRequested, updateRequested(), url, urlChanged, webChannelId, webChannelIdChanged, widgetId, widgetIdChanged
+  [INFO]   backend.data                      {"mediaSession":{"artist":"Skumnut","songName":"Breaking Elden Ring with a weapon you probably never heard of (random enemy drop)"},"uniqueId":"{99c3136e-c78f-408f-b46b-46aef78900fc}","url":"file:///C
+  [INFO]   backend.dataChanged               {}
+  [INFO]   backend.dataScript                (string) "\nlet widgetPersonalizationCustomStylePresent = false;\nlet mediaSession = \"\";\nlet uniqueId = \"{99c3136e-c78f-408f-b46b-46aef78900fc}\";\n\nlet tick_offset = 0;\nlet tick_start = Date.now();\nlet iCUE_initialized = false;\n\nlet icueEvents = {\n\t\"onDataUpdated\": null,\n\t\"onICUEInitialized\": null,\n\t\"onUpdateRequested\": null\n};\n\nfunction updateTick(value) {\n\ttick_offset = value;\n\ttick_start = Date.now();\n}\n\nfunction tick() {\n\treturn Date.now() - tick_start + tick_offset;\n}\n\nfunction applyData(data) {\n\twidgetPersonalizationCustomStylePresent = data.widgetPersonalizationCustomStylePresent;\n\tmediaSession = data.mediaSession;\n\tuniqueId = data.uniqueId;\n\n\n\tif (iCUE_initialized && typeof icueEvents.onDataUpdated === 'function') {\n\t\ticueEvents.onDataUpdated();\n\t}\n}\n\nfunction requestUpdate() {\n\tif (iCUE_initialized && typeof icueEvents.onUpdateRequested === 'function') {\n\t\ticueEvents.onUpdateRequested();\n\t}\n}\n\nnew QWebChannel(qt.webChannelTransport, function(channel) {\n\tapplyData(channel.objects.backend.data);\n\tchannel.objects.backend.dataChanged.connect(applyData);\n\tchannel.objects.backend.updateRequested.connect(requestUpdate);\n\n\tupdateTick(channel.objects.backend.tick);\n\n\tif (typeof window.tr !== 'function') {\n\t\twindow.tr = function(s) { return channel.objects.backend.tr(s); };\n\t}\n\tif (!window.iCUE) {\n\t\twindow.iCUE = channel.objects.backend.iCUEGlobalObject;\n\t}\n\n\tiCUE_initialized = true;\n\tif (typeof icueEvents.onICUEInitialized === 'function') {\n\t\ticueEvents.onICUEInitialized();\n\t}\n});\n"
+  [INFO]   backend.dataScriptChanged         {}
+  [INFO]   backend.fpsLimit                  (number) 10
+  [INFO]   backend.fpsLimitChanged           {}
+  [INFO]   backend.htmlSourceChanged         {}
+  [INFO]   backend.htmlSourceChanged()       {}
+  [INFO]   backend.iCUEGlobalObject          {"id":"{b72a275b-8bd6-42d4-a301-c7bc1fdeab75}","__QObject*__":true}
+  [INFO]   backend.localStoragePath          (string) "C:/Users/QuadraKev/AppData/Roaming/Corsair/CUE5/html_widgets_browser_storage"
+  [INFO]   backend.requestUpdate             [function]
+  [INFO]   backend.requestUpdate()           [function]
+  [INFO]   backend.tick                      (number) 0
+  [INFO]   backend.tickChanged               {}
+  [INFO]   backend.tr                        [function]
+  [INFO]   backend.tr(QString)               [function]
+  [INFO]   backend.undefined                 {}
+  [INFO]   backend.updateRequested           {}
+  [INFO]   backend.updateRequested()         {}
+  [INFO]   backend.url                       (string) "file:///C:/Program%20Files/Corsair/Corsair%20iCUE5%20Software/widgets/QKApiProbe.html"
+  [INFO]   backend.urlChanged                {}
+  [INFO]   backend.webChannelId              (string) "backend"
+  [INFO]   backend.webChannelIdChanged       {}
+  [INFO]   backend.widgetId                  (string) "QKApiProbe.html"
+  [INFO]   backend.widgetIdChanged           {}
+  [INFO]   backend.__propertyCache__         {"0":"","1":{"mediaSession":{"artist":"Skumnut","songName":"Breaking Elden Ring with a weapon you probably never heard of (random enemy drop)"},"uniqueId":"{99c3136e-c78f-408f-b46b-46aef78900fc}","url":"file:///C:/Program%20Files/Corsair/Corsair%20iCUE5%20Software/widgets/QKApiProbe.html","widgetId"
+  [INFO]   backend.__objectSignals__         {}
+  [PASS] objects.{b72a275b-8bd6-42d4-a301-c7bc1fdeab75} allTimeZones, allTimeZones(), default24HourFormat, default24HourFormat(), defaultTimeZone, defaultTimeZone(), formatUserLocaleDate, formatUserLocaleDate(), formatUserLocaleDate(QString), formatUserLocaleDate(QString,QString), formatUserLocaleTime, formatUserLocaleTime(), formatUserLocaleTime(QString), formatUserLocaleTime(QString,QString), fpsLimit, fpsLimitChanged, iCUELanguage, ipRegistryApiKey, undefined
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.allTimeZones [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.allTimeZones() [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.default24HourFormat [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.default24HourFormat() [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.defaultTimeZone [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.defaultTimeZone() [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.formatUserLocaleDate [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.formatUserLocaleDate() [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.formatUserLocaleDate(QString) [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.formatUserLocaleDate(QString,QString) [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.formatUserLocaleTime [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.formatUserLocaleTime() [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.formatUserLocaleTime(QString) [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.formatUserLocaleTime(QString,QString) [function]
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.fpsLimit (number) 10
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.fpsLimitChanged {}
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.iCUELanguage (string) "en"
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.ipRegistryApiKey (string) "wb090t0kergul3yf"
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.undefined {}
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.__propertyCache__ {"0":"","1":"en","2":"wb090t0kergul3yf","3":10}
+  [INFO]   {b72a275b-8bd6-42d4-a301-c7bc1fdeab75}.__objectSignals__ {"0":[null]}
+
+────────────────────────────────────────────────────────────
+Media Session API
+────────────────────────────────────────────────────────────
+  [PASS] navigator.mediaSession              EXISTS
+  [INFO] playbackState                       none
+  [WARN] metadata                            null (no active session)
+
+────────────────────────────────────────────────────────────
+iCUE media-session Property (deep enumeration)
+────────────────────────────────────────────────────────────
+  [PASS] mediaSession global                 EXISTS
+  [INFO] typeof                              object
+  [INFO] Object.keys()                       artist, songName
+  [INFO] key count                           2
+  [PASS]   .artist                           (string) "Skumnut"
+  [PASS]   .songName                         (string) "Breaking Elden Ring with a weapon you probably never heard of (random enemy drop)"
+  [PASS] JSON.stringify()                    {"artist":"Skumnut","songName":"Breaking Elden Ring with a weapon you probably never heard of (random enemy drop)"}
+
+────────────────────────────────────────────────────────────
+Web Audio API
+────────────────────────────────────────────────────────────
+  [PASS] AudioContext                        EXISTS
+  [INFO] sampleRate                          48000
+  [PASS] createAnalyser                      available
+  [PASS] createMediaStreamSource             available
+
+────────────────────────────────────────────────────────────
+Media Devices (enumeration only)
+────────────────────────────────────────────────────────────
+  [PASS] navigator.mediaDevices              EXISTS
+  [INFO] getUserMedia                        available
+  [INFO] audioinput[0]                       (no label) id:
+  [INFO] videoinput[1]                       (no label) id:
+  [INFO] audiooutput[2]                      (no label) id:
+
+────────────────────────────────────────────────────────────
+Non-Standard Window Globals
+────────────────────────────────────────────────────────────
+  [PASS] parseFloat                          [function]
+  [PASS] parseInt                            [function]
+  [PASS] Infinity                            (number) null
+  [PASS] NaN                                 (number) null
+  [PASS] undefined                           (undefined) undefined
+  [PASS] globalThis                          [object] keys: window, self, document, name, location, customElements, history, navigation, locationbar, menubar
+  [PASS] JSON                                [object] keys: 
+  [PASS] Math                                [object] keys: 
+  [PASS] Intl                                [object] keys: 
+  [PASS] Atomics                             [object] keys: 
+  [PASS] Reflect                             [object] keys: 
+  [PASS] decodeURI                           [function]
+  [PASS] decodeURIComponent                  [function]
+  [PASS] encodeURI                           [function]
+  [PASS] encodeURIComponent                  [function]
+  [PASS] escape                              [function]
+  [PASS] unescape                            [function]
+  [PASS] eval                                [function]
+  [PASS] isFinite                            [function]
+  [PASS] isNaN                               [function]
+  [PASS] console                             [object] keys: debug, error, info, log, warn, dir, dirxml, table, trace, group
+  [PASS] webkitURL                           [function]
+  [PASS] webkitRTCPeerConnection             [function]
+  [PASS] webkitMediaStream                   [function]
+  [PASS] CSS                                 [object] keys: highlights, Hz, Q, cap, ch, cm, cqb, cqh, cqi, cqmax
+  [PASS] scrollX                             (number) 0
+  [PASS] pageXOffset                         (number) 0
+  [PASS] scrollY                             (number) 0
+  [PASS] pageYOffset                         (number) 0
+  [PASS] event                               (undefined) undefined
+  [PASS] offscreenBuffering                  (boolean) true
+  [PASS] captureEvents                       [function]
+  [PASS] releaseEvents                       [function]
+  [PASS] WebAssembly                         [object] keys: compile, validate, instantiate, compileStreaming, instantiateStreaming
+  [PASS] qt                                  [object] keys: webChannelTransport
+  [PASS] launchQueue                         [object] keys: 
+  [PASS] sharedStorage                       [object] keys: 
+  [PASS] documentPictureInPicture            [object] keys: 
+  [PASS] GPUBufferUsage                      [object] keys: MAP_READ, MAP_WRITE, COPY_SRC, COPY_DST, INDEX, VERTEX, UNIFORM, STORAGE, INDIRECT, QUERY_RESOLVE
+  [PASS] GPUColorWrite                       [object] keys: RED, GREEN, BLUE, ALPHA, ALL
+  [PASS] GPUMapMode                          [object] keys: READ, WRITE
+  [PASS] GPUShaderStage                      [object] keys: VERTEX, FRAGMENT, COMPUTE
+  [PASS] GPUTextureUsage                     [object] keys: COPY_SRC, COPY_DST, TEXTURE_BINDING, STORAGE_BINDING, RENDER_ATTACHMENT
+  [PASS] openDatabase                        [function]
+  [PASS] originAgentCluster                  (boolean) false
+  [PASS] credentialless                      (boolean) false
+  [PASS] fence                               (object) null
+  [PASS] QWebChannelMessageTypes             [object] keys: signal, propertyUpdate, init, idle, debug, invokeMethod, connectToSignal, disconnectFromSignal, setProperty, response
+  [PASS] updateTick                          [function]
+  [PASS] tick                                [function]
+  [PASS] applyData                           [function]
+  [PASS] requestUpdate                       [function]
+  [PASS] probeSignals                        [function]
+  [PASS] tr                                  [function]
+  [PASS] iCUE                                [object] keys: __id__, __objectSignals__, __propertyCache__, unwrapQObject, unwrapProperties, propertyUpdate, signalEmitted, deleteLater, deleteLater(), allTimeZones
+
+────────────────────────────────────────────────────────────
+iCUE Signal Monitor (5 second capture)
+────────────────────────────────────────────────────────────
+  [PASS] hook installed                      monitoring signalEmitted...
+  [PASS] propertyUpdate hook                 monitoring...
+  [WARN] captured signals                    0 (no signals in 5s window)
