@@ -25,4 +25,5 @@ jobs:
           files: |
             dist/*.zip
             dist/*.pyw
+            dist/*.bat
           generate_release_notes: true

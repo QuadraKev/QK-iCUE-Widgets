@@ -756,6 +756,64 @@ async def test_media():
         traceback.print_exc()
 
 
+def _create_tray_icon():
+    """Create a simple tray icon using pystray. Returns (icon, available) or (None, False)."""
+    try:
+        import pystray
+        from PIL import Image, ImageDraw
+    except ImportError:
+        return None, False
+
+    # Draw a simple icon: purple circle with a white play triangle
+    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([2, 2, 61, 61], fill=(230, 96, 255, 255))
+    draw.polygon([(24, 16), (24, 48), (50, 32)], fill=(255, 255, 255, 255))
+    return img, True
+
+
+def _run_with_tray(server, args):
+    """Run the server with a system tray icon (Windows)."""
+    import pystray
+
+    loop = None
+    icon = None
+
+    def on_quit(tray_icon, item):
+        nonlocal loop
+        if loop:
+            loop.call_soon_threadsafe(loop.stop)
+        tray_icon.stop()
+
+    def server_thread():
+        nonlocal loop
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(server.run())
+        except Exception:
+            pass
+        finally:
+            server.audio.stop()
+            loop.close()
+            if icon and icon.visible:
+                icon.stop()
+
+    img, _ = _create_tray_icon()
+    menu = pystray.Menu(
+        pystray.MenuItem(f"Port: {args.port}", None, enabled=False),
+        pystray.Menu.SEPARATOR,
+        pystray.MenuItem("Quit", on_quit),
+    )
+    icon = pystray.Icon("NowPlayingServer", img, "Now Playing Server", menu)
+
+    t = threading.Thread(target=server_thread, daemon=True)
+    t.start()
+
+    # pystray.run() blocks on the main thread (required on Windows)
+    icon.run()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Now Playing companion server for iCUE widget"
@@ -769,6 +827,10 @@ def main():
     parser.add_argument(
         "--test-media", action="store_true",
         help="Test SMTC media detection and exit (no server started)"
+    )
+    parser.add_argument(
+        "--no-tray", action="store_true",
+        help="Disable system tray icon (console mode)"
     )
     args = parser.parse_args()
 
@@ -786,6 +848,16 @@ def main():
     )
 
     server = NowPlayingServer(port=args.port, fps=args.fps)
+
+    # Try tray icon mode unless disabled or unavailable
+    if not args.no_tray:
+        _, tray_available = _create_tray_icon()
+        if tray_available:
+            print("  Tray icon active. Right-click to quit.\n")
+            _run_with_tray(server, args)
+            return
+
+    # Fallback: console mode
     try:
         asyncio.run(server.run())
     except KeyboardInterrupt:

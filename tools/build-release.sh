@@ -68,12 +68,14 @@ fi
 
 rm -rf "$BUNDLE_DIR"
 
-# Copy companion server as a standalone release asset
-SERVER="$REPO_ROOT/widgets/qk-xe-visualizer/server/NowPlayingServer.pyw"
-if [ -f "$SERVER" ]; then
-    cp "$SERVER" "$DIST/"
-    echo "Included NowPlayingServer.pyw"
-fi
+# Copy companion server files as standalone release assets
+SERVER_DIR="$REPO_ROOT/widgets/qk-xe-visualizer/server"
+for F in NowPlayingServer.pyw StartServer.bat; do
+    if [ -f "$SERVER_DIR/$F" ]; then
+        cp "$SERVER_DIR/$F" "$DIST/"
+        echo "Included $F"
+    fi
+done
 
 echo ""
 echo "Packaged $COUNT widgets."
