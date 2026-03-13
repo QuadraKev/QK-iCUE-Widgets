@@ -700,12 +700,14 @@
             <div class="info-box">
                 <h2>Visualizer Server Setup</h2>
                 <p>The XE Visualizer and Pump Visualizer require a Python companion server that captures system audio and media info. A single server instance serves both widgets.</p>
-                <p><strong>Requirements:</strong> Windows 10/11, Python 3.10+</p>
-                <p><strong>1.</strong> Install dependencies:</p>
-                <pre>pip install PyAudioWPatch numpy websockets winrt-runtime winrt-Windows.Media.Control winrt-Windows.Storage.Streams</pre>
-                <p><strong>2.</strong> Run the server:</p>
-                <pre>python NowPlayingServer.pyw</pre>
-                <p><strong>3.</strong> Set the Server Port in the widget settings to match (default: <code>16329</code>)</p>
+                <p><strong>Requirements:</strong> Windows 10/11, <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">Python 3.10+</a> (check "Add Python to PATH" during install)</p>
+                <ol>
+                    <li>Download <a href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/StartServer.bat">StartServer.bat</a> and <a href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/NowPlayingServer.pyw">NowPlayingServer.pyw</a></li>
+                    <li>Place both files in the same folder</li>
+                    <li>Double-click <code>StartServer.bat</code> to install dependencies and start the server</li>
+                    <li>The server will appear as an icon in your system tray. Right-click to quit.</li>
+                    <li>Set the Server Port in the widget settings to match (default: <code>16329</code>)</li>
+                </ol>
             </div>
         </div>
         <div class="widget-grid" id="widget-grid"></div>
@@ -826,7 +828,7 @@
                     + '  <button class="btn btn-preview" onclick="window._openPreview(\'' + w.id + '\')">Preview</button>'
                     + '  <a class="btn btn-download" href="' + dlHref + '" target="_blank" rel="noopener">Download</a>'
                     + '</div>'
-                    + (w.server ? '<a class="server-link" href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/NowPlayingServer.pyw" target="_blank" rel="noopener">Download companion server (NowPlayingServer.pyw)</a>' : '')
+                    + (w.server ? '<a class="server-link" href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/StartServer.bat">Download companion server</a>' : '')
                     + '</div>';
             }).join('');
         }
