@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QK iCUE Widgets - Custom Widgets for Corsair iCUE LCD Displays</title>
+    <meta name="description" content="A collection of custom widgets for Corsair iCUE LCD displays, including the Xeneon Edge touchscreen and pump LCD.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #08080e;
+            --bg-card: #111119;
+            --bg-elevated: #1a1a26;
+            --bg-hover: #1e1e2c;
+            --border: #252535;
+            --border-hover: #3a3a50;
+            --accent: #f0c040;
+            --accent-dim: rgba(240, 192, 64, 0.15);
+            --accent-hover: #f5d060;
+            --text: #e6e6f0;
+            --text-secondary: #8888a0;
+            --text-dim: #555568;
+            --badge-xe: #5a9fd4;
+            --badge-pump: #b088d4;
+            --badge-both: #5cc88a;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 180ms ease;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 72px 0 48px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(240, 192, 64, 0.05) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .hero h1 .accent { color: var(--accent); }
+
+        .hero .subtitle {
+            font-size: 1.1rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-bottom: 36px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-bottom: 28px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-hero {
+            font-family: 'Jost', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 10px 28px;
+            border-radius: 100px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition);
+        }
+
+        .btn-hero-primary {
+            background: var(--accent);
+            color: #0a0a0f;
+        }
+
+        .btn-hero-primary:hover { background: var(--accent-hover); }
+
+        .btn-hero-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-hero-secondary:hover {
+            border-color: var(--border-hover);
+            color: var(--text);
+        }
+
+        /* Filters */
+        .filters {
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(8, 8, 14, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            font-family: 'Jost', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            padding: 7px 18px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--border-hover);
+            color: var(--text);
+            background: var(--bg-elevated);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Grid */
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 28px 0 72px;
+        }
+
+        /* Card */
+        .widget-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition);
+        }
+
+        .widget-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            margin-bottom: 14px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: var(--bg-elevated);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card-icon img {
+            width: 44px;
+            height: 44px;
+        }
+
+        .icon-fallback {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .card-name {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .card-description {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 2px 9px;
+            border-radius: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-xe {
+            background: rgba(90, 159, 212, 0.14);
+            color: var(--badge-xe);
+        }
+
+        .badge-pump {
+            background: rgba(176, 136, 212, 0.14);
+            color: var(--badge-pump);
+        }
+
+        .badge-both {
+            background: rgba(92, 200, 138, 0.14);
+            color: var(--badge-both);
+        }
+
+        .badge-interactive {
+            background: rgba(240, 192, 64, 0.1);
+            color: var(--accent);
+        }
+
+        .download-count {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            margin-left: auto;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            font-family: 'Jost', sans-serif;
+            font-size: 0.84rem;
+            font-weight: 500;
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-preview {
+            background: var(--bg-elevated);
+            color: var(--text);
+            border: 1px solid var(--border);
+            flex: 1;
+        }
+
+        .btn-preview:hover {
+            background: var(--bg-hover);
+            border-color: var(--border-hover);
+        }
+
+        .btn-download {
+            background: var(--accent);
+            color: #0a0a0f;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .btn-download:hover { background: var(--accent-hover); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.82);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 1100px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'Jost', sans-serif;
+            font-weight: 500;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+            background: var(--bg-elevated);
+        }
+
+        .size-selector {
+            display: flex;
+            gap: 6px;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .size-selector .size-label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-right: 6px;
+            font-weight: 500;
+        }
+
+        .size-btn {
+            font-family: 'Jost', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 4px 11px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .size-btn:hover {
+            border-color: var(--border-hover);
+            color: var(--text);
+        }
+
+        .size-btn.active {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .size-info {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-left: auto;
+        }
+
+        .preview-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+            background: #000;
+            min-height: 0;
+        }
+
+        .preview-frame {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+            border-radius: 3px;
+            background: #000;
+            transition: border-radius 200ms ease;
+        }
+
+        .preview-frame.pump-shape {
+            border-radius: 50%;
+        }
+
+        .preview-frame iframe {
+            border: none;
+            display: block;
+            transform-origin: top left;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 28px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .footer a:hover { color: var(--accent); }
+
+        .footer-sep { margin: 0 8px; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero { padding: 48px 0 32px; }
+            .hero h1 { font-size: 2rem; }
+            .stats { gap: 28px; }
+            .stat-value { font-size: 1.5rem; }
+            .widget-grid { grid-template-columns: 1fr; }
+            .modal-content { height: 90vh; }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.6rem; }
+            .hero .subtitle { font-size: 0.95rem; }
+            .hero-actions { flex-direction: column; align-items: center; }
+            .stats { flex-wrap: wrap; gap: 20px; }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .widget-card {
+            animation: fadeIn 350ms ease backwards;
+        }
+
+        .modal-overlay.active .modal-content {
+            animation: modalIn 200ms ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="container">
+            <h1><span class="accent">QK</span> iCUE Widgets</h1>
+            <p class="subtitle">Custom widgets for Corsair iCUE LCD displays</p>
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-value" id="stat-widgets">17</span>
+                    <span class="stat-label">Widgets</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="stat-downloads">--</span>
+                    <span class="stat-label">Downloads</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">2</span>
+                    <span class="stat-label">Devices</span>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <a class="btn-hero btn-hero-primary" id="download-all-btn"
+                   href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases" target="_blank" rel="noopener">
+                    Download All Widgets
+                </a>
+                <a class="btn-hero btn-hero-secondary"
+                   href="https://github.com/QuadraKev/QK-iCUE-Widgets" target="_blank" rel="noopener">
+                    View on GitHub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <nav class="filters">
+        <div class="container">
+            <div class="filter-row">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="xeneon_edge">Xeneon Edge</button>
+                <button class="filter-btn" data-filter="pump">Pump LCD</button>
+                <button class="filter-btn" data-filter="both">Both Devices</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="widget-grid" id="widget-grid"></div>
+    </main>
+
+    <div class="modal-overlay" id="preview-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-title"></span>
+                <button class="modal-close" id="modal-close">X</button>
+            </div>
+            <div class="size-selector" id="size-selector"></div>
+            <div class="preview-area" id="preview-area">
+                <div class="preview-frame" id="preview-frame">
+                    <iframe id="preview-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <a href="https://github.com/QuadraKev/QK-iCUE-Widgets">GitHub</a>
+            <span class="footer-sep">|</span>
+            <a href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases">Releases</a>
+            <span class="footer-sep">|</span>
+            MIT License
+        </div>
+    </footer>
+
+    <script>
+    (function () {
+        'use strict';
+
+        // Widget catalog
+        var WIDGETS = [
+            { id: 'qk-2048', name: '2048', html: 'QK2048.html', desc: 'Classic 2048 sliding tile puzzle game', device: 'xeneon_edge', interactive: true },
+            { id: 'qk-calculator', name: 'Calculator', html: 'QKCalculator.html', desc: 'Touchscreen calculator with clean, responsive button layout', device: 'xeneon_edge', interactive: true },
+            { id: 'qk-dice-roller', name: 'Dice Roller', html: 'QKDiceRoller.html', desc: 'Interactive dice rolling with spinning 3D wireframe dice and roll history', device: 'xeneon_edge', interactive: true },
+            { id: 'qk-fidget-spinner', name: 'Fidget Spinner', html: 'QKFidgetSpinner.html', desc: 'Swipe-to-spin fidget spinner with realistic deceleration physics', device: 'xeneon_edge', interactive: true },
+            { id: 'qk-magic-8-ball', name: 'Magic 8 Ball', html: 'QKMagic8Ball.html', desc: 'Fortune-telling widget with the classic 20 Magic 8 Ball answers', device: 'xeneon_edge', interactive: true },
+            { id: 'qk-paint', name: 'Paint', html: 'QKPaint.html', desc: 'Finger-painting app for the touchscreen', device: 'xeneon_edge', interactive: true },
+            { id: 'qk-simon', name: 'Simon', html: 'QKSimon.html', desc: 'Simon Says memory game', device: 'xeneon_edge', interactive: true },
+            { id: 'qk-tally-counter', name: 'Tally Counter', html: 'QKTallyCounter.html', desc: 'Tap-to-count widget for tracking reps, laps, scores, or any count', device: 'xeneon_edge', interactive: true },
+            { id: 'qk-world-clocks', name: 'World Clocks', html: 'QKWorldClocks.html', desc: 'Up to 4 clocks side by side set to different timezones', device: 'xeneon_edge', interactive: false },
+            { id: 'qk-xe-visualizer', name: 'XE Visualizer', html: 'QKXEVisualizer.html', desc: 'Real-time audio spectrum visualizer with track info', device: 'xeneon_edge', interactive: false },
+            { id: 'qk-pump-visualizer', name: 'Pump Visualizer', html: 'QKPumpVisualizer.html', desc: 'Circular audio visualizer in a radial layout with track info', device: 'pump', interactive: false },
+            { id: 'qk-binary-clock', name: 'Binary Clock', html: 'QKBinaryClock.html', desc: 'Current time displayed as illuminated dots in binary', device: 'both', interactive: false },
+            { id: 'qk-day-progress', name: 'Day Progress', html: 'QKDayProgress.html', desc: 'Day, week, month, and year elapsed as progress bars', device: 'both', interactive: false },
+            { id: 'qk-game-of-life', name: 'Game of Life', html: 'QKGameOfLife.html', desc: "Conway's Game of Life cellular automaton", device: 'both', interactive: false },
+            { id: 'qk-matrix-rain', name: 'Matrix Rain', html: 'QKMatrixRain.html', desc: 'Digital rain effect with cascading characters and fading green trails', device: 'both', interactive: false },
+            { id: 'qk-moon-phase', name: 'Moon Phase', html: 'QKMoonPhase.html', desc: 'Current lunar phase with phase name and illumination percentage', device: 'both', interactive: false },
+            { id: 'qk-starfield', name: 'Starfield', html: 'QKStarfield.html', desc: 'Warp-speed starfield with motion trails', device: 'both', interactive: false }
+        ];
+
+        // Slot sizes (native resolution)
+        var SLOTS = {
+            HS:   { w: 840,  h: 344,  label: 'HS',   name: 'Horizontal Small' },
+            HM:   { w: 840,  h: 696,  label: 'HM',   name: 'Horizontal Medium' },
+            HL:   { w: 1688, h: 696,  label: 'HL',   name: 'Horizontal Large' },
+            HXL:  { w: 2536, h: 696,  label: 'HXL',  name: 'Horizontal XL' },
+            VS:   { w: 696,  h: 416,  label: 'VS',   name: 'Vertical Small' },
+            VM:   { w: 696,  h: 840,  label: 'VM',   name: 'Vertical Medium' },
+            VL:   { w: 696,  h: 1688, label: 'VL',   name: 'Vertical Large' },
+            VXL:  { w: 696,  h: 2536, label: 'VXL',  name: 'Vertical XL' },
+            PUMP: { w: 480,  h: 480,  label: 'PUMP', name: 'Pump LCD' }
+        };
+
+        var DEVICE_SLOTS = {
+            xeneon_edge: ['HS', 'HM', 'HL', 'HXL', 'VS', 'VM', 'VL', 'VXL'],
+            pump: ['PUMP'],
+            both: ['HS', 'HM', 'HL', 'HXL', 'VS', 'VM', 'VL', 'VXL', 'PUMP']
+        };
+
+        var DEVICE_LABELS = {
+            xeneon_edge: { text: 'Xeneon Edge', cls: 'badge-xe' },
+            pump:        { text: 'Pump LCD',   cls: 'badge-pump' },
+            both:        { text: 'Both Devices', cls: 'badge-both' }
+        };
+
+        // State
+        var dlStats = {};
+        var dlUrls = {};
+        var currentFilter = 'all';
+        var currentPreview = null;
+        var currentSlot = null;
+
+        // DOM refs
+        var grid = document.getElementById('widget-grid');
+        var modal = document.getElementById('preview-modal');
+        var modalTitle = document.getElementById('modal-title');
+        var sizeSelector = document.getElementById('size-selector');
+        var previewArea = document.getElementById('preview-area');
+        var previewFrame = document.getElementById('preview-frame');
+        var previewIframe = document.getElementById('preview-iframe');
+
+        // Render widget cards
+        function renderGrid() {
+            var list = currentFilter === 'all'
+                ? WIDGETS
+                : WIDGETS.filter(function (w) { return w.device === currentFilter; });
+
+            grid.innerHTML = list.map(function (w, i) {
+                var dev = DEVICE_LABELS[w.device];
+                var count = dlStats[w.id] || 0;
+                var countStr = count > 0 ? formatNum(count) + ' downloads' : '';
+                var icon = 'widgets/' + w.id + '/images/' + w.id + '.svg';
+                var dlHref = dlUrls[w.id] || 'https://github.com/QuadraKev/QK-iCUE-Widgets/releases';
+
+                return '<div class="widget-card" style="animation-delay:' + (i * 35) + 'ms">'
+                    + '<div class="card-icon">'
+                    + '  <img src="' + icon + '" alt="' + w.name + '" onerror="this.outerHTML=\'<span class=icon-fallback>' + w.name[0] + '</span>\'">'
+                    + '</div>'
+                    + '<div class="card-name">' + w.name + '</div>'
+                    + '<div class="card-description">' + w.desc + '</div>'
+                    + '<div class="card-meta">'
+                    + '  <span class="badge ' + dev.cls + '">' + dev.text + '</span>'
+                    + (w.interactive ? '<span class="badge badge-interactive">Interactive</span>' : '')
+                    + (countStr ? '<span class="download-count">' + countStr + '</span>' : '')
+                    + '</div>'
+                    + '<div class="card-actions">'
+                    + '  <button class="btn btn-preview" onclick="window._openPreview(\'' + w.id + '\')">Preview</button>'
+                    + '  <a class="btn btn-download" href="' + dlHref + '" target="_blank" rel="noopener">Download</a>'
+                    + '</div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        // Preview modal
+        window._openPreview = function (widgetId) {
+            var widget = WIDGETS.find(function (w) { return w.id === widgetId; });
+            if (!widget) return;
+
+            currentPreview = widget;
+            modalTitle.textContent = widget.name;
+
+            var slots = DEVICE_SLOTS[widget.device];
+            var defaultSlot = widget.device === 'pump' ? 'PUMP' : 'HM';
+
+            sizeSelector.innerHTML = '<span class="size-label">Layout:</span>'
+                + slots.map(function (key) {
+                    var s = SLOTS[key];
+                    return '<button class="size-btn' + (key === defaultSlot ? ' active' : '') + '"'
+                        + ' data-slot="' + key + '"'
+                        + ' onclick="window._selectSize(\'' + key + '\')"'
+                        + ' title="' + s.name + ' (' + s.w + 'x' + s.h + ')"'
+                        + '>' + s.label + '</button>';
+                }).join('')
+                + '<span class="size-info" id="size-info"></span>';
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            requestAnimationFrame(function () {
+                window._selectSize(defaultSlot);
+            });
+        };
+
+        window._selectSize = function (slotKey) {
+            if (!currentPreview) return;
+            var slot = SLOTS[slotKey];
+            if (!slot) return;
+            currentSlot = slotKey;
+
+            // Update active button
+            var btns = sizeSelector.querySelectorAll('.size-btn');
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].classList.toggle('active', btns[i].getAttribute('data-slot') === slotKey);
+            }
+
+            // Update info text
+            var info = document.getElementById('size-info');
+            if (info) info.textContent = slot.name + ': ' + slot.w + ' x ' + slot.h;
+
+            // Pump circular shape
+            previewFrame.classList.toggle('pump-shape', slotKey === 'PUMP');
+
+            // Calculate scale to fit
+            var areaW = previewArea.clientWidth - 40;
+            var areaH = previewArea.clientHeight - 40;
+            var scale = Math.min(areaW / slot.w, areaH / slot.h, 1);
+
+            previewFrame.style.width = Math.round(slot.w * scale) + 'px';
+            previewFrame.style.height = Math.round(slot.h * scale) + 'px';
+
+            previewIframe.style.width = slot.w + 'px';
+            previewIframe.style.height = slot.h + 'px';
+            previewIframe.style.transform = 'scale(' + scale + ')';
+            previewIframe.src = 'widgets/' + currentPreview.id + '/' + currentPreview.html;
+        };
+
+        function closePreview() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            previewIframe.src = 'about:blank';
+            currentPreview = null;
+            currentSlot = null;
+        }
+
+        // Resize handler for preview
+        var resizeTimer;
+        window.addEventListener('resize', function () {
+            if (!currentPreview || !currentSlot) return;
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                window._selectSize(currentSlot);
+            }, 100);
+        });
+
+        // Download stats from GitHub Releases API
+        function fetchStats() {
+            fetch('https://api.github.com/repos/QuadraKev/QK-iCUE-Widgets/releases')
+                .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+                .then(function (releases) {
+                    var total = 0;
+                    var latest = releases[0];
+
+                    releases.forEach(function (release) {
+                        release.assets.forEach(function (asset) {
+                            var m = asset.name.match(/^(qk-[\w-]+?)(?:-v[\d.]+)?\.zip$/);
+                            if (m) {
+                                dlStats[m[1]] = (dlStats[m[1]] || 0) + asset.download_count;
+                            }
+                            total += asset.download_count;
+                        });
+                    });
+
+                    // Get direct download URLs from latest release
+                    if (latest) {
+                        latest.assets.forEach(function (asset) {
+                            var m = asset.name.match(/^(qk-[\w-]+?)(?:-v[\d.]+)?\.zip$/);
+                            if (m) {
+                                dlUrls[m[1]] = asset.browser_download_url;
+                            }
+                            if (asset.name.indexOf('all-widgets') === 0) {
+                                document.getElementById('download-all-btn').href = asset.browser_download_url;
+                            }
+                        });
+                    }
+
+                    document.getElementById('stat-downloads').textContent = formatNum(total);
+                    renderGrid();
+                })
+                .catch(function () {
+                    // Stats unavailable, cards already rendered without counts
+                });
+        }
+
+        function formatNum(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+            return n.toString();
+        }
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                currentFilter = btn.getAttribute('data-filter');
+                renderGrid();
+            });
+        });
+
+        // Modal close
+        document.getElementById('modal-close').addEventListener('click', closePreview);
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closePreview();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closePreview();
+        });
+
+        // Init
+        renderGrid();
+        fetchStats();
+    })();
+    </script>
+</body>
+</html>
