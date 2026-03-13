@@ -2,8 +2,6 @@
 
 The QuadraKev Xeneon Edge (QK XE) Visualizer is a media visualizer widget for the **Corsair Xeneon Edge** touchscreen display, built for iCUE's LCD widget system. Displays real-time audio spectrum visualization alongside track info from whatever is currently playing on your PC.
 
-![XL widget](.screenshots/horizontal-XL-actual.png)
-
 ---
 
 ## How It Works
@@ -89,11 +87,6 @@ The widget adapts its layout to all iCUE dashboard sizes across both display ori
 | L    | 1688x696   | Album art + info left column, visualizer right                           |
 | XL   | 2536x696   | Album art + info left column, visualizer right (wider)                   |
 
-![Horizontal S](.screenshots/horizontal-S-actual.png)
-![Horizontal M](.screenshots/horizontal-M-actual.png)
-![Horizontal L](.screenshots/horizontal-L-actual.png)
-![Horizontal XL](.screenshots/horizontal-XL-actual.png)
-
 ### Vertical (720x2560)
 
 | Size | Dimensions | Layout                                                                   |
@@ -102,15 +95,6 @@ The widget adapts its layout to all iCUE dashboard sizes across both display ori
 | M    | 697x836    | Album art as full background, visualizer overlay, media info bottom-left |
 | L    | 697x1688   | Centered art, text below, vertical bars fill remaining height            |
 | XL   | 697x2536   | Centered art, text below, vertical bars fill remaining height            |
-
-<center>
-<p>
-<img src=".screenshots/vertical-S-actual.png" alt="Vertical S" height="500">
-<img src=".screenshots/vertical-M-actual.png" alt="Vertical M" height="500">
-<img src=".screenshots/vertical-L-actual.png" alt="Vertical L" height="500">
-<img src=".screenshots/vertical-XL-actual.png" alt="Vertical XL" height="500">
-</p>
-</center>
 
 ---
 
