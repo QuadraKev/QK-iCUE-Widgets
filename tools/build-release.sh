@@ -1,43 +1,35 @@
 #!/usr/bin/env bash
 #
-# build-release.sh: Package release-ready widgets into installable ZIPs.
+# build-release.sh: Package all widgets into installable ZIPs.
 #
-# Reads widgets.csv, builds one ZIP per release-ready widget plus an
-# all-widgets bundle. Output goes to dist/.
+# Scans widgets/ for directories containing QK*.html files,
+# packages each into a ZIP, and builds an all-widgets bundle.
+# Output goes to dist/.
+#
+# The release tag (e.g., v2026.03) is used in the bundle name.
+# Individual widget ZIPs are named {widget}.zip (unversioned).
 #
 # Usage: ./tools/build-release.sh
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CSV="$REPO_ROOT/widgets.csv"
 DIST="$REPO_ROOT/dist"
 
 rm -rf "$DIST"
 mkdir -p "$DIST"
 
-if [ ! -f "$CSV" ]; then
-    echo "ERROR: widgets.csv not found at $CSV"
-    exit 1
-fi
-
 BUNDLE_DIR=$(mktemp -d)
 COUNT=0
 
-# Skip header line, read CSV
-tail -n +2 "$CSV" | while IFS=',' read -r widget device version reviewed tested quality release_ready; do
-    # Skip widgets that are not release-ready
-    if [ "$release_ready" != "Y" ]; then
-        continue
-    fi
+for WIDGET_DIR in "$REPO_ROOT"/widgets/qk-*/; do
+    [ -d "$WIDGET_DIR" ] || continue
 
-    WIDGET_DIR="$REPO_ROOT/widgets/$widget"
-    if [ ! -d "$WIDGET_DIR" ]; then
-        echo "WARNING: Widget directory not found: $WIDGET_DIR (skipping)"
-        continue
-    fi
+    # Skip directories without a widget HTML file
+    ls "$WIDGET_DIR"/QK*.html >/dev/null 2>&1 || continue
 
-    ZIP_NAME="${widget}-v${version}.zip"
+    WIDGET=$(basename "$WIDGET_DIR")
+    ZIP_NAME="${WIDGET}.zip"
     echo "Packaging $ZIP_NAME..."
 
     # Create a temp staging dir for this widget
@@ -68,8 +60,8 @@ done
 
 # Build all-widgets bundle
 if [ "$(ls "$BUNDLE_DIR"/*.html 2>/dev/null | wc -l)" -gt 0 ]; then
-    DATE=$(date +%Y.%m)
-    BUNDLE_NAME="all-widgets-v${DATE}.zip"
+    TAG="${GITHUB_REF_NAME:-$(date +%Y.%m)}"
+    BUNDLE_NAME="all-widgets-${TAG}.zip"
     echo "Packaging $BUNDLE_NAME..."
     (cd "$BUNDLE_DIR" && zip -r "$DIST/$BUNDLE_NAME" . -x ".*") > /dev/null
 fi
@@ -77,5 +69,6 @@ fi
 rm -rf "$BUNDLE_DIR"
 
 echo ""
+echo "Packaged $COUNT widgets."
 echo "Release artifacts in $DIST/:"
 ls -1 "$DIST/"
