@@ -34,7 +34,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#000000'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -58,6 +58,7 @@
             height: 100vh;
             overflow: hidden;
             background: transparent;
+            -webkit-tap-highlight-color: transparent;
         }
 
         canvas {
@@ -100,13 +101,16 @@
             trailStrength: 5,
             accentColor: '#00FF41',
             bgColor: '#000000',
-            transparency: 0
+            transparency: 100
         };
 
         var CHAR_SIZES = { small: 2, medium: 3, large: 4.5 };
 
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
+        // Offscreen canvas: holds only trail/character content (no background)
+        var trailCanvas = document.createElement('canvas');
+        var trailCtx = trailCanvas.getContext('2d');
         var columns = [];
         var W, H, numCols;
 
@@ -172,6 +176,9 @@
             canvas.width = W * dpr;
             canvas.height = H * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            trailCanvas.width = W * dpr;
+            trailCanvas.height = H * dpr;
+            trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         }
 
         // ================================================================
@@ -183,14 +190,16 @@
             var speedMul = cfg.speed / 5;
             var cs = cfg.charSize;
 
-            // Semi-transparent background overlay for trail effect (controlled by trailStrength)
-            // Higher trailStrength = lower alpha = slower fade = longer trails
+            // Fade trail content toward transparent (trailStrength controls rate)
             var trailAlpha = 0.10 - (cfg.trailStrength / 10) * 0.08;
-            ctx.fillStyle = 'rgba(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ',' + trailAlpha + ')';
-            ctx.fillRect(0, 0, W, H);
+            trailCtx.globalCompositeOperation = 'destination-out';
+            trailCtx.fillStyle = 'rgba(0, 0, 0, ' + trailAlpha + ')';
+            trailCtx.fillRect(0, 0, W, H);
+            trailCtx.globalCompositeOperation = 'source-over';
 
-            ctx.font = cs + 'px monospace';
-            ctx.textAlign = 'center';
+            // Draw characters on trail canvas
+            trailCtx.font = cs + 'px monospace';
+            trailCtx.textAlign = 'center';
 
             for (var c = 0; c < columns.length; c++) {
                 var col = columns[c];
@@ -208,20 +217,16 @@
 
                     var fade = 1 - (i / col.length);
                     if (i === 0) {
-                        // Head character: bright white-ish
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                        trailCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                     } else if (i <= 2) {
-                        // Near-head: bright accent
-                        ctx.fillStyle = 'rgba(' + Math.min(255, rgb[0] + 80) + ',' + Math.min(255, rgb[1] + 80) + ',' + Math.min(255, rgb[2] + 80) + ',' + (0.9 * fade) + ')';
+                        trailCtx.fillStyle = 'rgba(' + Math.min(255, rgb[0] + 80) + ',' + Math.min(255, rgb[1] + 80) + ',' + Math.min(255, rgb[2] + 80) + ',' + (0.9 * fade) + ')';
                     } else {
-                        // Body: accent color with fade
-                        ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (0.7 * fade) + ')';
+                        trailCtx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (0.7 * fade) + ')';
                     }
 
-                    ctx.fillText(col.chars[i], col.x + cs / 2, charY);
+                    trailCtx.fillText(col.chars[i], col.x + cs / 2, charY);
                 }
 
-                // Reset column when it falls off screen
                 if (col.y - col.length * cs > H) {
                     col.reset();
                 }
@@ -239,6 +244,13 @@
                     columns.push(new Column(x));
                 }
             }
+
+            // Compose: background (with transparency) + trail content (full opacity)
+            ctx.clearRect(0, 0, W, H);
+            var bgOpacity = cfg.transparency / 100;
+            ctx.fillStyle = 'rgba(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ',' + bgOpacity + ')';
+            ctx.fillRect(0, 0, W, H);
+            ctx.drawImage(trailCanvas, 0, 0, W, H);
 
             requestAnimationFrame(render);
         }
@@ -275,13 +287,9 @@
         }
 
         function applySettings() {
-            // Clear canvas fully on settings change
-            var bgRGB = hexToRGB(cfg.bgColor);
-            ctx.fillStyle = 'rgb(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ')';
-            ctx.fillRect(0, 0, W, H);
-            // Transparency applied to body background only (not canvas content)
-            var opacity = 1 - (cfg.transparency / 100);
-            document.body.style.backgroundColor = 'rgba(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ',' + opacity + ')';
+            // Clear both canvases on settings change
+            ctx.clearRect(0, 0, W, H);
+            trailCtx.clearRect(0, 0, W, H);
         }
 
         // ================================================================

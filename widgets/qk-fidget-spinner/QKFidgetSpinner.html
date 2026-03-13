@@ -21,7 +21,7 @@
         data-default="3" data-min="2" data-max="6" data-step="1">
     <meta name="x-icue-property" content="frictionLevel"
         data-label="tr('Friction')" data-type="slider"
-        data-default="50" data-min="10" data-max="100" data-step="1" unit-label="%">
+        data-default="50" data-min="10" data-max="100" data-step="1">
 
     <!-- Properties: Group 2 - Appearance (DP-mapped) -->
     <meta name="x-icue-property" content="textColor"
@@ -32,7 +32,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -49,6 +49,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -72,6 +73,7 @@
             background: transparent;
             color: var(--text-color);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
             cursor: pointer;
         }
 
@@ -431,7 +433,7 @@
             if (typeof backgroundColor !== 'undefined')
                 document.documentElement.style.setProperty('--bg-color', backgroundColor);
             if (typeof transparency !== 'undefined')
-                document.documentElement.style.setProperty('--widget-opacity', 1 - (transparency / 100));
+                document.documentElement.style.setProperty('--widget-opacity', transparency / 100);
             if (typeof armCount !== 'undefined')
                 cfg.arms = armCount;
             if (typeof frictionLevel !== 'undefined')

@@ -39,7 +39,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -56,6 +56,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -80,6 +81,7 @@
             background: transparent;
             color: var(--text-color);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
@@ -184,8 +186,25 @@
             .progress-detail { font-size: 4vh; }
         }
 
-        /* ---- Square-ish (M horizontal) ---- */
-        @media (max-aspect-ratio: 180/100) and (min-aspect-ratio: 90/100) {
+        /* ---- VS (1.67:1) ---- */
+        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
+            .container {
+                gap: 2vh;
+                padding: 2vh 4vw;
+            }
+            .progress-row {
+                width: 90%;
+                gap: 1vh;
+            }
+            .progress-label { font-size: 4.5vh; }
+            .progress-percent { font-size: 7vh; }
+            .progress-track { height: 3vh; border-radius: 2vh; }
+            .progress-fill { border-radius: 2vh; }
+            .progress-detail { font-size: 3vh; }
+        }
+
+        /* ---- Square-ish (HM) ---- */
+        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
             .container {
                 gap: 2vmin;
             }
@@ -394,7 +413,7 @@
             root.style.setProperty('--text-color', cfg.textColor);
             root.style.setProperty('--accent-color', cfg.accentColor);
             root.style.setProperty('--bg-color', cfg.bgColor);
-            root.style.setProperty('--widget-opacity', 1 - (cfg.transparency / 100));
+            root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
             document.getElementById('row-day').style.display = cfg.showDay ? '' : 'none';
             document.getElementById('row-week').style.display = cfg.showWeek ? '' : 'none';

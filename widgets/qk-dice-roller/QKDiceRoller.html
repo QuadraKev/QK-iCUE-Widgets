@@ -28,7 +28,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -45,6 +45,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -69,6 +70,7 @@
             background: transparent;
             color: var(--text-color);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
             cursor: pointer;
         }
 
@@ -112,12 +114,10 @@
         /* ---- Main row: controls flanking result ---- */
         .dice-main-row {
             display: flex;
-            flex-direction: row;
             align-items: center;
             justify-content: center;
             width: 100%;
             flex: 1;
-            gap: 3vh;
         }
 
         .dice-center {
@@ -126,6 +126,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            min-width: 0;
         }
 
         .control-group {
@@ -134,15 +135,17 @@
             align-items: center;
             gap: 0.8vh;
             z-index: 10;
-            flex: 1;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         #count-controls {
-            justify-content: flex-end;
+            left: 2vw;
         }
 
         #type-controls {
-            justify-content: flex-start;
+            right: 2vw;
         }
 
         .ctrl-btn {
@@ -200,6 +203,16 @@
             flex-shrink: 0;
         }
 
+        .dice-pair {
+            display: flex;
+            gap: 0;
+            pointer-events: none;
+        }
+
+        .dice-pair .dice-shape {
+            margin: 0 -8%;
+        }
+
         .dice-result {
             font-family: 'Jost', sans-serif; font-weight: 700;
             font-size: 22vh;
@@ -239,6 +252,7 @@
             opacity: 0.3;
             margin-top: 2vh;
             letter-spacing: 0.2vw;
+            white-space: nowrap;
         }
 
         /* ---- History Area ---- */
@@ -346,8 +360,87 @@
             :root { --die-base: 85vh; }
         }
 
-        /* ---- Responsive: Near-square (HM/VS) ---- */
-        @media (max-aspect-ratio: 180/100) and (min-aspect-ratio: 90/100) {
+        /* ---- Responsive: HL only (2.4253, with history panel) ---- */
+        @media (min-aspect-ratio: 200/100) and (max-aspect-ratio: 243/100) {
+            .ctrl-btn {
+                width: 16vh;
+                height: 16vh;
+                font-size: 9vh;
+                border-radius: 2.5vh;
+            }
+            .ctrl-value {
+                font-size: 11vh;
+            }
+            .dice-result {
+                font-size: 34vh;
+            }
+            .dice-result.digits-3 { font-size: 25vh; }
+            .dice-result.digits-4 { font-size: 19vh; }
+            .dice-hint {
+                font-size: 5.5vh;
+            }
+            .dice-individual {
+                font-size: 6vh;
+            }
+            :root { --die-base: 70vh; }
+        }
+
+        /* ---- Responsive: VS (1.67:1) ---- */
+        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
+            :root { --die-base: 60vh; }
+            .container {
+                flex-direction: column;
+            }
+            .dice-area {
+                flex: 1;
+                padding: 2vh 3vw;
+            }
+            .ctrl-btn {
+                width: 12vh;
+                height: 12vh;
+                font-size: 7vh;
+                border-radius: 2vh;
+            }
+            .ctrl-value {
+                font-size: 8vh;
+                min-width: 5vh;
+            }
+            .control-group {
+                gap: 1vh;
+            }
+            .dice-result {
+                font-size: 28vh;
+            }
+            .dice-result.digits-3 { font-size: 20vh; }
+            .dice-result.digits-4 { font-size: 15vh; }
+            .dice-hint {
+                font-size: 5vh;
+            }
+            .dice-individual {
+                font-size: 5vh;
+            }
+            .history-area {
+                flex: 0 0 30%;
+                border-left: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            .history-list {
+                display: flex;
+                flex-direction: row;
+                gap: 1.5vw;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            .history-entry {
+                flex-shrink: 0;
+                border-bottom: none;
+                border-right: 1px solid rgba(255, 255, 255, 0.04);
+                padding: 0 1.5vw 0 0;
+            }
+        }
+
+        /* ---- Responsive: Near-square (HM) ---- */
+        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
             :root { --die-base: 58vh; }
             .container {
                 flex-direction: column;
@@ -400,7 +493,7 @@
             .dice-result-wrap {
                 display: contents;
             }
-            /* Order: result, individual results, hint, count controls, type controls */
+            /* Order: result, individual results, count controls, type controls, hint */
             .dice-result { order: 1; font-size: 22vw; }
             .dice-result.digits-3 { font-size: 16vw; }
             .dice-result.digits-4 { font-size: 12vw; }
@@ -410,17 +503,23 @@
                 position: static;
             }
             .dice-hint {
-                order: 3;
+                order: 6;
                 font-size: 3.5vw;
                 margin-top: 0;
             }
+            .control-group {
+                position: static;
+                transform: none;
+            }
             #count-controls {
                 order: 4;
+                left: auto;
                 justify-content: center;
                 flex: 0;
             }
             #type-controls {
                 order: 5;
+                right: auto;
                 justify-content: center;
                 flex: 0;
             }
@@ -464,6 +563,16 @@
             .history-area {
                 flex: 1;
             }
+        }
+
+        /* ---- Hide history on S layouts (aspect-ratio safe for iCUE previews) ---- */
+        /* HS: 840x344 = 2.4419 (just above HL's 2.4253, below HXL's 3.64) */
+        @media (min-aspect-ratio: 243/100) and (max-aspect-ratio: 300/100) {
+            .history-area { display: none; }
+        }
+        /* VS: 696x416 = 1.6731 (between HM's 1.21 and wide's 2.0+) */
+        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 180/100) {
+            .history-area { display: none; }
         }
     </style>
 </head>
@@ -585,8 +694,7 @@
                 [6,1,11],[6,11,10],[10,11,7],[10,7,2],[2,7,5],
                 [3,5,7],[3,7,11],[3,11,1],[3,1,9],[3,9,5]] };
 
-        // d100 uses static SVG (no polyhedron)
-        var D100_SVG = '<circle cx="38" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="62" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="3"/>';
+        // d100 renders as pairs of spinning d10 wireframes
 
         // Pre-extract unique edges for each polyhedron
         var POLY_EDGES = {};
@@ -665,7 +773,7 @@
             ];
         }
 
-        function createDieInstance() {
+        function createDieInstance(polyKey) {
             var svgEl = document.createElementNS(SVG_NS, 'svg');
             svgEl.setAttribute('viewBox', '0 0 100 100');
             svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
@@ -685,7 +793,8 @@
                 wx: dir[0], wy: dir[1], wz: dir[2],
                 speed: IDLE_SPEED,
                 svgEl: svgEl,
-                linePool: []
+                linePool: [],
+                polyKey: polyKey
             };
         }
 
@@ -697,12 +806,13 @@
         }
 
         function renderDie(die) {
-            var poly = POLYHEDRA[cfg.diceMax];
+            var pk = die.polyKey;
+            var poly = POLYHEDRA[pk];
             if (!poly) return;
 
             var verts = poly.v;
             var faces = poly.f;
-            var edges = POLY_EDGES[cfg.diceMax];
+            var edges = POLY_EDGES[pk];
             var cosX = Math.cos(die.ax), sinX = Math.sin(die.ax);
             var cosY = Math.cos(die.ay), sinY = Math.sin(die.ay);
             var cosZ = Math.cos(die.az), sinZ = Math.sin(die.az);
@@ -726,7 +836,7 @@
             }
 
             // Fixed scale based on circumradius (no dynamic rescaling)
-            var sc = 45 / POLY_RADIUS[cfg.diceMax];
+            var sc = 45 / POLY_RADIUS[pk];
 
             // Collect visible edges
             var visCount = 0;
@@ -868,34 +978,36 @@
             elDiceShapes.innerHTML = '';
 
             var count = cfg.diceCount;
+            var polyKey = cfg.diceMax === 100 ? 10 : cfg.diceMax;
             var cols = DIE_COLS[Math.min(count, DIE_COLS.length - 1)];
             elDiceShapes.style.gridTemplateColumns = 'repeat(' + cols + ', auto)';
             var scale = DIE_SCALE[Math.min(count, DIE_SCALE.length - 1)];
             var size = 'calc(var(--die-base) * ' + scale + ')';
 
-            if (cfg.diceMax === 100) {
-                // d100: static overlapping circles for each die
-                for (var i = 0; i < count; i++) {
-                    var svgEl = document.createElementNS(SVG_NS, 'svg');
-                    svgEl.setAttribute('viewBox', '0 0 100 100');
-                    svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-                    svgEl.setAttribute('fill', 'none');
-                    svgEl.setAttribute('stroke', 'currentColor');
-                    svgEl.setAttribute('stroke-width', '3');
-                    svgEl.classList.add('dice-shape');
-                    svgEl.style.width = size;
-                    svgEl.style.height = size;
-                    svgEl.innerHTML = D100_SVG;
-                    elDiceShapes.appendChild(svgEl);
-                }
-            } else if (POLYHEDRA[cfg.diceMax]) {
-                // Spinning 3D wireframes
-                for (var i = 0; i < count; i++) {
-                    var die = createDieInstance();
-                    die.svgEl.style.width = size;
-                    die.svgEl.style.height = size;
-                    diceInstances.push(die);
-                    elDiceShapes.appendChild(die.svgEl);
+            if (POLYHEDRA[polyKey]) {
+                if (cfg.diceMax === 100) {
+                    // d100: each die is a pair of d10 wireframes
+                    var pairSize = 'calc(var(--die-base) * ' + (scale * 0.6) + ')';
+                    for (var i = 0; i < count; i++) {
+                        var pair = document.createElement('div');
+                        pair.className = 'dice-pair';
+                        for (var j = 0; j < 2; j++) {
+                            var die = createDieInstance(polyKey);
+                            die.svgEl.style.width = pairSize;
+                            die.svgEl.style.height = pairSize;
+                            diceInstances.push(die);
+                            pair.appendChild(die.svgEl);
+                        }
+                        elDiceShapes.appendChild(pair);
+                    }
+                } else {
+                    for (var i = 0; i < count; i++) {
+                        var die = createDieInstance(polyKey);
+                        die.svgEl.style.width = size;
+                        die.svgEl.style.height = size;
+                        diceInstances.push(die);
+                        elDiceShapes.appendChild(die.svgEl);
+                    }
                 }
                 startSpin();
             }
@@ -906,7 +1018,7 @@
             root.style.setProperty('--text-color', cfg.textColor);
             root.style.setProperty('--accent-color', cfg.accentColor);
             root.style.setProperty('--bg-color', cfg.bgColor);
-            root.style.setProperty('--widget-opacity', 1 - (cfg.transparency / 100));
+            root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
             elCountValue.textContent = cfg.diceCount;
             elTypeValue.textContent = 'd' + cfg.diceMax;
