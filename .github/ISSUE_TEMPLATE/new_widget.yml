@@ -1,0 +1,48 @@
+name: New Widget Idea
+description: Suggest a new widget for the collection
+labels: ["new widget"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Widget Name
+      placeholder: "QK Stopwatch"
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Target Device
+      description: Which device(s) should this widget support?
+      multiple: true
+      options:
+        - Xeneon Edge (dashboard LCD)
+        - Pump LCD (iCUE ELITE)
+    validations:
+      required: true
+  - type: dropdown
+    id: interactive
+    attributes:
+      label: Interactive?
+      description: Does this widget require touch input? (Pump LCD widgets must be non-interactive.)
+      options:
+        - "Yes"
+        - "No"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Widget Description
+      description: What does the widget do? How would it look and behave?
+      placeholder: |
+        A stopwatch with start/stop/reset buttons and lap time tracking. Displays elapsed time in HH:MM:SS.ms format.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Mockups / References
+      description: If applicable, add mockups, screenshots, or links to similar widgets for reference.
+    validations:
+      required: false

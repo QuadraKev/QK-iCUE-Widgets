@@ -1,0 +1,55 @@
+name: Feature Request
+description: Suggest a new feature or improvement for an existing widget
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: widget
+    attributes:
+      label: Widget
+      description: Which widget does this apply to? Select "All / General" if it applies broadly.
+      options:
+        - All / General
+        - 2048
+        - Binary Clock
+        - Calculator
+        - Day Progress
+        - Dice Roller
+        - Fidget Spinner
+        - Game of Life
+        - Magic 8 Ball
+        - Matrix Rain
+        - Moon Phase
+        - Paint
+        - Pump Visualizer
+        - Simon
+        - Starfield
+        - Tally Counter
+        - World Clocks
+        - XE Visualizer
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: What would you like to see added or changed?
+      placeholder: |
+        Add a history panel to the Calculator that shows the last 10 calculations.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Why would this be useful? What problem does it solve?
+      placeholder: |
+        When doing multiple calculations in a row, it's easy to forget previous results.
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Mockups / References
+      description: If applicable, add mockups, screenshots, or links to similar features for reference.
+    validations:
+      required: false
