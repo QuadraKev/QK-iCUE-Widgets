@@ -26,7 +26,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#1A1A1A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <script type="application/json" id="x-icue-groups">
     [
@@ -42,6 +42,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -63,6 +64,7 @@
             overflow: hidden;
             background: transparent;
             user-select: none; -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         button { border: none; outline: none; font: inherit; -webkit-tap-highlight-color: transparent; }
@@ -267,43 +269,80 @@
             .color-swatch:last-child:nth-child(odd) { grid-column: auto; }
         }
 
-        /* ══════════════ Wide (HS/HL/HXL) — scaled-up toolbar ══════════════ */
-        @media (min-aspect-ratio: 200/100) {
-            .toolbar { width: 36vh; min-width: 36vh; padding: 2vh; gap: 1.2vh; }
-            .color-pair { gap: 1.2vh; }
-            .draw-color, .bg-color { height: 10vh; border-radius: 1.4vh; }
-            .draw-color::after, .bg-color::after { font-size: 2.3vh; }
-            .tool-row { gap: 1.2vh; }
-            .tool-btn { height: 13vh; border-radius: 1.8vh; }
-            .tool-btn svg { width: 7vh; height: 7vh; }
-            .tool-label { font-size: 2vh; }
-            .size-row { gap: 1.2vh; }
-            .size-btn { height: 9.5vh; border-radius: 1.4vh; }
-            .size-dot { transform: scale(1.2); }
-            .color-grid { gap: 1.2vh; }
-            .color-swatch { height: 9vh; border-radius: 1.4vh; }
-            .action-row { gap: 1.2vh; }
-            .action-btn { height: 10vh; border-radius: 1.8vh; }
-            .action-btn svg { width: 5vh; height: 5vh; }
-            .action-label { font-size: 2vh; }
+        /* ══════════════ VS (1.67:1) — 2-column toolbar ══════════════ */
+        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
+            .toolbar {
+                display: grid;
+                grid-template-columns: auto auto;
+                align-content: start;
+                width: auto; min-width: auto;
+                padding: 2vh;
+                gap: 1.6vh;
+                overflow: visible;
+            }
+            .toolbar > * { grid-column: 1; }
+            .tb-div { display: none; }
+            .color-grid {
+                grid-column: 2;
+                grid-row: 1 / span 10;
+                align-self: start;
+                grid-template-columns: 14vh 14vh;
+                gap: 1.6vh;
+            }
+            .color-pair { gap: 1.6vh; }
+            .draw-color, .bg-color { height: 16vh; }
+            .draw-color::after, .bg-color::after { font-size: 4vh; }
+            .tool-row { gap: 1.6vh; }
+            .tool-btn { height: 20vh; }
+            .tool-btn svg { width: 10vh; height: 10vh; }
+            .tool-label { font-size: 3.2vh; }
+            .size-row { gap: 1.6vh; }
+            .size-btn { height: 16vh; }
+            .action-row { gap: 1.6vh; }
+            .action-btn { height: 16vh; }
+            .action-btn svg { width: 7vh; height: 7vh; }
+            .action-label { font-size: 3vh; }
+            .color-swatch { height: 14vh; }
         }
 
-        /* ══════════════ Extra-wide (HXL) — larger toolbar ══════════════ */
-        @media (min-aspect-ratio: 300/100) {
-            .toolbar { width: 42vh; min-width: 42vh; padding: 2vh; border-right-width: 0.3vh; }
-            .tb-div { height: 0.3vh; }
-            .draw-color, .bg-color { height: 9vh; border-width: 0.5vh; }
-            .draw-color::after, .bg-color::after { font-size: 2.5vh; bottom: 0.5vh; }
-            .tool-btn { height: 11vh; border-width: 0.5vh; }
-            .tool-btn svg { width: 6vh; height: 6vh; }
-            .tool-label { font-size: 2vh; }
-            .size-btn { height: 8vh; border-width: 0.5vh; }
-            .size-dot { transform: scale(1.2); }
-            .color-swatch { height: 7vh; border-width: 0.5vh; }
-            .action-btn { height: 9vh; }
-            .action-btn svg { width: 5vh; height: 5vh; }
-            .action-label { font-size: 2vh; }
+        /* ══════════════ Wide-short (HS) — 2-column toolbar ══════════════ */
+        @media (min-aspect-ratio: 243/100) and (max-aspect-ratio: 300/100) {
+            .toolbar {
+                display: grid;
+                grid-template-columns: auto auto;
+                align-content: start;
+                width: auto; min-width: auto;
+                padding: 2vh;
+                gap: 1.6vh;
+                overflow: visible;
+            }
+            .toolbar > * { grid-column: 1; }
+            .tb-div { display: none; }
+            .color-grid {
+                grid-column: 2;
+                grid-row: 1 / span 10;
+                align-self: start;
+                grid-template-columns: 14vh 14vh;
+                gap: 1.6vh;
+            }
+            .color-pair { gap: 1.6vh; }
+            .draw-color, .bg-color { height: 16vh; }
+            .draw-color::after, .bg-color::after { font-size: 4vh; }
+            .tool-row { gap: 1.6vh; }
+            .tool-btn { height: 20vh; }
+            .tool-btn svg { width: 10vh; height: 10vh; }
+            .tool-label { font-size: 3.2vh; }
+            .size-row { gap: 1.6vh; }
+            .size-btn { height: 16vh; }
+            .action-row { gap: 1.6vh; }
+            .action-btn { height: 16vh; }
+            .action-btn svg { width: 7vh; height: 7vh; }
+            .action-label { font-size: 3vh; }
+            .color-swatch { height: 14vh; }
+        }
 
+        /* ══════════════ Extra-wide (HXL) — picker sizing ══════════════ */
+        @media (min-aspect-ratio: 300/100) {
             .picker-panel { padding: 3.5vh; gap: 2vh; }
             .picker-label { font-size: 4vh; }
             .sv-plane { width: 69vh; height: 69vh; }
@@ -381,26 +420,27 @@
         }
         .picker-cancel:active { background: #666; }
 
-        /* Wide picker — compact to fit landscape viewports */
-        @media (min-aspect-ratio: 200/100) {
-            .sv-plane { width: 34vh; height: 34vh; }
-            .hue-strip { width: 34vh; }
-            .picker-panel { padding: 1.8vh; gap: 1.2vh; }
+        /* Wide picker — fill height for landscape viewports */
+        @media (min-aspect-ratio: 150/100) {
+            .picker-panel { padding: 2vh; gap: 1.5vh; max-height: 96vh; }
             .picker-label { display: none; }
-            .picker-preview, .picker-ok, .picker-cancel { height: 7vh; }
-            .picker-preview { width: 7vh; }
-            .picker-cancel { width: 7vh; }
-            .picker-ok { font-size: 2.5vh; }
+            .sv-plane { width: 72vh; height: 72vh; }
+            .hue-strip { width: 72vh; height: 8vh; }
+            .picker-preview, .picker-ok, .picker-cancel { height: 9vh; }
+            .picker-preview { width: 9vh; border-radius: 1.4vh; }
+            .picker-cancel { width: 9vh; font-size: 4vh; border-radius: 1.4vh; }
+            .picker-ok { font-size: 3.5vh; border-radius: 1.4vh; }
         }
 
-        /* Portrait picker — smaller to fit */
+        /* Portrait picker — fill width */
         @media (max-aspect-ratio: 1/1) {
-            .sv-plane { width: 37vw; height: 37vw; }
-            .hue-strip { width: 37vw; height: 7.5vw; }
-            .picker-preview, .picker-ok, .picker-cancel { height: 7.5vw; }
-            .picker-preview { width: 7.5vw; }
-            .picker-cancel { width: 7.5vw; }
-            .picker-ok { font-size: 2.5vw; }
+            .picker-panel { padding: 2vw; gap: 1.5vw; }
+            .sv-plane { width: 80vw; height: 80vw; }
+            .hue-strip { width: 80vw; height: 8vw; }
+            .picker-preview, .picker-ok, .picker-cancel { height: 8vw; }
+            .picker-preview { width: 8vw; }
+            .picker-cancel { width: 8vw; }
+            .picker-ok { font-size: 3vw; }
         }
 
     </style>
@@ -1102,7 +1142,7 @@
             if (typeof textColor !== 'undefined') root.style.setProperty('--text-color', textColor);
             if (typeof accentColor !== 'undefined') root.style.setProperty('--accent-color', accentColor);
             if (typeof backgroundColor !== 'undefined') root.style.setProperty('--bg-color', backgroundColor);
-            if (typeof transparency !== 'undefined') root.style.setProperty('--widget-opacity', 1 - (Number(transparency) / 100));
+            if (typeof transparency !== 'undefined') root.style.setProperty('--widget-opacity', Number(transparency) / 100);
         }
 
         function onIcueInitialized() { readSettings(); }

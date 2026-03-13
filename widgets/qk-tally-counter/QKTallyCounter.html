@@ -34,7 +34,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -51,6 +51,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -74,6 +75,7 @@
             background: transparent;
             color: var(--text-color);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
@@ -110,7 +112,7 @@
             justify-content: center;
             cursor: pointer;
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 10vh;
+            font-size: 22vh;
             transition: background-color 0.15s;
             border: none;
             background: rgba(255, 255, 255, 0.03);
@@ -144,7 +146,7 @@
         }
 
         .counter-label {
-            font-size: 3.5vh;
+            font-size: 7vh;
             color: var(--accent-color);
             opacity: 0.7;
             text-transform: uppercase;
@@ -158,7 +160,7 @@
 
         .counter-value {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 28vh;
+            font-size: 55vh;
             line-height: 1;
             color: var(--text-color);
             transition: transform 0.1s;
@@ -178,7 +180,7 @@
             padding: 0 3vw;
             border-radius: 2vmin;
             font-family: 'Jost', sans-serif; font-weight: 600;
-            font-size: 3vh;
+            font-size: 5vh;
             cursor: pointer;
             border: none;
             background: rgba(255, 255, 255, 0.05);
@@ -192,13 +194,27 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* ---- Responsive: Square-ish ---- */
-        @media (max-aspect-ratio: 180/100) and (min-aspect-ratio: 90/100) {
+        /* ---- Responsive: VS (1.67:1) ---- */
+        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
             .counter-value {
-                font-size: 22vh;
+                font-size: 50vh;
             }
             .btn-minus, .btn-plus {
-                font-size: 8vh;
+                font-size: 28vh;
+            }
+            .btn-reset {
+                font-size: 7vh;
+                height: 14vh;
+            }
+        }
+
+        /* ---- Responsive: Square-ish (HM) ---- */
+        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
+            .counter-value {
+                font-size: 42vh;
+            }
+            .btn-minus, .btn-plus {
+                font-size: 18vh;
             }
         }
 
@@ -209,7 +225,7 @@
             }
             .btn-minus, .btn-plus {
                 flex: 0 0 20%;
-                font-size: 10vw;
+                font-size: 18vw;
             }
             .btn-minus {
                 order: 3;
@@ -226,14 +242,14 @@
                 border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             }
             .counter-value {
-                font-size: 25vw;
+                font-size: 45vw;
             }
-            .counter-label { font-size: 4vw; }
+            .counter-label { font-size: 6vw; }
             .btn-reset {
-                bottom: 1vw;
-                height: 7vw;
-                font-size: 3vw;
-                padding: 0 4vw;
+                bottom: 2vw;
+                height: 9vw;
+                font-size: 4vw;
+                padding: 0 5vw;
             }
         }
     </style>
@@ -299,7 +315,7 @@
             root.style.setProperty('--text-color', cfg.textColor);
             root.style.setProperty('--accent-color', cfg.accentColor);
             root.style.setProperty('--bg-color', cfg.bgColor);
-            root.style.setProperty('--widget-opacity', 1 - (cfg.transparency / 100));
+            root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
             if (cfg.counterLabel && cfg.counterLabel.trim()) {
                 elCounterLabel.textContent = cfg.counterLabel;
