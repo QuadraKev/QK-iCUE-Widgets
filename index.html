@@ -342,6 +342,73 @@
 
         .server-link:hover { text-decoration: underline; }
 
+        /* Info sections */
+        .info-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 28px 0 0;
+        }
+
+        @media (max-width: 768px) {
+            .info-sections { grid-template-columns: 1fr; }
+        }
+
+        .info-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .info-box h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+
+        .info-box ol, .info-box ul {
+            padding-left: 20px;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.7;
+        }
+
+        .info-box li { margin-bottom: 4px; }
+
+        .info-box code {
+            background: var(--bg-elevated);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        .info-box p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .info-box pre {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            color: var(--text);
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+
+        .info-box a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .info-box a:hover { text-decoration: underline; }
+
         /* Modal */
         .modal-overlay {
             position: fixed;
@@ -572,6 +639,27 @@
     </nav>
 
     <main class="container">
+        <div class="info-sections">
+            <div class="info-box">
+                <h2>Installation</h2>
+                <ol>
+                    <li>Download a widget ZIP using the Download button below (or grab the <a href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases" target="_blank" rel="noopener">all-widgets bundle</a> from Releases)</li>
+                    <li>Extract the contents into<br><code>C:\Program Files\Corsair\Corsair iCUE5 Software\widgets\</code></li>
+                    <li>Restart iCUE</li>
+                    <li>Add the widget to your dashboard in iCUE</li>
+                </ol>
+            </div>
+            <div class="info-box">
+                <h2>Visualizer Server Setup</h2>
+                <p>The XE Visualizer and Pump Visualizer require a Python companion server that captures system audio and media info. A single server instance serves both widgets.</p>
+                <p><strong>Requirements:</strong> Windows 10/11, Python 3.10+</p>
+                <p><strong>1.</strong> Install dependencies:</p>
+                <pre>pip install PyAudioWPatch numpy websockets winrt-runtime winrt-Windows.Media.Control winrt-Windows.Storage.Streams</pre>
+                <p><strong>2.</strong> Run the server:</p>
+                <pre>python NowPlayingServer.pyw</pre>
+                <p><strong>3.</strong> Set the Server Port in the widget settings to match (default: <code>16329</code>)</p>
+            </div>
+        </div>
         <div class="widget-grid" id="widget-grid"></div>
     </main>
 
@@ -673,7 +761,7 @@
             grid.innerHTML = list.map(function (w, i) {
                 var dev = DEVICE_LABELS[w.device];
                 var icon = 'widgets/' + w.id + '/images/' + w.id + '.svg';
-                var dlHref = 'https://github.com/QuadraKev/QK-iCUE-Widgets/releases';
+                var dlHref = 'https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/' + w.id + '.zip';
 
                 return '<div class="widget-card" style="animation-delay:' + (i * 35) + 'ms">'
                     + '<div class="card-icon">'
