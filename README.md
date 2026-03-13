@@ -47,28 +47,11 @@ Custom widgets for Corsair iCUE LCD displays (Xeneon Edge and pump LCD), built a
 ### From source (Windows)
 
 1. Clone this repo
-2. Run `install.bat` as administrator
-
-## Repository Structure
-
-```
-widgets/          All widgets, one folder each
-docs/             Widget API docs, design guidelines, shared assets
-tools/            Build and screenshot scripts
-.github/          CI workflows
-widgets.csv       Widget inventory, versions, and release status
-install.bat       Copies all widgets into iCUE's widget directory
-```
-
-## Releases
-
-Releases are automated via GitHub Actions. Pushing a tag (e.g., `v2026.03`) triggers the release workflow, which packages each release-ready widget into an installable ZIP and creates a GitHub Release.
-
-The `widgets.csv` file controls which widgets are included and at what version. Only widgets with `Release Ready` set to `Y` are packaged.
+2. Copy widget HTML and translation JSON files into `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets\`
+3. Copy SVG icons into the `widgets\images\` subdirectory
+4. Restart iCUE
 
 ## Development
-
-See [docs/CLAUDE.md](docs/CLAUDE.md) for the full technical reference, including the widget API, device specs, naming conventions, and required settings patterns.
 
 Each widget is a single self-contained HTML file with no external dependencies. Widgets use the [Jost](https://fonts.google.com/specimen/Jost) variable font embedded as base64 woff2.
 
