@@ -2,8 +2,6 @@
 
 An interactive dice rolling widget for the **Corsair Xeneon Edge** touchscreen, built for iCUE's LCD widget system. Tap to roll any standard polyhedral die, with spinning 3D wireframe dice and roll history.
 
-![QK Dice Roller preview](resources/DiceRollerPreview.png)
-
 ---
 
 ## How It Works
