@@ -284,6 +284,11 @@
             color: var(--accent);
         }
 
+        .badge-server {
+            background: rgba(220, 120, 80, 0.14);
+            color: #dc8860;
+        }
+
         .card-actions {
             display: flex;
             gap: 8px;
@@ -325,6 +330,17 @@
         }
 
         .btn-download:hover { background: var(--accent-hover); }
+
+        .server-link {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.78rem;
+            color: #dc8860;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .server-link:hover { text-decoration: underline; }
 
         /* Modal */
         .modal-overlay {
@@ -599,8 +615,8 @@
             { id: 'qk-simon', name: 'Simon', html: 'QKSimon.html', desc: 'Simon Says memory game', device: 'xeneon_edge', interactive: true },
             { id: 'qk-tally-counter', name: 'Tally Counter', html: 'QKTallyCounter.html', desc: 'Tap-to-count widget for tracking reps, laps, scores, or any count', device: 'xeneon_edge', interactive: true },
             { id: 'qk-world-clocks', name: 'World Clocks', html: 'QKWorldClocks.html', desc: 'Up to 4 clocks side by side set to different timezones', device: 'xeneon_edge', interactive: false },
-            { id: 'qk-xe-visualizer', name: 'XE Visualizer', html: 'QKXEVisualizer.html', desc: 'Real-time audio spectrum visualizer with track info', device: 'xeneon_edge', interactive: false },
-            { id: 'qk-pump-visualizer', name: 'Pump Visualizer', html: 'QKPumpVisualizer.html', desc: 'Circular audio visualizer in a radial layout with track info', device: 'pump', interactive: false },
+            { id: 'qk-xe-visualizer', name: 'XE Visualizer', html: 'QKXEVisualizer.html', desc: 'Real-time audio spectrum visualizer with track info', device: 'xeneon_edge', interactive: false, server: true },
+            { id: 'qk-pump-visualizer', name: 'Pump Visualizer', html: 'QKPumpVisualizer.html', desc: 'Circular audio visualizer in a radial layout with track info', device: 'pump', interactive: false, server: true },
             { id: 'qk-binary-clock', name: 'Binary Clock', html: 'QKBinaryClock.html', desc: 'Current time displayed as illuminated dots in binary', device: 'both', interactive: false },
             { id: 'qk-day-progress', name: 'Day Progress', html: 'QKDayProgress.html', desc: 'Day, week, month, and year elapsed as progress bars', device: 'both', interactive: false },
             { id: 'qk-game-of-life', name: 'Game of Life', html: 'QKGameOfLife.html', desc: "Conway's Game of Life cellular automaton", device: 'both', interactive: false },
@@ -668,11 +684,13 @@
                     + '<div class="card-meta">'
                     + '  <span class="badge ' + dev.cls + '">' + dev.text + '</span>'
                     + (w.interactive ? '<span class="badge badge-interactive">Interactive</span>' : '')
+                    + (w.server ? '<span class="badge badge-server">Companion Server</span>' : '')
                     + '</div>'
                     + '<div class="card-actions">'
                     + '  <button class="btn btn-preview" onclick="window._openPreview(\'' + w.id + '\')">Preview</button>'
                     + '  <a class="btn btn-download" href="' + dlHref + '" target="_blank" rel="noopener">Download</a>'
                     + '</div>'
+                    + (w.server ? '<a class="server-link" href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/NowPlayingServer.pyw" target="_blank" rel="noopener">Download companion server (NowPlayingServer.pyw)</a>' : '')
                     + '</div>';
             }).join('');
         }
