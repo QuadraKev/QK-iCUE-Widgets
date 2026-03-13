@@ -32,7 +32,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#000005'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -50,7 +50,7 @@
 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: transparent; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: transparent; -webkit-tap-highlight-color: transparent; }
         canvas { display: block; width: 100vw; height: 100vh; }
     
         .widget-title {
@@ -83,11 +83,14 @@
             trailStrength: 5,
             accentColor: '#FFFFFF',
             bgColor: '#000005',
-            transparency: 0
+            transparency: 100
         };
 
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
+        // Offscreen canvas: holds only star/trail content (no background)
+        var trailCanvas = document.createElement('canvas');
+        var trailCtx = trailCanvas.getContext('2d');
         var stars = [];
         var W, H, cx, cy;
 
@@ -126,6 +129,9 @@
             canvas.width = W * dpr;
             canvas.height = H * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            trailCanvas.width = W * dpr;
+            trailCanvas.height = H * dpr;
+            trailCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
         }
 
         function render() {
@@ -133,15 +139,16 @@
             var starRGB = hexToRGB(cfg.accentColor);
             var speedMul = cfg.speed * 2;
 
-            // Background: trail strength controls fade rate, transparency controls canvas opacity
+            // Fade trail content toward transparent
             if (cfg.showTrails) {
-                // Higher trailStrength = lower alpha = slower fade = longer trails
                 var trailAlpha = 0.20 - (cfg.trailStrength / 10) * 0.15;
-                ctx.fillStyle = 'rgba(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ',' + trailAlpha + ')';
+                trailCtx.globalCompositeOperation = 'destination-out';
+                trailCtx.fillStyle = 'rgba(0, 0, 0, ' + trailAlpha + ')';
+                trailCtx.fillRect(0, 0, W, H);
+                trailCtx.globalCompositeOperation = 'source-over';
             } else {
-                ctx.fillStyle = 'rgb(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ')';
+                trailCtx.clearRect(0, 0, W, H);
             }
-            ctx.fillRect(0, 0, W, H);
 
             for (var i = 0; i < stars.length; i++) {
                 var s = stars[i];
@@ -167,26 +174,33 @@
                 var size = 0.5 + depthRatio * 3;
                 var alpha = 0.2 + depthRatio * 0.8;
 
-                // Draw trail line
+                // Draw trail line on trail canvas
                 if (cfg.showTrails && !s.firstFrame) {
-                    ctx.strokeStyle = 'rgba(' + starRGB[0] + ',' + starRGB[1] + ',' + starRGB[2] + ',' + (alpha * 0.5) + ')';
-                    ctx.lineWidth = size * 0.5;
-                    ctx.beginPath();
-                    ctx.moveTo(s.psx, s.psy);
-                    ctx.lineTo(sx, sy);
-                    ctx.stroke();
+                    trailCtx.strokeStyle = 'rgba(' + starRGB[0] + ',' + starRGB[1] + ',' + starRGB[2] + ',' + (alpha * 0.5) + ')';
+                    trailCtx.lineWidth = size * 0.5;
+                    trailCtx.beginPath();
+                    trailCtx.moveTo(s.psx, s.psy);
+                    trailCtx.lineTo(sx, sy);
+                    trailCtx.stroke();
                 }
 
-                // Draw star
-                ctx.fillStyle = 'rgba(' + starRGB[0] + ',' + starRGB[1] + ',' + starRGB[2] + ',' + alpha + ')';
-                ctx.beginPath();
-                ctx.arc(sx, sy, size, 0, Math.PI * 2);
-                ctx.fill();
+                // Draw star on trail canvas
+                trailCtx.fillStyle = 'rgba(' + starRGB[0] + ',' + starRGB[1] + ',' + starRGB[2] + ',' + alpha + ')';
+                trailCtx.beginPath();
+                trailCtx.arc(sx, sy, size, 0, Math.PI * 2);
+                trailCtx.fill();
 
                 s.psx = sx;
                 s.psy = sy;
                 s.firstFrame = false;
             }
+
+            // Compose: background (with transparency) + trail content (full opacity)
+            ctx.clearRect(0, 0, W, H);
+            var bgOpacity = cfg.transparency / 100;
+            ctx.fillStyle = 'rgba(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ',' + bgOpacity + ')';
+            ctx.fillRect(0, 0, W, H);
+            ctx.drawImage(trailCanvas, 0, 0, W, H);
 
             requestAnimationFrame(render);
         }
@@ -204,17 +218,12 @@
                 wt.textContent = customTitle;
                 wt.style.display = customTitle ? 'block' : 'none';
             }
-            // Apply transparency as canvas CSS opacity
-            canvas.style.opacity = 1 - (cfg.transparency / 100);
+            // Transparency is handled in render() via background fill opacity
         }
 
         function onInit() {
             readSettings();
             resize();
-            // Fill canvas with solid bg color before animation starts
-            var bgRGB = hexToRGB(cfg.bgColor);
-            ctx.fillStyle = 'rgb(' + bgRGB[0] + ',' + bgRGB[1] + ',' + bgRGB[2] + ')';
-            ctx.fillRect(0, 0, W, H);
             initStars();
             requestAnimationFrame(render);
         }

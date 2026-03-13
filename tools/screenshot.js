@@ -1,5 +1,5 @@
-// Usage: node screenshot.js <widget-html-path> [slot-size]
-// slot-size: S, M, L, XL (default: M)
+// Usage: node screenshot.js <widget-html-path> [slot-size] [--eval "js code"] [--delay ms]
+// slot-size: S, M, L, XL, VS, VM, VL, VXL, PUMP (default: M)
 const puppeteer = require('puppeteer');
 const path = require('path');
 
@@ -18,23 +18,40 @@ const SLOTS = {
     PUMP: { width: 480, height: 480 }
 };
 
+function parseArgs(argv) {
+    const result = { htmlPath: null, slotName: 'M', evalCode: null, delay: 500 };
+    let i = 2;
+    while (i < argv.length) {
+        if (argv[i] === '--eval' && i + 1 < argv.length) {
+            result.evalCode = argv[++i];
+        } else if (argv[i] === '--delay' && i + 1 < argv.length) {
+            result.delay = parseInt(argv[++i], 10) || 500;
+        } else if (!result.htmlPath) {
+            result.htmlPath = argv[i];
+        } else {
+            result.slotName = argv[i].toUpperCase();
+        }
+        i++;
+    }
+    return result;
+}
+
 async function main() {
-    const htmlPath = process.argv[2];
-    const slotName = (process.argv[3] || 'M').toUpperCase();
+    const args = parseArgs(process.argv);
 
-    if (!htmlPath) {
-        console.error('Usage: node screenshot.js <path-to-widget.html> [S|M|L|XL|PUMP]');
+    if (!args.htmlPath) {
+        console.error('Usage: node screenshot.js <path-to-widget.html> [S|M|L|XL|PUMP] [--eval "js"] [--delay ms]');
         process.exit(1);
     }
 
-    const slot = SLOTS[slotName];
+    const slot = SLOTS[args.slotName];
     if (!slot) {
-        console.error('Unknown slot:', slotName, '-- use S, M, L, XL, VS, VM, VL, VXL, or PUMP');
+        console.error('Unknown slot:', args.slotName, '-- use S, M, L, XL, VS, VM, VL, VXL, or PUMP');
         process.exit(1);
     }
 
-    const absPath = path.resolve(htmlPath);
-    const outName = path.basename(htmlPath, '.html') + '_' + slotName + '.png';
+    const absPath = path.resolve(args.htmlPath);
+    const outName = path.basename(args.htmlPath, '.html') + '_' + args.slotName + '.png';
     const outPath = path.join(path.dirname(absPath), outName);
 
     const browser = await puppeteer.launch({
@@ -46,8 +63,15 @@ async function main() {
     await page.setViewport({ width: slot.width, height: slot.height });
     await page.goto('file://' + absPath, { waitUntil: 'networkidle0', timeout: 10000 });
 
-    // Wait a moment for any animations/transitions to settle
-    await new Promise(r => setTimeout(r, 500));
+    // Inject JS to modify widget state before screenshot
+    if (args.evalCode) {
+        await page.evaluate((code) => {
+            eval(code);
+        }, args.evalCode);
+    }
+
+    // Wait for animations/transitions to settle
+    await new Promise(r => setTimeout(r, args.delay));
 
     await page.screenshot({ path: outPath, fullPage: false });
     console.log('Saved:', outPath);

@@ -31,7 +31,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -48,6 +48,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -78,6 +79,7 @@
             background: transparent;
             color: var(--text-color);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
@@ -116,7 +118,7 @@
             grid-template-rows: 1fr 1fr;
             gap: 1vh;
             aspect-ratio: 1;
-            height: 72vh;
+            height: 88vh;
         }
 
         .pad {
@@ -179,39 +181,39 @@
 
         .score-label {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 4vh;
+            font-size: 5vh;
             opacity: 0.5;
             text-transform: uppercase;
         }
 
         .score-value {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 10vh;
+            font-size: 14vh;
             line-height: 1;
         }
 
         .best-score {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 3.5vh;
+            font-size: 4vh;
             opacity: 0.4;
         }
 
         .status {
             font-family: 'Jost', sans-serif; font-weight: 600;
-            font-size: 3.5vh;
+            font-size: 4.5vh;
             opacity: 0.6;
             text-align: center;
             min-height: 5vh;
         }
 
         .start-btn {
-            padding: 2vh 4vh;
+            padding: 2.5vh 5vh;
             border: 2px solid var(--text-color);
             border-radius: 1.5vh;
             background: rgba(255, 255, 255, 0.06);
             color: var(--text-color);
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 4vh;
+            font-size: 5vh;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             transition: background 0.15s, transform 0.1s;
@@ -226,20 +228,20 @@
             display: none;
         }
 
-        /* ---- Responsive: Wide (S slot) ---- */
+        /* ---- Responsive: Wide (HS/HL/HXL) ---- */
         @media (min-aspect-ratio: 200/100) {
             .container {
-                gap: 3vw;
+                gap: 4vw;
             }
             .board {
-                height: 82vh;
+                height: 92vh;
                 gap: 0.8vh;
             }
-            .score-value { font-size: 8vh; }
-            .score-label { font-size: 3.5vh; }
-            .best-score { font-size: 3vh; }
-            .status { font-size: 3vh; }
-            .start-btn { font-size: 3.5vh; padding: 1.5vh 3vh; }
+            .score-value { font-size: 18vh; }
+            .score-label { font-size: 6vh; }
+            .best-score { font-size: 5vh; }
+            .status { font-size: 5.5vh; }
+            .start-btn { font-size: 6vh; padding: 2.5vh 5vh; }
         }
 
         /* ---- Responsive: Square/portrait ---- */
@@ -546,7 +548,7 @@
             var root = document.documentElement;
             root.style.setProperty('--text-color', cfg.textColor);
             root.style.setProperty('--bg-color', cfg.bgColor);
-            root.style.setProperty('--widget-opacity', 1 - (cfg.transparency / 100));
+            root.style.setProperty('--widget-opacity', cfg.transparency / 100);
         }
 
         // ================================================================

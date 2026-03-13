@@ -39,7 +39,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -56,6 +56,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -79,6 +80,7 @@
             background: transparent;
             color: var(--text-color);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
@@ -249,6 +251,26 @@
             .binary-row { gap: 2vh; }
         }
 
+        /* ---- VS (1.67:1) ---- */
+        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
+            .bcd-dot {
+                width: 14vh;
+                height: 14vh;
+            }
+            .bcd-grid { gap: 2.5vh; }
+            .bcd-column { gap: 2vh; }
+            .bcd-dots { gap: 2vh; }
+            .bcd-label { font-size: 5vh; }
+            .sep-dot { width: 2.5vh; height: 2.5vh; }
+            .bcd-separator { gap: 4vh; }
+            .decimal-time { font-size: 14vh; }
+            .binary-bit { width: 11vh; height: 11vh; }
+            .binary-label { font-size: 5vh; width: 7vh; }
+            .binary-value { font-size: 8vh; width: 10vh; }
+            .binary-grid { gap: 3vh; }
+            .binary-row { gap: 2vh; }
+        }
+
         /* ---- Square / Pump (480x480) ---- */
         @media (max-aspect-ratio: 110/100) and (min-aspect-ratio: 90/100) {
             .bcd-dot {
@@ -346,7 +368,7 @@
             root.style.setProperty('--text-color', cfg.textColor);
             root.style.setProperty('--accent-color', cfg.accentColor);
             root.style.setProperty('--bg-color', cfg.bgColor);
-            root.style.setProperty('--widget-opacity', 1 - (cfg.transparency / 100));
+            root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
             if (cfg.showDecimal) {
                 elDecimalTime.classList.remove('hidden');

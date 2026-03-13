@@ -63,7 +63,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -80,6 +80,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -103,6 +104,7 @@
             background: transparent;
             color: var(--text-color);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
@@ -240,18 +242,37 @@
             .container .clock-panel .clock-day-diff { font-size: 4vh; }
         }
 
-        /* ---- Portrait (VM/VL/VXL): 2x2 grid ---- */
+        /* ---- Portrait (VM/VL/VXL): vertical stack ---- */
+        /* VM: hide 4th clock */
+        @media (max-aspect-ratio: 90/100) and (min-aspect-ratio: 50/100) {
+            .clock-panel:nth-child(4) { display: none !important; }
+        }
         @media (max-aspect-ratio: 90/100) {
+            .container {
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
             .clock-panel {
-                flex: 1 1 50%;
-                min-width: 50%;
-                max-width: 50%;
+                flex: 1 1 auto;
+                width: 100%;
+                min-width: 100%;
+                max-width: 100%;
             }
             .clock-time { font-size: 14vw; }
             .clock-label { font-size: 4vw; }
             .clock-date { font-size: 3vw; }
             .clock-ampm { font-size: 4vw; }
             .clock-day-diff { font-size: 2.5vw; }
+        }
+
+        /* ---- Very tall (VL/VXL): larger text ---- */
+        @media (max-aspect-ratio: 50/100) {
+            .clock-time { font-size: 18vw; }
+            .clock-label { font-size: 5.5vw; }
+            .clock-date { font-size: 4vw; }
+            .clock-ampm { font-size: 5.5vw; }
+            .clock-day-diff { font-size: 3.5vw; }
         }
     </style>
 </head>
@@ -314,7 +335,7 @@
             root.style.setProperty('--text-color', cfg.textColor);
             root.style.setProperty('--accent-color', cfg.accentColor);
             root.style.setProperty('--bg-color', cfg.bgColor);
-            root.style.setProperty('--widget-opacity', 1 - (cfg.transparency / 100));
+            root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
             buildPanels();
             updateClocks();

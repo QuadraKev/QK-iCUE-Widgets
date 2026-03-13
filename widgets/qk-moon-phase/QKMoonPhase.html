@@ -31,7 +31,7 @@
         data-label="tr('Background Color')" data-type="color" data-default="'#05050A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
-        data-default="0" data-min="0" data-max="100" data-step="1" unit-label="%">
+        data-default="100" data-min="0" data-max="100" data-step="1">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -48,6 +48,7 @@
     </script>
 
     <style>
+        /* Jost font: Copyright 2020 The Jost Project Authors (https://github.com/indestructible-type), SIL Open Font License 1.1 */
         @font-face {
             font-family: 'Jost';
             font-style: normal;
@@ -71,6 +72,7 @@
             background: transparent;
             color: var(--text-color);
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
@@ -106,6 +108,8 @@
             position: relative;
             width: 65vmin;
             height: 65vmin;
+            background: var(--bg-color);
+            border-radius: 50%;
         }
 
         .moon-svg {
@@ -278,7 +282,7 @@
             root.style.setProperty('--text-color', cfg.textColor);
             root.style.setProperty('--accent-color', cfg.accentColor);
             root.style.setProperty('--bg-color', cfg.bgColor);
-            root.style.setProperty('--widget-opacity', 1 - (cfg.transparency / 100));
+            root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
             elPhaseName.classList.toggle('hidden', !cfg.showPhaseName);
             elIllumination.classList.toggle('hidden', !cfg.showIllumination);
