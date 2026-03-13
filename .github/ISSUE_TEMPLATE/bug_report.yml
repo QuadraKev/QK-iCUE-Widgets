@@ -1,0 +1,91 @@
+name: Bug Report
+description: Report a bug with an existing widget
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: widget
+    attributes:
+      label: Widget
+      description: Which widget is affected?
+      options:
+        - 2048
+        - Binary Clock
+        - Calculator
+        - Day Progress
+        - Dice Roller
+        - Fidget Spinner
+        - Game of Life
+        - Magic 8 Ball
+        - Matrix Rain
+        - Moon Phase
+        - Paint
+        - Pump Visualizer
+        - Simon
+        - Starfield
+        - Tally Counter
+        - World Clocks
+        - XE Visualizer
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      description: Which device are you using?
+      options:
+        - Xeneon Edge (dashboard LCD)
+        - Pump LCD (iCUE ELITE)
+    validations:
+      required: true
+  - type: dropdown
+    id: slot-size
+    attributes:
+      label: Slot Size
+      description: Which slot size is the widget placed in?
+      options:
+        - HS (840x344)
+        - HM (840x696)
+        - HL (1688x696)
+        - HXL (2536x696)
+        - VS (696x416)
+        - VM (696x840)
+        - VL (696x1688)
+        - VXL (696x2536)
+        - PUMP (480x480)
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: What happened? What did you expect to happen?
+      placeholder: |
+        When I tap the equals button after entering "5 / 0", the display shows "NaN" instead of an error message.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can this bug be reliably triggered?
+      placeholder: |
+        1. Open the Calculator widget in HM slot
+        2. Tap 5, then /, then 0
+        3. Tap =
+        4. Observe the display
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help illustrate the issue.
+    validations:
+      required: false
+  - type: input
+    id: icue-version
+    attributes:
+      label: iCUE Version
+      placeholder: "5.x.x"
+    validations:
+      required: false
