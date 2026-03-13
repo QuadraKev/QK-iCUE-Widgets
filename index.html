@@ -59,6 +59,22 @@
             border-bottom: 1px solid var(--border);
         }
 
+        .hero-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 20px;
+            border: 2px solid var(--border);
+        }
+
+        .hero-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
         .hero h1 {
             font-size: 3rem;
             font-weight: 700;
@@ -604,6 +620,9 @@
 
     <header class="hero">
         <div class="container">
+            <div class="hero-logo">
+                <img src="docs/QuadraKev Logo V3@4x 1kpx.png" alt="QuadraKev">
+            </div>
             <h1><span class="accent">QK</span> iCUE Widgets</h1>
             <p class="subtitle">Custom widgets for Corsair iCUE LCD displays</p>
             <div class="stats">
