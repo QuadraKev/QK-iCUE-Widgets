@@ -68,14 +68,16 @@ fi
 
 rm -rf "$BUNDLE_DIR"
 
-# Copy companion server files as standalone release assets
+# Package companion server as a ZIP
 SERVER_DIR="$REPO_ROOT/widgets/qk-xe-visualizer/server"
-for F in NowPlayingServer.pyw StartServer.bat; do
-    if [ -f "$SERVER_DIR/$F" ]; then
-        cp "$SERVER_DIR/$F" "$DIST/"
-        echo "Included $F"
-    fi
-done
+if [ -f "$SERVER_DIR/NowPlayingServer.pyw" ]; then
+    SERVER_STAGE=$(mktemp -d)
+    cp "$SERVER_DIR"/NowPlayingServer.pyw "$SERVER_STAGE/"
+    cp "$SERVER_DIR"/StartServer.bat "$SERVER_STAGE/" 2>/dev/null || true
+    (cd "$SERVER_STAGE" && zip -r "$DIST/NowPlayingServer.zip" . -x ".*") > /dev/null
+    rm -rf "$SERVER_STAGE"
+    echo "Packaged NowPlayingServer.zip"
+fi
 
 echo ""
 echo "Packaged $COUNT widgets."
