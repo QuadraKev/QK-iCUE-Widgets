@@ -12,20 +12,22 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --bg: #08080e;
-            --bg-card: #111119;
-            --bg-elevated: #1a1a26;
-            --bg-hover: #1e1e2c;
-            --border: #252535;
-            --border-hover: #3a3a50;
-            --accent: #f0c040;
-            --accent-dim: rgba(240, 192, 64, 0.15);
-            --accent-hover: #f5d060;
-            --text: #e6e6f0;
-            --text-secondary: #8888a0;
-            --text-dim: #555568;
-            --badge-xe: #5a9fd4;
-            --badge-pump: #b088d4;
+            --bg: #1a1d20;
+            --bg-card: #282c30;
+            --bg-elevated: #333840;
+            --bg-hover: #3a4048;
+            --border: #4f5458;
+            --border-hover: #686e74;
+            --accent: #e660ff;
+            --accent-dim: rgba(230, 96, 255, 0.15);
+            --accent-hover: #ec88ff;
+            --secondary: #529bff;
+            --text: #e8eaed;
+            --text-secondary: #9da3ab;
+            --text-dim: #6b7280;
+            --badge-xe: #529bff;
+            --badge-pump: #e660ff;
+            --warm: #ffb100;
             --badge-both: #5cc88a;
             --radius: 12px;
             --radius-sm: 8px;
@@ -53,7 +55,7 @@
         .hero {
             padding: 72px 0 48px;
             text-align: center;
-            background: linear-gradient(180deg, rgba(240, 192, 64, 0.05) 0%, transparent 100%);
+            background: linear-gradient(180deg, rgba(230, 96, 255, 0.05) 0%, transparent 100%);
             border-bottom: 1px solid var(--border);
         }
 
@@ -123,7 +125,7 @@
 
         .btn-hero-primary {
             background: var(--accent);
-            color: #0a0a0f;
+            color: #121416;
         }
 
         .btn-hero-primary:hover { background: var(--accent-hover); }
@@ -145,7 +147,7 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background: rgba(8, 8, 14, 0.92);
+            background: rgba(26, 29, 32, 0.92);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
@@ -265,12 +267,12 @@
         }
 
         .badge-xe {
-            background: rgba(90, 159, 212, 0.14);
+            background: rgba(82, 155, 255, 0.14);
             color: var(--badge-xe);
         }
 
         .badge-pump {
-            background: rgba(176, 136, 212, 0.14);
+            background: rgba(230, 96, 255, 0.14);
             color: var(--badge-pump);
         }
 
@@ -280,13 +282,13 @@
         }
 
         .badge-interactive {
-            background: rgba(240, 192, 64, 0.1);
-            color: var(--accent);
+            background: rgba(255, 177, 0, 0.12);
+            color: var(--warm);
         }
 
         .badge-server {
-            background: rgba(220, 120, 80, 0.14);
-            color: #dc8860;
+            background: rgba(82, 155, 255, 0.14);
+            color: var(--secondary);
         }
 
         .card-actions {
@@ -324,7 +326,7 @@
 
         .btn-download {
             background: var(--accent);
-            color: #0a0a0f;
+            color: #121416;
             font-weight: 600;
             flex: 1;
         }
@@ -335,7 +337,7 @@
             display: block;
             margin-top: 8px;
             font-size: 0.78rem;
-            color: #dc8860;
+            color: var(--secondary);
             text-decoration: none;
             text-align: center;
         }
@@ -527,7 +529,7 @@
         .preview-frame {
             position: relative;
             overflow: hidden;
-            border: 1px solid #333;
+            border: 1px solid var(--border);
             border-radius: 3px;
             background: #000;
             transition: border-radius 200ms ease;
