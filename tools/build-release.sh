@@ -68,6 +68,13 @@ fi
 
 rm -rf "$BUNDLE_DIR"
 
+# Copy companion server as a standalone release asset
+SERVER="$REPO_ROOT/widgets/qk-xe-visualizer/server/NowPlayingServer.pyw"
+if [ -f "$SERVER" ]; then
+    cp "$SERVER" "$DIST/"
+    echo "Included NowPlayingServer.pyw"
+fi
+
 echo ""
 echo "Packaged $COUNT widgets."
 echo "Release artifacts in $DIST/:"
