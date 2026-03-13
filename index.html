@@ -284,12 +284,6 @@
             color: var(--accent);
         }
 
-        .download-count {
-            font-size: 0.78rem;
-            color: var(--text-dim);
-            margin-left: auto;
-        }
-
         .card-actions {
             display: flex;
             gap: 8px;
@@ -529,12 +523,8 @@
             <p class="subtitle">Custom widgets for Corsair iCUE LCD displays</p>
             <div class="stats">
                 <div class="stat">
-                    <span class="stat-value" id="stat-widgets">17</span>
+                    <span class="stat-value">17</span>
                     <span class="stat-label">Widgets</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-value" id="stat-downloads">--</span>
-                    <span class="stat-label">Downloads</span>
                 </div>
                 <div class="stat">
                     <span class="stat-value">2</span>
@@ -645,8 +635,6 @@
         };
 
         // State
-        var dlStats = {};
-        var dlUrls = {};
         var currentFilter = 'all';
         var currentPreview = null;
         var currentSlot = null;
@@ -668,10 +656,8 @@
 
             grid.innerHTML = list.map(function (w, i) {
                 var dev = DEVICE_LABELS[w.device];
-                var count = dlStats[w.id] || 0;
-                var countStr = count > 0 ? formatNum(count) + ' downloads' : '';
                 var icon = 'widgets/' + w.id + '/images/' + w.id + '.svg';
-                var dlHref = dlUrls[w.id] || 'https://github.com/QuadraKev/QK-iCUE-Widgets/releases';
+                var dlHref = 'https://github.com/QuadraKev/QK-iCUE-Widgets/releases';
 
                 return '<div class="widget-card" style="animation-delay:' + (i * 35) + 'ms">'
                     + '<div class="card-icon">'
@@ -682,7 +668,6 @@
                     + '<div class="card-meta">'
                     + '  <span class="badge ' + dev.cls + '">' + dev.text + '</span>'
                     + (w.interactive ? '<span class="badge badge-interactive">Interactive</span>' : '')
-                    + (countStr ? '<span class="download-count">' + countStr + '</span>' : '')
                     + '</div>'
                     + '<div class="card-actions">'
                     + '  <button class="btn btn-preview" onclick="window._openPreview(\'' + w.id + '\')">Preview</button>'
@@ -773,51 +758,6 @@
             }, 100);
         });
 
-        // Download stats from GitHub Releases API
-        function fetchStats() {
-            fetch('https://api.github.com/repos/QuadraKev/QK-iCUE-Widgets/releases')
-                .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
-                .then(function (releases) {
-                    var total = 0;
-                    var latest = releases[0];
-
-                    releases.forEach(function (release) {
-                        release.assets.forEach(function (asset) {
-                            var m = asset.name.match(/^(qk-[\w-]+?)(?:-v[\d.]+)?\.zip$/);
-                            if (m) {
-                                dlStats[m[1]] = (dlStats[m[1]] || 0) + asset.download_count;
-                            }
-                            total += asset.download_count;
-                        });
-                    });
-
-                    // Get direct download URLs from latest release
-                    if (latest) {
-                        latest.assets.forEach(function (asset) {
-                            var m = asset.name.match(/^(qk-[\w-]+?)(?:-v[\d.]+)?\.zip$/);
-                            if (m) {
-                                dlUrls[m[1]] = asset.browser_download_url;
-                            }
-                            if (asset.name.indexOf('all-widgets') === 0) {
-                                document.getElementById('download-all-btn').href = asset.browser_download_url;
-                            }
-                        });
-                    }
-
-                    document.getElementById('stat-downloads').textContent = formatNum(total);
-                    renderGrid();
-                })
-                .catch(function () {
-                    // Stats unavailable, cards already rendered without counts
-                });
-        }
-
-        function formatNum(n) {
-            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
-            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-            return n.toString();
-        }
-
         // Filter buttons
         document.querySelectorAll('.filter-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -839,7 +779,6 @@
 
         // Init
         renderGrid();
-        fetchStats();
     })();
     </script>
 </body>
