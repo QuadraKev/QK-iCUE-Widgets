@@ -894,6 +894,28 @@
             previewIframe.style.height = slot.h + 'px';
             previewIframe.style.transform = 'scale(' + scale + ')';
             previewIframe.src = 'widgets/' + currentPreview.id + '/' + currentPreview.html;
+
+            // Inject demo data for widgets that need external data
+            if (currentPreview.id === 'qk-weather') {
+                previewIframe.onload = function () {
+                    try {
+                        var win = previewIframe.contentWindow;
+                        var now = new Date();
+                        var isDay = now.getHours() >= 6 && now.getHours() < 20 ? 1 : 0;
+                        win.document.getElementById('locName').textContent = 'San Francisco';
+                        win.document.getElementById('locRegion').textContent = 'California, US';
+                        win.renderCurrent({
+                            temperature_2m: 62, apparent_temperature: 59,
+                            weather_code: isDay ? 2 : 0, wind_speed_10m: 12,
+                            relative_humidity_2m: 72, uv_index: isDay ? 4 : 0,
+                            precipitation: 0, is_day: isDay
+                        }, { precipitation: 'mm' });
+                        win.showWeather();
+                    } catch (e) {}
+                };
+            } else {
+                previewIframe.onload = null;
+            }
         };
 
         function closePreview() {
