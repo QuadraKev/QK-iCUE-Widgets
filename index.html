@@ -910,6 +910,23 @@
                             relative_humidity_2m: 72, uv_index: isDay ? 4 : 0,
                             precipitation: 0, is_day: isDay
                         }, { precipitation: 'mm' });
+                        // Generate 7-day forecast from today
+                        var codes = [2, 1, 61, 0, 3, 80, 1];
+                        var highs = [64, 66, 58, 68, 63, 57, 65];
+                        var lows =  [52, 54, 49, 51, 50, 48, 53];
+                        var pops =  [10, 5, 70, 0, 20, 85, 15];
+                        var forecast = [];
+                        for (var i = 0; i < 7; i++) {
+                            var d = new Date(now);
+                            d.setDate(d.getDate() + i);
+                            forecast.push({
+                                date: d.toISOString().split('T')[0],
+                                high: highs[i], low: lows[i],
+                                code: codes[i], pop: pops[i]
+                            });
+                        }
+                        win.lastForecastData = forecast;
+                        win.renderForecast();
                         win.showWeather();
                     } catch (e) {}
                 };
