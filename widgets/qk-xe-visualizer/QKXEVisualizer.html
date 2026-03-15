@@ -39,6 +39,8 @@
         data-label="tr('Mirror Mode')" data-type="switch" data-default="false">
     <meta name="x-icue-property" content="showViz"
         data-label="tr('Show Visualizer')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="idleAnimation"
+        data-label="tr('Idle Animation')" data-type="switch" data-default="false">
     <meta name="x-icue-property" content="showMediaInfo"
         data-label="tr('Show Media Info')" data-type="switch" data-default="true">
     <meta name="x-icue-property" content="serverPort"
@@ -60,7 +62,7 @@
     [
         {
             "title": "tr('QK Visualizer')",
-            "properties": ["vizStyle", "barCount", "sensitivity", "freqScale", "smoothing", "spatialBlur", "mirrorMode", "showViz", "showMediaInfo", "serverPort", "customTitle"]
+            "properties": ["vizStyle", "barCount", "sensitivity", "freqScale", "smoothing", "spatialBlur", "mirrorMode", "showViz", "idleAnimation", "showMediaInfo", "serverPort", "customTitle"]
         },
         {
             "title": "tr('Appearance')",
@@ -641,6 +643,7 @@
             smoothing: 50,
             spatialBlur: 50,
             mirrorMode: false,
+            idleAnimation: false,
             showViz: true,
             showMediaInfo: true,
             serverPort: '16329',
@@ -700,6 +703,7 @@
             if (typeof smoothing !== 'undefined')      cfg.smoothing = Number(smoothing) || 50;
             if (typeof spatialBlur !== 'undefined')    cfg.spatialBlur = Number(spatialBlur);
             if (typeof mirrorMode !== 'undefined')     cfg.mirrorMode = !!mirrorMode;
+            if (typeof idleAnimation !== 'undefined') cfg.idleAnimation = !!idleAnimation;
             if (typeof showViz !== 'undefined')        cfg.showViz = !!showViz;
             if (typeof showMediaInfo !== 'undefined') cfg.showMediaInfo = !!showMediaInfo;
             if (typeof serverPort !== 'undefined')     cfg.serverPort = String(serverPort).trim() || '16329';
@@ -964,8 +968,11 @@
                 var sourceBins;
                 if (hasLiveData && !isSilent) {
                     sourceBins = rawBins;
-                } else {
+                } else if (cfg.idleAnimation) {
                     sourceBins = generateIdleBins(count);
+                } else {
+                    sourceBins = new Array(count);
+                    for (var zi = 0; zi < count; zi++) sourceBins[zi] = 0;
                 }
 
                 var n = sourceBins.length;
