@@ -45,6 +45,8 @@
     <meta name="x-icue-property" content="vizOpacity"
         data-label="tr('Visualizer Opacity')" data-type="slider"
         data-default="100" data-min="0" data-max="100" data-step="5">
+    <meta name="x-icue-property" content="idleAnimation"
+        data-label="tr('Idle Animation')" data-type="switch" data-default="false">
     <meta name="x-icue-property" content="showMediaInfo"
         data-label="tr('Show Media Info')" data-type="switch" data-default="true">
     <meta name="x-icue-property" content="serverPort"
@@ -61,7 +63,7 @@
     [
         {
             "title": "tr('QK Pump Visualizer')",
-            "properties": ["vizMode", "vizStyle", "barCount", "sensitivity", "smoothing", "spatialBlur", "mirrorMode", "showArt", "artOpacity", "vizOpacity", "showMediaInfo", "serverPort", "customTitle"]
+            "properties": ["vizMode", "vizStyle", "barCount", "sensitivity", "smoothing", "spatialBlur", "mirrorMode", "idleAnimation", "showArt", "artOpacity", "vizOpacity", "showMediaInfo", "serverPort", "customTitle"]
         },
         {
             "title": "tr('Appearance')",
@@ -281,6 +283,7 @@
             smoothing: 50,
             spatialBlur: 30,
             mirrorMode: false,
+            idleAnimation: false,
             showArt: true,
             artOpacity: 100,
             vizOpacity: 100,
@@ -334,6 +337,7 @@
             if (typeof smoothing !== 'undefined')        cfg.smoothing = Number(smoothing) || 50;
             if (typeof spatialBlur !== 'undefined')      cfg.spatialBlur = Number(spatialBlur);
             if (typeof mirrorMode !== 'undefined')       cfg.mirrorMode = !!mirrorMode;
+            if (typeof idleAnimation !== 'undefined')  cfg.idleAnimation = !!idleAnimation;
             if (typeof showArt !== 'undefined')          cfg.showArt = !!showArt;
             if (typeof artOpacity !== 'undefined')       cfg.artOpacity = Number(artOpacity);
             if (typeof vizOpacity !== 'undefined')       cfg.vizOpacity = Number(vizOpacity);
@@ -527,7 +531,12 @@
                     }
                 }
             } else {
-                resampled = generateIdleBins(count);
+                if (cfg.idleAnimation) {
+                    resampled = generateIdleBins(count);
+                } else {
+                    resampled = new Array(count);
+                    for (var zi = 0; zi < count; zi++) resampled[zi] = 0;
+                }
             }
 
             // dB scaling
