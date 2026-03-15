@@ -1,0 +1,13 @@
+<svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sun with cloud -->
+    <circle cx="10" cy="6" r="3" stroke="silver" stroke-width="1" fill="none"/>
+    <line x1="10" y1="1.5" x2="10" y2="2.5" stroke="silver" stroke-width="0.8"/>
+    <line x1="10" y1="9.5" x2="10" y2="10.5" stroke="silver" stroke-width="0.8"/>
+    <line x1="5.5" y1="6" x2="6.5" y2="6" stroke="silver" stroke-width="0.8"/>
+    <line x1="13.5" y1="6" x2="14.5" y2="6" stroke="silver" stroke-width="0.8"/>
+    <line x1="6.8" y1="2.8" x2="7.5" y2="3.5" stroke="silver" stroke-width="0.8"/>
+    <line x1="12.5" y1="8.5" x2="13.2" y2="9.2" stroke="silver" stroke-width="0.8"/>
+    <line x1="6.8" y1="9.2" x2="7.5" y2="8.5" stroke="silver" stroke-width="0.8"/>
+    <line x1="12.5" y1="3.5" x2="13.2" y2="2.8" stroke="silver" stroke-width="0.8"/>
+    <path d="M3 13 Q3 10 5.5 10 Q6 8 8 8 Q10 8 10.5 10 L12 10 Q14 10 14 12 Q14 13 12.5 13 Z" stroke="silver" stroke-width="0.8" fill="none"/>
+</svg>
