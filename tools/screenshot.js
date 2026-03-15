@@ -15,7 +15,17 @@ const SLOTS = {
     VL: { width: 696, height: 1688 },
     VXL: { width: 696, height: 2536 },
     // Pump
-    PUMP: { width: 480, height: 480 }
+    PUMP: { width: 480, height: 480 },
+    // Preview sizes (for testing preview scale detection)
+    PS:  { width: 316, height: 130 },
+    PM:  { width: 316, height: 262 },
+    PL:  { width: 634, height: 262 },
+    PXL: { width: 952, height: 262 },
+    PVS: { width: 262, height: 157 },
+    PVM: { width: 262, height: 316 },
+    PVL: { width: 196, height: 475 },
+    PVXL: { width: 262, height: 952 },
+    PPUMP: { width: 165, height: 165 }
 };
 
 function parseArgs(argv) {
