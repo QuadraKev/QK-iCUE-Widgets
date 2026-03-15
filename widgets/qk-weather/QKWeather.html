@@ -371,6 +371,26 @@
             .detail-lbl { font-size: calc(2 * var(--u)); }
             .detail-card { padding: calc(1.2 * var(--u)); }
             .loc-name { font-size: calc(7 * var(--u)); }
+            .forecast-head { font-size: calc(3.5 * var(--u)); }
+            .fday-name { font-size: calc(3 * var(--u)); }
+            .fday-date { font-size: calc(2.2 * var(--u)); }
+            .fday-icon { width: calc(12 * var(--u)); height: calc(12 * var(--u)); }
+            .fday-hi { font-size: calc(5 * var(--u)); }
+            .fday-lo { font-size: calc(3 * var(--u)); }
+            .fday-precip { font-size: calc(2.5 * var(--u)); }
+            .fday-precip svg { width: calc(2.2 * var(--u)); height: calc(2.2 * var(--u)); }
+        }
+
+        /* Extra wide (HXL): aspect >= 3.5 */
+        @media (min-aspect-ratio: 350/100) {
+            .forecast-head { font-size: calc(5 * var(--u)); }
+            .fday-name { font-size: calc(5 * var(--u)); }
+            .fday-date { font-size: calc(3.5 * var(--u)); }
+            .fday-icon { width: calc(20 * var(--u)); height: calc(20 * var(--u)); }
+            .fday-hi { font-size: calc(9 * var(--u)); }
+            .fday-lo { font-size: calc(5 * var(--u)); }
+            .fday-precip { font-size: calc(4 * var(--u)); }
+            .fday-precip svg { width: calc(3.5 * var(--u)); height: calc(3.5 * var(--u)); }
         }
 
         /* Square-ish (HM, VS): 0.9 to 2.0 */
