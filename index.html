@@ -654,7 +654,7 @@
             <p class="subtitle">Custom widgets for Corsair iCUE LCD displays</p>
             <div class="stats">
                 <div class="stat">
-                    <span class="stat-value">17</span>
+                    <span class="stat-value" id="widget-count"></span>
                     <span class="stat-label">Widgets</span>
                 </div>
                 <div class="stat">
@@ -973,6 +973,7 @@
         });
 
         // Init
+        document.getElementById('widget-count').textContent = WIDGETS.length;
         renderGrid();
     })();
     </script>
