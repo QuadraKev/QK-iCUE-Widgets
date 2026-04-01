@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="images/qk-weather.svg">
 
     <meta name="x-icue-restrictions"
-        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"}]'>
+        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"},{"device":"keyboard"}]'>
 
     <meta name="x-icue-module" content="modules/OpenMeteo.mjs">
 
@@ -359,6 +359,25 @@
 
         /* ============== Responsive ============== */
 
+        /* Keyboard LCD (248x170, ~1.46:1) */
+        @media (min-aspect-ratio: 135/100) and (max-aspect-ratio: 155/100) {
+            .container { padding: calc(1.5 * var(--u)); gap: calc(1 * var(--u)); justify-content: center; }
+            .forecast { display: none !important; }
+            .current, .current.shown {
+                border: none; background: transparent; padding: 0;
+                flex: 0 0 auto; gap: calc(1 * var(--u));
+            }
+            .current::before { display: none; }
+            .current-body { flex-direction: row; gap: calc(2 * var(--u)); align-items: center; justify-content: center; }
+            .current-head { display: none; }
+            .details { display: none; }
+            .live-wrap { display: none; }
+            .icon-wrap { width: calc(18 * var(--u)); height: calc(18 * var(--u)); background: none; border: none; flex-shrink: 0; }
+            .temp { font-size: calc(18 * var(--u)); }
+            .feels { font-size: calc(4 * var(--u)); }
+            .desc { font-size: calc(5 * var(--u)); }
+        }
+
         /* Wide (HS/HL/HXL): aspect >= 2.0 */
         @media (min-aspect-ratio: 200/100) {
             .container { flex-direction: row; }
@@ -564,6 +583,7 @@
             { minA: 2.41, maxA: 2.45, w: 841,  h: 345  }, // HS
             { minA: 2.0,  maxA: 2.5,  w: 1689, h: 697  }, // HL
             { minA: 1.5,  maxA: 1.8,  w: 697,  h: 417  }, // VS
+            { minA: 1.35, maxA: 1.55, w: 248,  h: 170  }, // Keyboard
             { minA: 1.15, maxA: 1.25, w: 841,  h: 697  }, // HM
             { minA: 0.95, maxA: 1.05, w: 480,  h: 480  }, // Pump
             { minA: 0.8,  maxA: 0.9,  w: 697,  h: 841  }, // VM
