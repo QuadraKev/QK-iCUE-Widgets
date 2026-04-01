@@ -1,6 +1,6 @@
 # QK iCUE Widgets
 
-Custom widgets for Corsair iCUE LCD displays (Xeneon Edge and pump LCD), built as self-contained single-HTML-file applications.
+Custom widgets for Corsair iCUE LCD displays (Xeneon Edge, pump LCD, and VANGUARD keyboard), built as self-contained single-HTML-file applications.
 
 ## Widgets
 
@@ -27,14 +27,15 @@ Custom widgets for Corsair iCUE LCD displays (Xeneon Edge and pump LCD), built a
 
 ### Both Devices
 
-| Widget | Description |
-|--------|-------------|
-| [Binary Clock](widgets/QKBinaryClock) | Current time displayed as illuminated dots in binary |
-| [Day Progress](widgets/QKDayProgress) | Day, week, month, and year elapsed as progress bars |
-| [Game of Life](widgets/QKGameOfLife) | Conway's Game of Life cellular automaton |
-| [Matrix Rain](widgets/QKMatrixRain) | Digital rain effect with cascading characters and fading green trails |
-| [Moon Phase](widgets/QKMoonPhase) | Current lunar phase with phase name and illumination percentage |
-| [Starfield](widgets/QKStarfield) | Warp-speed starfield with motion trails |
+| Widget | Keyboard | Description |
+|--------|----------|-------------|
+| [Binary Clock](widgets/QKBinaryClock) | Yes | Current time displayed as illuminated dots in binary |
+| [Day Progress](widgets/QKDayProgress) | Yes | Day, week, month, and year elapsed as progress bars |
+| [Game of Life](widgets/QKGameOfLife) | | Conway's Game of Life cellular automaton |
+| [Matrix Rain](widgets/QKMatrixRain) | | Digital rain effect with cascading characters and fading green trails |
+| [Moon Phase](widgets/QKMoonPhase) | Yes | Current lunar phase with phase name and illumination percentage |
+| [Starfield](widgets/QKStarfield) | | Warp-speed starfield with motion trails |
+| [Weather](widgets/QKWeather) | Yes | Current conditions and forecast with dynamic UV index coloring |
 
 ## Installation
 
