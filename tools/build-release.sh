@@ -2,12 +2,10 @@
 #
 # build-release.sh: Package all widgets into installable ZIPs.
 #
-# Scans widgets/ for directories containing QK*.html files,
-# packages each into a ZIP, and builds an all-widgets bundle.
+# Scans widgets/ for QK* directories containing index.html,
+# packages each into a ZIP (preserving folder structure), and
+# builds an all-widgets bundle.
 # Output goes to dist/.
-#
-# The release tag (e.g., v2026.03) is used in the bundle name.
-# Individual widget ZIPs are named {widget}.zip (unversioned).
 #
 # Usage: ./tools/build-release.sh
 
@@ -22,44 +20,38 @@ mkdir -p "$DIST"
 BUNDLE_DIR=$(mktemp -d)
 COUNT=0
 
-for WIDGET_DIR in "$REPO_ROOT"/widgets/qk-*/; do
+for WIDGET_DIR in "$REPO_ROOT"/widgets/QK*/; do
     [ -d "$WIDGET_DIR" ] || continue
 
-    # Skip directories without a widget HTML file
-    ls "$WIDGET_DIR"/QK*.html >/dev/null 2>&1 || continue
+    # Skip directories without an index.html
+    [ -f "$WIDGET_DIR/index.html" ] || continue
 
     WIDGET=$(basename "$WIDGET_DIR")
     ZIP_NAME="${WIDGET}.zip"
     echo "Packaging $ZIP_NAME..."
 
-    # Create a temp staging dir for this widget
+    # Create a temp staging dir
     STAGE=$(mktemp -d)
+    mkdir -p "$STAGE/$WIDGET"
 
-    # Copy installable files: HTML, translation JSON, images/
-    cp "$WIDGET_DIR"/QK*.html "$STAGE/" 2>/dev/null || true
-    cp "$WIDGET_DIR"/QK*_translation.json "$STAGE/" 2>/dev/null || true
-    if [ -d "$WIDGET_DIR/images" ]; then
-        mkdir -p "$STAGE/images"
-        cp "$WIDGET_DIR"/images/*.svg "$STAGE/images/" 2>/dev/null || true
-    fi
+    # Copy installable files: index.html, translation.json, resources/, modules/
+    cp "$WIDGET_DIR/index.html" "$STAGE/$WIDGET/"
+    [ -f "$WIDGET_DIR/translation.json" ] && cp "$WIDGET_DIR/translation.json" "$STAGE/$WIDGET/"
+    [ -d "$WIDGET_DIR/resources" ] && cp -r "$WIDGET_DIR/resources" "$STAGE/$WIDGET/"
+    [ -d "$WIDGET_DIR/modules" ] && cp -r "$WIDGET_DIR/modules" "$STAGE/$WIDGET/"
 
     # Build per-widget ZIP
-    (cd "$STAGE" && zip -r "$DIST/$ZIP_NAME" . -x ".*") > /dev/null
+    (cd "$STAGE" && zip -r "$DIST/$ZIP_NAME" "$WIDGET" -x ".*") > /dev/null
 
     # Also copy to bundle staging
-    cp "$STAGE"/QK*.html "$BUNDLE_DIR/" 2>/dev/null || true
-    cp "$STAGE"/QK*_translation.json "$BUNDLE_DIR/" 2>/dev/null || true
-    if [ -d "$STAGE/images" ]; then
-        mkdir -p "$BUNDLE_DIR/images"
-        cp "$STAGE"/images/*.svg "$BUNDLE_DIR/images/" 2>/dev/null || true
-    fi
+    cp -r "$STAGE/$WIDGET" "$BUNDLE_DIR/"
 
     rm -rf "$STAGE"
     COUNT=$((COUNT + 1))
 done
 
 # Build all-widgets bundle
-if [ "$(ls "$BUNDLE_DIR"/*.html 2>/dev/null | wc -l)" -gt 0 ]; then
+if [ "$COUNT" -gt 0 ]; then
     TAG="${GITHUB_REF_NAME:-$(date +%Y.%m)}"
     BUNDLE_NAME="all-widgets-${TAG}.zip"
     echo "Packaging $BUNDLE_NAME..."
@@ -69,7 +61,7 @@ fi
 rm -rf "$BUNDLE_DIR"
 
 # Package companion server as a ZIP
-SERVER_DIR="$REPO_ROOT/widgets/qk-xe-visualizer/server"
+SERVER_DIR="$REPO_ROOT/widgets/QKXEVisualizer/server"
 if [ -f "$SERVER_DIR/NowPlayingServer.pyw" ]; then
     SERVER_STAGE=$(mktemp -d)
     cp "$SERVER_DIR"/NowPlayingServer.pyw "$SERVER_STAGE/"
