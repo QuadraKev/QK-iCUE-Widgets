@@ -362,21 +362,21 @@
 
         /* Keyboard LCD (248x170, ~1.46:1) */
         @media (min-aspect-ratio: 135/100) and (max-aspect-ratio: 155/100) {
-            .container { padding: calc(1.5 * var(--u)); gap: calc(1 * var(--u)); justify-content: center; }
+            .container { padding: calc(2 * var(--u)); gap: calc(1 * var(--u)); justify-content: center; }
             .forecast { display: none !important; }
             .current, .current.shown {
                 border: none; background: transparent; padding: 0;
                 flex: 0 0 auto; gap: calc(1 * var(--u));
             }
             .current::before { display: none; }
-            .current-body { flex-direction: row; gap: calc(2 * var(--u)); align-items: center; justify-content: center; }
+            .current-body { flex-direction: row; gap: calc(3 * var(--u)); align-items: center; justify-content: center; }
             .current-head { display: none; }
             .details { display: none; }
             .live-wrap { display: none; }
-            .icon-wrap { width: calc(18 * var(--u)); height: calc(18 * var(--u)); background: none; border: none; flex-shrink: 0; }
-            .temp { font-size: calc(18 * var(--u)); }
-            .feels { font-size: calc(4 * var(--u)); }
-            .desc { font-size: calc(5 * var(--u)); }
+            .icon-wrap { width: calc(35 * var(--u)); height: calc(35 * var(--u)); background: none; border: none; flex-shrink: 0; }
+            .temp { font-size: calc(30 * var(--u)); }
+            .feels { font-size: calc(8 * var(--u)); }
+            .desc { font-size: calc(9 * var(--u)); }
         }
 
         /* Wide (HS/HL/HXL): aspect >= 2.0 */
