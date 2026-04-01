@@ -3,32 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tr('QK Moon Phase')</title>
-    <link rel="icon" type="image/svg+xml" href="images/qk-moon-phase.svg">
+    <title>tr('QK Day Progress')</title>
+    <link rel="icon" type="image/svg+xml" href="images/qk-day-progress.svg">
 
     <!-- iCUE Widget Metadata -->
-    <meta name="x-icue-widget-preview" content="resources/MoonPhasePreview.png">
+    <meta name="x-icue-widget-preview" content="resources/DayProgressPreview.png">
     <meta name="x-icue-restrictions"
-        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"}]'>
+        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"},{"device":"keyboard"}]'>
 
     <!-- Properties: Group 1 - Display Settings -->
     <meta name="x-icue-property" content="customTitle"
         data-label="tr('Custom Title')" data-type="textfield" data-default="''">
 
-    <meta name="x-icue-property" content="showPhaseName"
-        data-label="tr('Show Phase Name')" data-type="switch" data-default="true">
-    <meta name="x-icue-property" content="showIllumination"
-        data-label="tr('Show Illumination')" data-type="switch" data-default="true">
-    <meta name="x-icue-property" content="showDate"
-        data-label="tr('Show Date')" data-type="switch" data-default="false">
+    <meta name="x-icue-property" content="timeFormat"
+        data-label="tr('Time Format')" data-type="tab-buttons"
+        data-values="[{'key':'12h','value':tr('12H')},{'key':'24h','value':tr('24H')}]"
+        data-default="'12h'">
+    <meta name="x-icue-property" content="showDay"
+        data-label="tr('Show Day Progress')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showWeek"
+        data-label="tr('Show Week Progress')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showMonth"
+        data-label="tr('Show Month Progress')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showYear"
+        data-label="tr('Show Year Progress')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showPercent"
+        data-label="tr('Show Percentage')" data-type="switch" data-default="true">
 
     <!-- Properties: Group 2 - Appearance (DP-mapped) -->
     <meta name="x-icue-property" content="textColor"
         data-label="tr('Text Color')" data-type="color" data-default="'#E0E0E0'">
     <meta name="x-icue-property" content="accentColor"
-        data-label="tr('Accent Color')" data-type="color" data-default="'#F5F5DC'">
+        data-label="tr('Accent Color')" data-type="color" data-default="'#7C4DFF'">
     <meta name="x-icue-property" content="backgroundColor"
-        data-label="tr('Background Color')" data-type="color" data-default="'#05050A'">
+        data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
         data-default="100" data-min="0" data-max="100" data-step="1">
@@ -37,8 +45,8 @@
     <script type="application/json" id="x-icue-groups">
     [
         {
-            "title": "tr('QK Moon Phase')",
-            "properties": ["showPhaseName", "showIllumination", "showDate", "customTitle"]
+            "title": "tr('QK Day Progress')",
+            "properties": ["timeFormat", "showDay", "showWeek", "showMonth", "showYear", "showPercent", "customTitle"]
         },
         {
             "title": "tr('Appearance')",
@@ -59,9 +67,10 @@
 
         :root {
             --text-color: #E0E0E0;
-            --accent-color: #F5F5DC;
-            --bg-color: #05050A;
+            --accent-color: #7C4DFF;
+            --bg-color: #0A0A0A;
             --widget-opacity: 1.0;
+            --bar-track: rgba(255, 255, 255, 0.06);
         }
 
         body {
@@ -83,7 +92,8 @@
             align-items: center;
             justify-content: center;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
-            gap: 2vmin;
+            padding: 3vmin;
+            gap: 2.5vmin;
             position: relative;
         }
 
@@ -103,129 +113,266 @@
             pointer-events: none;
         }
 
-        /* ---- Moon Visual ---- */
-        .moon-wrapper {
-            position: relative;
-            width: 65vmin;
-            height: 65vmin;
-            background: var(--bg-color);
-            border-radius: 50%;
+        /* ---- Progress Row ---- */
+        .progress-row {
+            width: 85%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8vmin;
         }
 
-        .moon-svg {
-            width: 100%;
-            height: 100%;
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
         }
 
-        /* ---- Text Labels ---- */
-        .phase-name {
-            font-size: 5vmin;
-            color: var(--text-color);
-            text-align: center;
-            letter-spacing: 0.2vmin;
+        .progress-label {
+            font-size: 3.5vmin;
+            color: color-mix(in srgb, var(--text-color), var(--bg-color) 40%);
+            text-transform: uppercase;
+            letter-spacing: 0.15vmin;
         }
 
-        .illumination {
+        .progress-percent {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 7vmin;
+            font-size: 5vmin;
             color: var(--accent-color);
         }
 
-        .date-text {
-            font-size: 3.5vmin;
-            color: color-mix(in srgb, var(--text-color), var(--bg-color) 50%);
+        .progress-track {
+            width: 100%;
+            height: 2.5vmin;
+            background: var(--bar-track);
+            border-radius: 1.5vmin;
+            overflow: hidden;
         }
 
-        .hidden { display: none; }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 1.5vmin;
+            transition: width 1s ease-out;
+        }
 
-        /* ---- Wide dashboard layouts ---- */
+        .progress-detail {
+            font-size: 2.5vmin;
+            color: color-mix(in srgb, var(--text-color), var(--bg-color) 60%);
+        }
+
+        /* ---- Pump: Ring layout for 1:1 ---- */
+        .ring-layout {
+            display: none;
+        }
+
+        /* ---- Wide dashboard layouts (S horizontal, L horizontal, XL) ---- */
         @media (min-aspect-ratio: 200/100) {
             .container {
                 flex-direction: row;
-                gap: 3vw;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 2vh 4vw;
+                padding: 2vh 3vw;
             }
-            .moon-wrapper {
-                width: 80vh;
-                height: 80vh;
+            .progress-row {
+                width: 44%;
+                gap: 1vh;
             }
-            .phase-name { font-size: 8vh; }
-            .illumination { font-size: 14vh; }
-            .date-text { font-size: 5vh; }
+            .progress-label { font-size: 6vh; }
+            .progress-percent { font-size: 10vh; }
+            .progress-track { height: 4vh; border-radius: 2vh; }
+            .progress-fill { border-radius: 2vh; }
+            .progress-detail { font-size: 4vh; }
+        }
 
-            .text-group {
-                display: flex;
-                flex-direction: column;
-                gap: 1.5vh;
+        /* ---- Keyboard LCD (248x170, ~1.46:1) ---- */
+        @media (min-aspect-ratio: 135/100) and (max-aspect-ratio: 155/100) {
+            .container {
+                gap: 1vh;
+                padding: 1vh 3vw;
+            }
+            .progress-row {
+                width: 92%;
+                gap: 0.5vh;
+            }
+            .progress-label { font-size: 6vh; }
+            .progress-percent { font-size: 9vh; }
+            .progress-track { height: 4vh; border-radius: 2vh; }
+            .progress-fill { border-radius: 2vh; }
+            .progress-detail { display: none; }
+        }
+
+        /* ---- VS (1.67:1) ---- */
+        @media (min-aspect-ratio: 155/100) and (max-aspect-ratio: 200/100) {
+            .container {
+                gap: 2vh;
+                padding: 2vh 4vw;
+            }
+            .progress-row {
+                width: 90%;
+                gap: 1vh;
+            }
+            .progress-label { font-size: 4.5vh; }
+            .progress-percent { font-size: 7vh; }
+            .progress-track { height: 3vh; border-radius: 2vh; }
+            .progress-fill { border-radius: 2vh; }
+            .progress-detail { font-size: 3vh; }
+        }
+
+        /* ---- Square-ish (HM) ---- */
+        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
+            .container {
+                gap: 2vmin;
+            }
+            .progress-row {
+                width: 80%;
             }
         }
 
-        /* ---- Pump 1:1 ---- */
+        /* ---- Pump 1:1 circular: Use ring display ---- */
         @media (max-aspect-ratio: 105/100) and (min-aspect-ratio: 95/100) {
             .container {
-                gap: 0;
                 padding: 0;
+                gap: 0;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .progress-row {
+                display: none;
+            }
+
+            .ring-layout {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                height: 100%;
                 position: relative;
             }
-            .moon-wrapper {
-                width: 100vmin;
-                height: 100vmin;
+
+            .ring-svg {
+                width: 96vmin;
+                height: 96vmin;
+            }
+
+            .ring-center-text {
                 position: absolute;
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
+                text-align: center;
             }
-            .text-group {
-                position: absolute;
-                bottom: 10vmin;
-                left: 0;
-                right: 0;
-                z-index: 2;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 1vmin;
-                background: var(--bg-color);
-                padding: 3vmin 2vmin;
+
+            .ring-day-label {
+                font-size: 5vmin;
+                color: color-mix(in srgb, var(--text-color), var(--bg-color) 50%);
+                text-transform: uppercase;
             }
-            .phase-name { font-size: 6vmin; }
-            .illumination { font-size: 9vmin; }
-            .date-text { font-size: 4vmin; }
+
+            .ring-day-pct {
+                font-family: 'Jost', sans-serif; font-weight: 700;
+                font-size: 16vmin;
+                color: var(--accent-color);
+                line-height: 1;
+            }
+
+            .ring-day-pct.time-mode {
+                font-size: 12vmin;
+            }
+
+            .ring-day-detail {
+                font-size: 4vmin;
+                color: color-mix(in srgb, var(--text-color), var(--bg-color) 60%);
+            }
         }
 
         /* ---- Portrait ---- */
         @media (max-aspect-ratio: 90/100) {
-            .moon-wrapper {
-                width: 55vw;
-                height: 55vw;
+            .container {
+                gap: 3vw;
+                padding: 3vw;
             }
-            .phase-name { font-size: 5vw; }
-            .illumination { font-size: 7vw; }
-            .date-text { font-size: 3.5vw; }
+            .progress-row {
+                width: 85%;
+            }
+            .progress-label { font-size: 3.5vw; }
+            .progress-percent { font-size: 5vw; }
+            .progress-track { height: 2.5vw; }
+            .progress-detail { font-size: 2.5vw; }
         }
 
         /* ---- Very tall portrait (VL/VXL) ---- */
         @media (max-aspect-ratio: 50/100) {
-            .moon-wrapper {
-                width: 80vw;
-                height: 80vw;
+            .container {
+                justify-content: space-evenly;
+                gap: 4vw;
+                padding: 6vw 3vw;
             }
-            .phase-name { font-size: 7vw; }
-            .illumination { font-size: 10vw; }
-            .date-text { font-size: 4.5vw; }
-            .container { gap: 5vw; }
+            .progress-row {
+                gap: 1.5vw;
+            }
+            .progress-label { font-size: 5vw; }
+            .progress-percent { font-size: 7vw; }
+            .progress-track { height: 3.5vw; }
+            .progress-detail { font-size: 3.5vw; }
         }
     </style>
 </head>
 <body>
     <div class="container" id="container">
         <div class="widget-title" id="widget-title"></div>
-        <div class="moon-wrapper">
-            <svg class="moon-svg" id="moon-svg" viewBox="0 0 200 200"></svg>
+        <div class="progress-row" id="row-day">
+            <div class="progress-header">
+                <span class="progress-label" id="lbl-day"></span>
+                <span class="progress-percent" id="pct-day"></span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="fill-day" style="width: 0%"></div>
+            </div>
+            <div class="progress-detail" id="detail-day"></div>
         </div>
-        <div class="text-group">
-            <div class="phase-name" id="phase-name"></div>
-            <div class="illumination" id="illumination"></div>
-            <div class="date-text" id="date-text"></div>
+        <div class="progress-row" id="row-week">
+            <div class="progress-header">
+                <span class="progress-label" id="lbl-week"></span>
+                <span class="progress-percent" id="pct-week"></span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="fill-week" style="width: 0%"></div>
+            </div>
+            <div class="progress-detail" id="detail-week"></div>
+        </div>
+        <div class="progress-row" id="row-month">
+            <div class="progress-header">
+                <span class="progress-label" id="lbl-month"></span>
+                <span class="progress-percent" id="pct-month"></span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="fill-month" style="width: 0%"></div>
+            </div>
+            <div class="progress-detail" id="detail-month"></div>
+        </div>
+        <div class="progress-row" id="row-year">
+            <div class="progress-header">
+                <span class="progress-label" id="lbl-year"></span>
+                <span class="progress-percent" id="pct-year"></span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="fill-year" style="width: 0%"></div>
+            </div>
+            <div class="progress-detail" id="detail-year"></div>
+        </div>
+
+        <!-- Pump ring layout -->
+        <div class="ring-layout" id="ring-layout">
+            <svg class="ring-svg" viewBox="0 0 200 200" id="ring-svg"></svg>
+            <div class="ring-center-text">
+                <div class="ring-day-label" id="ring-day-label"></div>
+                <div class="ring-day-pct" id="ring-day-pct"></div>
+                <div class="ring-day-detail" id="ring-day-detail"></div>
+            </div>
         </div>
     </div>
 
@@ -234,38 +381,39 @@
         // Configuration
         // ======================================================================
         var cfg = {
-            showPhaseName: true,
-            showIllumination: true,
-            showDate: false,
+            timeFormat: '12h',
+            showDay: true,
+            showWeek: true,
+            showMonth: true,
+            showYear: true,
+            showPercent: true,
             textColor: '#E0E0E0',
-            accentColor: '#F5F5DC',
-            bgColor: '#05050A',
+            accentColor: '#7C4DFF',
+            bgColor: '#0A0A0A',
             transparency: 0
         };
 
         var str = {
-            newMoon: 'New Moon',
-            waxingCrescent: 'Waxing Crescent',
-            firstQuarter: 'First Quarter',
-            waxingGibbous: 'Waxing Gibbous',
-            fullMoon: 'Full Moon',
-            waningGibbous: 'Waning Gibbous',
-            lastQuarter: 'Last Quarter',
-            waningCrescent: 'Waning Crescent'
+            day: 'Day',
+            week: 'Week',
+            month: 'Month',
+            year: 'Year'
         };
 
-        var elMoonSvg = document.getElementById('moon-svg');
-        var elPhaseName = document.getElementById('phase-name');
-        var elIllumination = document.getElementById('illumination');
-        var elDateText = document.getElementById('date-text');
+        var WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        var MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         // ======================================================================
         // Settings
         // ======================================================================
         function readSettings() {
-            if (typeof showPhaseName !== 'undefined') cfg.showPhaseName = !!showPhaseName;
-            if (typeof showIllumination !== 'undefined') cfg.showIllumination = !!showIllumination;
-            if (typeof showDate !== 'undefined') cfg.showDate = !!showDate;
+            if (typeof timeFormat !== 'undefined') cfg.timeFormat = timeFormat || '12h';
+            if (typeof showDay !== 'undefined') cfg.showDay = !!showDay;
+            if (typeof showWeek !== 'undefined') cfg.showWeek = !!showWeek;
+            if (typeof showMonth !== 'undefined') cfg.showMonth = !!showMonth;
+            if (typeof showYear !== 'undefined') cfg.showYear = !!showYear;
+            if (typeof showPercent !== 'undefined') cfg.showPercent = !!showPercent;
             if (typeof textColor !== 'undefined') cfg.textColor = textColor;
             if (typeof accentColor !== 'undefined') cfg.accentColor = accentColor;
             if (typeof backgroundColor !== 'undefined') cfg.bgColor = backgroundColor;
@@ -284,144 +432,127 @@
             root.style.setProperty('--bg-color', cfg.bgColor);
             root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
-            elPhaseName.classList.toggle('hidden', !cfg.showPhaseName);
-            elIllumination.classList.toggle('hidden', !cfg.showIllumination);
-            elDateText.classList.toggle('hidden', !cfg.showDate);
+            document.getElementById('row-day').style.display = cfg.showDay ? '' : 'none';
+            document.getElementById('row-week').style.display = cfg.showWeek ? '' : 'none';
+            document.getElementById('row-month').style.display = cfg.showMonth ? '' : 'none';
+            document.getElementById('row-year').style.display = cfg.showYear ? '' : 'none';
 
-            updateMoon();
+            updateProgress();
         }
 
         // ======================================================================
-        // Moon phase calculation
-        // Uses a simplified algorithm based on the synodic month (29.53059 days).
-        // Reference: New Moon on January 6, 2000 00:00 UTC (Julian Day 2451550.1)
+        // Progress calculations
         // ======================================================================
-        var SYNODIC_MONTH = 29.53059;
-
-        function getMoonAge(date) {
-            // Days since known new moon (Jan 6, 2000 18:14 UTC)
-            var knownNewMoon = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
-            var diffMs = date.getTime() - knownNewMoon.getTime();
-            var diffDays = diffMs / 86400000;
-            var age = diffDays % SYNODIC_MONTH;
-            if (age < 0) age += SYNODIC_MONTH;
-            return age;
-        }
-
-        function getPhaseInfo(age) {
-            // Phase as 0-1 (0 = new, 0.5 = full, 1 = new again)
-            var phase = age / SYNODIC_MONTH;
-
-            // Illumination: 0 at new, 1 at full
-            var illumination = (1 - Math.cos(phase * 2 * Math.PI)) / 2;
-
-            // Phase name
-            var name;
-            if (phase < 0.0625) name = str.newMoon;
-            else if (phase < 0.1875) name = str.waxingCrescent;
-            else if (phase < 0.3125) name = str.firstQuarter;
-            else if (phase < 0.4375) name = str.waxingGibbous;
-            else if (phase < 0.5625) name = str.fullMoon;
-            else if (phase < 0.6875) name = str.waningGibbous;
-            else if (phase < 0.8125) name = str.lastQuarter;
-            else if (phase < 0.9375) name = str.waningCrescent;
-            else name = str.newMoon;
-
-            return {
-                phase: phase,
-                illumination: illumination,
-                name: name
-            };
-        }
-
-        // ======================================================================
-        // Moon SVG rendering
-        // Draws a circle with a crescent/gibbous mask using SVG path arcs
-        // ======================================================================
-        function renderMoon(phase, illumination) {
-            var cx = 100, cy = 100, r = 85;
-
-            // Moon background (dark side)
-            var html = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" ' +
-                'fill="' + cfg.accentColor + '" opacity="0.08" />';
-
-            // Illuminated area
-            // phase 0-0.5: waxing (right side lit first, growing left)
-            // phase 0.5-1: waning (right side dark, shrinking from right)
-            if (illumination < 0.01) {
-                // New moon: just the dark circle
-            } else if (illumination > 0.99) {
-                // Full moon
-                html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" ' +
-                    'fill="' + cfg.accentColor + '" opacity="0.9" />';
-            } else {
-                // Draw the illuminated portion using SVG path
-                // The terminator is an ellipse with variable x-radius
-                var terminatorX = r * Math.abs(2 * illumination - 1);
-                var isWaxing = phase < 0.5;
-
-                // Build path: arc from top to bottom on the lit edge, ellipse back
-                var path;
-                if (isWaxing) {
-                    if (illumination < 0.5) {
-                        // Waxing crescent: thin sliver on the right
-                        path = 'M ' + cx + ' ' + (cy - r) +
-                            ' A ' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy + r) +
-                            ' A ' + terminatorX + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy - r);
-                    } else {
-                        // Waxing gibbous: more than half lit, from right
-                        path = 'M ' + cx + ' ' + (cy - r) +
-                            ' A ' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy + r) +
-                            ' A ' + terminatorX + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy - r);
-                    }
-                } else {
-                    if (illumination < 0.5) {
-                        // Waning crescent: thin sliver on the left
-                        path = 'M ' + cx + ' ' + (cy - r) +
-                            ' A ' + r + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy + r) +
-                            ' A ' + terminatorX + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy - r);
-                    } else {
-                        // Waning gibbous: more than half lit, from left
-                        path = 'M ' + cx + ' ' + (cy - r) +
-                            ' A ' + r + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy + r) +
-                            ' A ' + terminatorX + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy - r);
-                    }
-                }
-
-                html += '<path d="' + path + '" fill="' + cfg.accentColor + '" opacity="0.9" />';
-            }
-
-            // Subtle crater details (fixed positions)
-            html += '<circle cx="80" cy="75" r="8" fill="' + cfg.accentColor + '" opacity="0.05" />';
-            html += '<circle cx="115" cy="90" r="12" fill="' + cfg.accentColor + '" opacity="0.04" />';
-            html += '<circle cx="95" cy="120" r="6" fill="' + cfg.accentColor + '" opacity="0.06" />';
-            html += '<circle cx="110" cy="70" r="5" fill="' + cfg.accentColor + '" opacity="0.05" />';
-
-            elMoonSvg.innerHTML = html;
-        }
-
-        // ======================================================================
-        // Update display
-        // ======================================================================
-        function updateMoon() {
+        function updateProgress() {
             var now = new Date();
-            var age = getMoonAge(now);
-            var info = getPhaseInfo(age);
+            var h = now.getHours();
+            var m = now.getMinutes();
 
-            renderMoon(info.phase, info.illumination);
+            // Day progress
+            var dayMinutes = h * 60 + m;
+            var dayPct = Math.round((dayMinutes / 1440) * 100);
+            setBar('day', dayPct, formatTime(h, m) + ' / ' + (cfg.timeFormat === '12h' ? '12:00 AM' : '24:00'));
 
-            elPhaseName.textContent = info.name;
-            elIllumination.textContent = Math.round(info.illumination * 100) + '%';
+            // Week progress (Sunday = 0)
+            var dow = now.getDay();
+            var weekMinutes = dow * 1440 + dayMinutes;
+            var weekPct = Math.round((weekMinutes / (7 * 1440)) * 100);
+            setBar('week', weekPct, WEEK_DAYS[dow] + ' - Day ' + (dow + 1) + ' of 7');
 
-            if (cfg.showDate) {
-                var opts = { weekday: 'short', month: 'short', day: 'numeric' };
-                try {
-                    elDateText.textContent = new Intl.DateTimeFormat('en-US', opts).format(now);
-                } catch (e) {
-                    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                    elDateText.textContent = months[now.getMonth()] + ' ' + now.getDate();
-                }
+            // Month progress
+            var day = now.getDate();
+            var daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            var monthMinutes = (day - 1) * 1440 + dayMinutes;
+            var monthPct = Math.round((monthMinutes / (daysInMonth * 1440)) * 100);
+            setBar('month', monthPct, MONTH_NAMES[now.getMonth()] + ' ' + day + ' / ' + daysInMonth);
+
+            // Year progress
+            var startOfYear = new Date(now.getFullYear(), 0, 1);
+            var endOfYear = new Date(now.getFullYear() + 1, 0, 1);
+            var yearMs = now - startOfYear;
+            var totalYearMs = endOfYear - startOfYear;
+            var yearPct = Math.round((yearMs / totalYearMs) * 100);
+            var dayOfYear = Math.floor(yearMs / 86400000) + 1;
+            var totalDays = Math.round(totalYearMs / 86400000);
+            setBar('year', yearPct, now.getFullYear() + ' - Day ' + dayOfYear + ' / ' + totalDays);
+
+            // Update pump ring layout
+            updateRingLayout(dayPct, weekPct, monthPct, yearPct, now);
+        }
+
+        function setBar(key, pct, detail) {
+            var fill = document.getElementById('fill-' + key);
+            var pctEl = document.getElementById('pct-' + key);
+            var detailEl = document.getElementById('detail-' + key);
+
+            if (fill) fill.style.width = pct + '%';
+            if (pctEl) {
+                pctEl.textContent = cfg.showPercent ? pct + '%' : '';
             }
+            if (detailEl) detailEl.textContent = detail;
+        }
+
+        function updateRingLayout(dayPct, weekPct, monthPct, yearPct, now) {
+            var svg = document.getElementById('ring-svg');
+            if (!svg) return;
+
+            // Build concentric ring arcs
+            var rings = [];
+            if (cfg.showYear) rings.push({ pct: yearPct, r: 90 });
+            if (cfg.showMonth) rings.push({ pct: monthPct, r: 78 });
+            if (cfg.showWeek) rings.push({ pct: weekPct, r: 66 });
+            if (cfg.showDay) rings.push({ pct: dayPct, r: 54 });
+
+            var html = '';
+            for (var i = 0; i < rings.length; i++) {
+                var ring = rings[i];
+                var circ = 2 * Math.PI * ring.r;
+                var offset = circ * (1 - ring.pct / 100);
+
+                // Track
+                html += '<circle cx="100" cy="100" r="' + ring.r + '" fill="none" ' +
+                    'stroke="' + cfg.textColor + '" stroke-width="8" stroke-opacity="0.06" />';
+
+                // Fill
+                html += '<circle cx="100" cy="100" r="' + ring.r + '" fill="none" ' +
+                    'stroke="' + cfg.accentColor + '" stroke-width="8" ' +
+                    'stroke-linecap="round" ' +
+                    'stroke-dasharray="' + circ.toFixed(2) + '" ' +
+                    'stroke-dashoffset="' + offset.toFixed(2) + '" ' +
+                    'transform="rotate(-90 100 100)" />';
+            }
+
+            svg.innerHTML = html;
+
+            // Center text
+            var h = now.getHours();
+            var m = now.getMinutes();
+            document.getElementById('ring-day-label').textContent = str.day;
+            var elPct = document.getElementById('ring-day-pct');
+            var elDetail = document.getElementById('ring-day-detail');
+            if (cfg.showPercent) {
+                elPct.textContent = dayPct + '%';
+                elPct.className = 'ring-day-pct';
+                elDetail.textContent = formatTime(h, m);
+                elDetail.style.display = '';
+            } else {
+                elPct.textContent = formatTime(h, m);
+                elPct.className = 'ring-day-pct time-mode';
+                elDetail.style.display = 'none';
+            }
+        }
+
+        function formatTime(h, m) {
+            if (cfg.timeFormat === '12h') {
+                var suffix = h >= 12 ? ' PM' : ' AM';
+                var h12 = h % 12 || 12;
+                return pad(h12) + ':' + pad(m) + suffix;
+            }
+            return pad(h) + ':' + pad(m);
+        }
+
+        function pad(n) {
+            return n < 10 ? '0' + n : '' + n;
         }
 
         // ======================================================================
@@ -429,21 +560,22 @@
         // ======================================================================
         function onInit() {
             if (typeof tr === 'function') {
-                tr('New Moon').then(function(s) { str.newMoon = s; updateMoon(); });
-                tr('Waxing Crescent').then(function(s) { str.waxingCrescent = s; updateMoon(); });
-                tr('First Quarter').then(function(s) { str.firstQuarter = s; updateMoon(); });
-                tr('Waxing Gibbous').then(function(s) { str.waxingGibbous = s; updateMoon(); });
-                tr('Full Moon').then(function(s) { str.fullMoon = s; updateMoon(); });
-                tr('Waning Gibbous').then(function(s) { str.waningGibbous = s; updateMoon(); });
-                tr('Last Quarter').then(function(s) { str.lastQuarter = s; updateMoon(); });
-                tr('Waning Crescent').then(function(s) { str.waningCrescent = s; updateMoon(); });
+                tr('Day').then(function(s) { str.day = s; document.getElementById('lbl-day').textContent = s; document.getElementById('ring-day-label').textContent = s; });
+                tr('Week').then(function(s) { str.week = s; document.getElementById('lbl-week').textContent = s; });
+                tr('Month').then(function(s) { str.month = s; document.getElementById('lbl-month').textContent = s; });
+                tr('Year').then(function(s) { str.year = s; document.getElementById('lbl-year').textContent = s; });
+            } else {
+                document.getElementById('lbl-day').textContent = str.day;
+                document.getElementById('lbl-week').textContent = str.week;
+                document.getElementById('lbl-month').textContent = str.month;
+                document.getElementById('lbl-year').textContent = str.year;
             }
 
             readSettings();
             applySettings();
 
-            // Update every hour (moon phase barely changes within an hour)
-            setInterval(updateMoon, 3600000);
+            // Update every 30 seconds
+            setInterval(updateProgress, 30000);
         }
 
         function onDataUpdated() {
