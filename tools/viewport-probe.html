@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="images/qk-weather.svg">
 
     <meta name="x-icue-restrictions"
-        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"}]'>
+        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"},{"device":"keyboard"}]'>
 
     <!-- Properties: Group 1 -->
     <meta name="x-icue-property" content="customTitle"
@@ -74,12 +74,13 @@
             bottom: 1vmin;
             left: 1vmin;
             right: 1vmin;
-            font-size: 3vmin;
-            opacity: 0.4;
+            font-size: 2.5vmin;
+            opacity: 0.7;
             text-align: left;
-            max-height: 30vh;
+            max-height: 40vh;
             overflow-y: auto;
             word-break: break-all;
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -90,37 +91,98 @@
     <div id="log"></div>
 
     <script>
-        var sizeHistory = [];
+        var log = [];
+        var logEl = document.getElementById('log');
+        var initCount = 0;
+        var dataCount = 0;
+        var updateReqCount = 0;
+
+        function addLog(msg) {
+            var ts = new Date();
+            var t = ts.getMinutes() + ':' + (ts.getSeconds() < 10 ? '0' : '') + ts.getSeconds();
+            log.push(t + ' ' + msg);
+            if (log.length > 20) log.shift();
+            logEl.textContent = log.join('\n');
+            logEl.scrollTop = logEl.scrollHeight;
+        }
 
         function update() {
             var w = window.innerWidth;
             var h = window.innerHeight;
             var aspect = (w / h).toFixed(4);
             var dpr = window.devicePixelRatio || 1;
-
             document.getElementById('dims').textContent = w + ' x ' + h;
             document.getElementById('ratio').textContent = 'Aspect: ' + aspect + ':1';
             document.getElementById('dpr').textContent = 'DPR: ' + dpr;
-
-            var entry = w + 'x' + h + ' @' + dpr;
-            if (sizeHistory.length === 0 || sizeHistory[sizeHistory.length - 1] !== entry) {
-                sizeHistory.push(entry);
-                var logEl = document.getElementById('log');
-                logEl.textContent = sizeHistory.join(' -> ');
-                logEl.scrollTop = logEl.scrollHeight;
-            }
         }
 
         update();
-        window.addEventListener('resize', update);
-        setInterval(update, 500);
+        window.addEventListener('resize', function() { addLog('RESIZE ' + window.innerWidth + 'x' + window.innerHeight); update(); });
 
+        // Lifecycle events
+        document.addEventListener('visibilitychange', function() {
+            addLog('VISIBILITY: ' + document.visibilityState);
+        });
+        window.addEventListener('pageshow', function(e) { addLog('PAGESHOW persisted=' + e.persisted); });
+        window.addEventListener('pagehide', function(e) { addLog('PAGEHIDE persisted=' + e.persisted); });
+        window.addEventListener('focus', function() { addLog('WINDOW FOCUS'); });
+        window.addEventListener('blur', function() { addLog('WINDOW BLUR'); });
+
+        // Input events
+        var INPUT_EVENTS = ['click', 'mousedown', 'mouseup', 'pointerdown', 'pointerup',
+            'touchstart', 'touchend', 'keydown', 'keyup'];
+        INPUT_EVENTS.forEach(function(evt) {
+            document.addEventListener(evt, function(e) {
+                var info = evt;
+                if (e.type === 'keydown' || e.type === 'keyup') {
+                    info += ' key=' + e.key + ' code=' + e.code;
+                }
+                if (e.clientX !== undefined && e.clientX !== 0) {
+                    info += ' @' + e.clientX + ',' + e.clientY;
+                }
+                addLog('INPUT: ' + info);
+            }, true);
+        });
+
+        // iCUE lifecycle callbacks
         icueEvents = {
-            "onICUEInitialized": function() { update(); },
-            "onDataUpdated": function() { update(); }
+            "onICUEInitialized": function() {
+                initCount++;
+                addLog('iCUE INIT #' + initCount);
+                update();
+            },
+            "onDataUpdated": function() {
+                dataCount++;
+                addLog('iCUE DATA #' + dataCount);
+                update();
+            },
+            "onUpdateRequested": function() {
+                updateReqCount++;
+                addLog('iCUE UPDATE_REQ #' + updateReqCount);
+            }
         };
-        if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) { update(); }
-        if (typeof iCUE_initialized === 'undefined') { update(); }
+
+        // backend signal monitoring (if available after bootstrap)
+        var backendCheckTimer = setInterval(function() {
+            if (typeof backend !== 'undefined') {
+                clearInterval(backendCheckTimer);
+                addLog('backend found, fpsLimit=' + backend.fpsLimit);
+                try {
+                    backend.tickChanged.connect(function() { addLog('TICK'); });
+                } catch(e) {}
+            }
+        }, 200);
+
+        addLog('SCRIPT LOADED');
+
+        if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {
+            addLog('iCUE was pre-init');
+            update();
+        }
+        if (typeof iCUE_initialized === 'undefined') {
+            addLog('standalone mode');
+            update();
+        }
     </script>
 </body>
 </html>
