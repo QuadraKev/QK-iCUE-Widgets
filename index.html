@@ -28,7 +28,6 @@
             --badge-xe: #529bff;
             --badge-pump: #e660ff;
             --warm: #ffb100;
-            --badge-both: #5cc88a;
             --radius: 12px;
             --radius-sm: 8px;
             --transition: 180ms ease;
@@ -290,11 +289,6 @@
         .badge-pump {
             background: rgba(230, 96, 255, 0.14);
             color: var(--badge-pump);
-        }
-
-        .badge-both {
-            background: rgba(92, 200, 138, 0.14);
-            color: var(--badge-both);
         }
 
         .badge-keyboard {
@@ -662,10 +656,6 @@
                     <span class="stat-value" id="widget-count"></span>
                     <span class="stat-label">Widgets</span>
                 </div>
-                <div class="stat">
-                    <span class="stat-value">2</span>
-                    <span class="stat-label">Devices</span>
-                </div>
             </div>
             <div class="hero-actions">
                 <a class="btn-hero btn-hero-primary" id="download-all-btn"
@@ -686,7 +676,7 @@
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="xeneon_edge">Xeneon Edge</button>
                 <button class="filter-btn" data-filter="pump">Pump LCD</button>
-                <button class="filter-btn" data-filter="both">Both Devices</button>
+                <button class="filter-btn" data-filter="keyboard">Keyboard</button>
             </div>
         </div>
     </nav>
@@ -748,24 +738,24 @@
 
         // Widget catalog
         var WIDGETS = [
-            { id: 'QK2048', name: '2048', icon: 'qk-2048.svg', desc: 'Classic 2048 sliding tile puzzle game', device: 'xeneon_edge', interactive: true },
-            { id: 'QKCalculator', name: 'Calculator', icon: 'qk-calculator.svg', desc: 'Touchscreen calculator with clean, responsive button layout', device: 'xeneon_edge', interactive: true },
-            { id: 'QKDiceRoller', name: 'Dice Roller', icon: 'qk-dice-roller.svg', desc: 'Interactive dice rolling with spinning 3D wireframe dice and roll history', device: 'xeneon_edge', interactive: true },
-            { id: 'QKFidgetSpinner', name: 'Fidget Spinner', icon: 'qk-fidget-spinner.svg', desc: 'Swipe-to-spin fidget spinner with realistic deceleration physics', device: 'xeneon_edge', interactive: true },
-            { id: 'QKMagic8Ball', name: 'Magic 8 Ball', icon: 'qk-magic-8-ball.svg', desc: 'Fortune-telling widget with the classic 20 Magic 8 Ball answers', device: 'xeneon_edge', interactive: true },
-            { id: 'QKPaint', name: 'Paint', icon: 'qk-paint.svg', desc: 'Finger-painting app for the touchscreen', device: 'xeneon_edge', interactive: true },
-            { id: 'QKSimon', name: 'Simon', icon: 'qk-simon.svg', desc: 'Simon Says memory game', device: 'xeneon_edge', interactive: true },
-            { id: 'QKTallyCounter', name: 'Tally Counter', icon: 'qk-tally-counter.svg', desc: 'Tap-to-count widget for tracking reps, laps, scores, or any count', device: 'xeneon_edge', interactive: true },
-            { id: 'QKWorldClocks', name: 'World Clocks', icon: 'qk-world-clocks.svg', desc: 'Up to 4 clocks side by side set to different timezones', device: 'xeneon_edge', interactive: false },
-            { id: 'QKXEVisualizer', name: 'XE Visualizer', icon: 'qk-visualizer.svg', desc: 'Real-time audio spectrum visualizer with track info. Requires a Python companion server for audio capture.', device: 'xeneon_edge', interactive: false, server: true },
-            { id: 'QKPumpVisualizer', name: 'Pump Visualizer', icon: 'qk-pump-visualizer.svg', desc: 'Circular audio visualizer in a radial layout with track info. Requires a Python companion server for audio capture.', device: 'pump', interactive: false, server: true },
-            { id: 'QKBinaryClock', name: 'Binary Clock', icon: 'qk-binary-clock.svg', desc: 'Current time displayed as illuminated dots in binary', device: 'both', interactive: false, keyboard: true },
-            { id: 'QKDayProgress', name: 'Day Progress', icon: 'qk-day-progress.svg', desc: 'Day, week, month, and year elapsed as progress bars', device: 'both', interactive: false, keyboard: true },
-            { id: 'QKGameOfLife', name: 'Game of Life', icon: 'qk-game-of-life.svg', desc: "Conway's Game of Life cellular automaton", device: 'both', interactive: false },
-            { id: 'QKMatrixRain', name: 'Matrix Rain', icon: 'qk-matrix-rain.svg', desc: 'Digital rain effect with cascading characters and fading green trails', device: 'both', interactive: false },
-            { id: 'QKMoonPhase', name: 'Moon Phase', icon: 'qk-moon-phase.svg', desc: 'Current lunar phase with phase name and illumination percentage', device: 'both', interactive: false, keyboard: true },
-            { id: 'QKStarfield', name: 'Starfield', icon: 'qk-starfield.svg', desc: 'Warp-speed starfield with motion trails', device: 'both', interactive: false },
-            { id: 'QKWeather', name: 'Weather', icon: 'qk-weather.svg', desc: 'Current conditions and forecast powered by Open-Meteo with dynamic UV index coloring', device: 'both', interactive: false, keyboard: true }
+            { id: 'QK2048', name: '2048', icon: 'qk-2048.svg', desc: 'Classic 2048 sliding tile puzzle game', devices: ['xeneon_edge'], interactive: true },
+            { id: 'QKCalculator', name: 'Calculator', icon: 'qk-calculator.svg', desc: 'Touchscreen calculator with clean, responsive button layout', devices: ['xeneon_edge'], interactive: true },
+            { id: 'QKDiceRoller', name: 'Dice Roller', icon: 'qk-dice-roller.svg', desc: 'Interactive dice rolling with spinning 3D wireframe dice and roll history', devices: ['xeneon_edge'], interactive: true },
+            { id: 'QKFidgetSpinner', name: 'Fidget Spinner', icon: 'qk-fidget-spinner.svg', desc: 'Swipe-to-spin fidget spinner with realistic deceleration physics', devices: ['xeneon_edge'], interactive: true },
+            { id: 'QKMagic8Ball', name: 'Magic 8 Ball', icon: 'qk-magic-8-ball.svg', desc: 'Fortune-telling widget with the classic 20 Magic 8 Ball answers', devices: ['xeneon_edge'], interactive: true },
+            { id: 'QKPaint', name: 'Paint', icon: 'qk-paint.svg', desc: 'Finger-painting app for the touchscreen', devices: ['xeneon_edge'], interactive: true },
+            { id: 'QKSimon', name: 'Simon', icon: 'qk-simon.svg', desc: 'Simon Says memory game', devices: ['xeneon_edge'], interactive: true },
+            { id: 'QKTallyCounter', name: 'Tally Counter', icon: 'qk-tally-counter.svg', desc: 'Tap-to-count widget for tracking reps, laps, scores, or any count', devices: ['xeneon_edge'], interactive: true },
+            { id: 'QKWorldClocks', name: 'World Clocks', icon: 'qk-world-clocks.svg', desc: 'Up to 4 clocks side by side set to different timezones', devices: ['xeneon_edge'], interactive: false },
+            { id: 'QKXEVisualizer', name: 'XE Visualizer', icon: 'qk-visualizer.svg', desc: 'Real-time audio spectrum visualizer with track info. Requires a Python companion server for audio capture.', devices: ['xeneon_edge'], interactive: false, server: true },
+            { id: 'QKPumpVisualizer', name: 'Pump Visualizer', icon: 'qk-pump-visualizer.svg', desc: 'Circular audio visualizer in a radial layout with track info. Requires a Python companion server for audio capture.', devices: ['pump'], interactive: false, server: true },
+            { id: 'QKBinaryClock', name: 'Binary Clock', icon: 'qk-binary-clock.svg', desc: 'Current time displayed as illuminated dots in binary', devices: ['xeneon_edge', 'pump', 'keyboard'], interactive: false },
+            { id: 'QKDayProgress', name: 'Day Progress', icon: 'qk-day-progress.svg', desc: 'Day, week, month, and year elapsed as progress bars', devices: ['xeneon_edge', 'pump', 'keyboard'], interactive: false },
+            { id: 'QKGameOfLife', name: 'Game of Life', icon: 'qk-game-of-life.svg', desc: "Conway's Game of Life cellular automaton", devices: ['xeneon_edge', 'pump'], interactive: false },
+            { id: 'QKMatrixRain', name: 'Matrix Rain', icon: 'qk-matrix-rain.svg', desc: 'Digital rain effect with cascading characters and fading green trails', devices: ['xeneon_edge', 'pump'], interactive: false },
+            { id: 'QKMoonPhase', name: 'Moon Phase', icon: 'qk-moon-phase.svg', desc: 'Current lunar phase with phase name and illumination percentage', devices: ['xeneon_edge', 'pump', 'keyboard'], interactive: false },
+            { id: 'QKStarfield', name: 'Starfield', icon: 'qk-starfield.svg', desc: 'Warp-speed starfield with motion trails', devices: ['xeneon_edge', 'pump'], interactive: false },
+            { id: 'QKWeather', name: 'Weather', icon: 'qk-weather.svg', desc: 'Current conditions and forecast powered by Open-Meteo with dynamic UV index coloring', devices: ['xeneon_edge', 'pump', 'keyboard'], interactive: false }
         ];
 
         // Slot sizes (native resolution)
@@ -785,13 +775,13 @@
         var DEVICE_SLOTS = {
             xeneon_edge: ['HS', 'HM', 'HL', 'HXL', 'VS', 'VM', 'VL', 'VXL'],
             pump: ['PUMP'],
-            both: ['HS', 'HM', 'HL', 'HXL', 'VS', 'VM', 'VL', 'VXL', 'PUMP']
+            keyboard: ['KB']
         };
 
         var DEVICE_LABELS = {
             xeneon_edge: { text: 'Xeneon Edge', cls: 'badge-xe' },
             pump:        { text: 'Pump LCD',   cls: 'badge-pump' },
-            both:        { text: 'Both Devices', cls: 'badge-both' }
+            keyboard:    { text: 'Keyboard',   cls: 'badge-keyboard' }
         };
 
         // State
@@ -812,12 +802,15 @@
         function renderGrid() {
             var list = currentFilter === 'all'
                 ? WIDGETS
-                : WIDGETS.filter(function (w) { return w.device === currentFilter; });
+                : WIDGETS.filter(function (w) { return w.devices.indexOf(currentFilter) !== -1; });
 
             grid.innerHTML = list.map(function (w, i) {
-                var dev = DEVICE_LABELS[w.device];
                 var icon = 'widgets/' + w.id + '/resources/' + w.icon;
                 var dlHref = 'https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/' + w.id + '.zip';
+                var deviceBadges = w.devices.map(function (d) {
+                    var dev = DEVICE_LABELS[d];
+                    return '<span class="badge ' + dev.cls + '">' + dev.text + '</span>';
+                }).join('');
 
                 return '<div class="widget-card" style="animation-delay:' + (i * 35) + 'ms">'
                     + '<div class="card-icon">'
@@ -826,8 +819,7 @@
                     + '<div class="card-name">' + w.name + '</div>'
                     + '<div class="card-description">' + w.desc + '</div>'
                     + '<div class="card-meta">'
-                    + '  <span class="badge ' + dev.cls + '">' + dev.text + '</span>'
-                    + (w.keyboard ? '<span class="badge badge-keyboard">Keyboard</span>' : '')
+                    + deviceBadges
                     + (w.interactive ? '<span class="badge badge-interactive">Interactive</span>' : '')
                     + (w.server ? '<span class="badge badge-server">Companion Server</span>' : '')
                     + '</div>'
@@ -848,9 +840,13 @@
             currentPreview = widget;
             modalTitle.textContent = widget.name;
 
-            var slots = DEVICE_SLOTS[widget.device].slice();
-            if (widget.keyboard) slots.push('KB');
-            var defaultSlot = widget.device === 'pump' ? 'PUMP' : 'HM';
+            var slots = [];
+            widget.devices.forEach(function (d) {
+                (DEVICE_SLOTS[d] || []).forEach(function (s) {
+                    if (slots.indexOf(s) === -1) slots.push(s);
+                });
+            });
+            var defaultSlot = slots.indexOf('HM') !== -1 ? 'HM' : slots[0];
 
             sizeSelector.innerHTML = '<span class="size-label">Layout:</span>'
                 + slots.map(function (key) {
