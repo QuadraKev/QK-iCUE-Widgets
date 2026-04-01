@@ -297,6 +297,11 @@
             color: var(--badge-both);
         }
 
+        .badge-keyboard {
+            background: rgba(160, 180, 200, 0.14);
+            color: #a0b4c8;
+        }
+
         .badge-interactive {
             background: rgba(255, 177, 0, 0.12);
             color: var(--warm);
@@ -754,13 +759,13 @@
             { id: 'QKWorldClocks', name: 'World Clocks', icon: 'qk-world-clocks.svg', desc: 'Up to 4 clocks side by side set to different timezones', device: 'xeneon_edge', interactive: false },
             { id: 'QKXEVisualizer', name: 'XE Visualizer', icon: 'qk-visualizer.svg', desc: 'Real-time audio spectrum visualizer with track info. Requires a Python companion server for audio capture.', device: 'xeneon_edge', interactive: false, server: true },
             { id: 'QKPumpVisualizer', name: 'Pump Visualizer', icon: 'qk-pump-visualizer.svg', desc: 'Circular audio visualizer in a radial layout with track info. Requires a Python companion server for audio capture.', device: 'pump', interactive: false, server: true },
-            { id: 'QKBinaryClock', name: 'Binary Clock', icon: 'qk-binary-clock.svg', desc: 'Current time displayed as illuminated dots in binary', device: 'both', interactive: false },
-            { id: 'QKDayProgress', name: 'Day Progress', icon: 'qk-day-progress.svg', desc: 'Day, week, month, and year elapsed as progress bars', device: 'both', interactive: false },
+            { id: 'QKBinaryClock', name: 'Binary Clock', icon: 'qk-binary-clock.svg', desc: 'Current time displayed as illuminated dots in binary', device: 'both', interactive: false, keyboard: true },
+            { id: 'QKDayProgress', name: 'Day Progress', icon: 'qk-day-progress.svg', desc: 'Day, week, month, and year elapsed as progress bars', device: 'both', interactive: false, keyboard: true },
             { id: 'QKGameOfLife', name: 'Game of Life', icon: 'qk-game-of-life.svg', desc: "Conway's Game of Life cellular automaton", device: 'both', interactive: false },
             { id: 'QKMatrixRain', name: 'Matrix Rain', icon: 'qk-matrix-rain.svg', desc: 'Digital rain effect with cascading characters and fading green trails', device: 'both', interactive: false },
-            { id: 'QKMoonPhase', name: 'Moon Phase', icon: 'qk-moon-phase.svg', desc: 'Current lunar phase with phase name and illumination percentage', device: 'both', interactive: false },
+            { id: 'QKMoonPhase', name: 'Moon Phase', icon: 'qk-moon-phase.svg', desc: 'Current lunar phase with phase name and illumination percentage', device: 'both', interactive: false, keyboard: true },
             { id: 'QKStarfield', name: 'Starfield', icon: 'qk-starfield.svg', desc: 'Warp-speed starfield with motion trails', device: 'both', interactive: false },
-            { id: 'QKWeather', name: 'Weather', icon: 'qk-weather.svg', desc: 'Current conditions and forecast powered by Open-Meteo with dynamic UV index coloring', device: 'both', interactive: false }
+            { id: 'QKWeather', name: 'Weather', icon: 'qk-weather.svg', desc: 'Current conditions and forecast powered by Open-Meteo with dynamic UV index coloring', device: 'both', interactive: false, keyboard: true }
         ];
 
         // Slot sizes (native resolution)
@@ -773,7 +778,8 @@
             VM:   { w: 696,  h: 840,  label: 'VM',   name: 'Vertical Medium' },
             VL:   { w: 696,  h: 1688, label: 'VL',   name: 'Vertical Large' },
             VXL:  { w: 696,  h: 2536, label: 'VXL',  name: 'Vertical XL' },
-            PUMP: { w: 480,  h: 480,  label: 'PUMP', name: 'Pump LCD' }
+            PUMP: { w: 480,  h: 480,  label: 'PUMP', name: 'Pump LCD' },
+            KB:   { w: 248,  h: 170,  label: 'KB',   name: 'Keyboard LCD' }
         };
 
         var DEVICE_SLOTS = {
@@ -821,6 +827,7 @@
                     + '<div class="card-description">' + w.desc + '</div>'
                     + '<div class="card-meta">'
                     + '  <span class="badge ' + dev.cls + '">' + dev.text + '</span>'
+                    + (w.keyboard ? '<span class="badge badge-keyboard">Keyboard</span>' : '')
                     + (w.interactive ? '<span class="badge badge-interactive">Interactive</span>' : '')
                     + (w.server ? '<span class="badge badge-server">Companion Server</span>' : '')
                     + '</div>'
@@ -841,7 +848,8 @@
             currentPreview = widget;
             modalTitle.textContent = widget.name;
 
-            var slots = DEVICE_SLOTS[widget.device];
+            var slots = DEVICE_SLOTS[widget.device].slice();
+            if (widget.keyboard) slots.push('KB');
             var defaultSlot = widget.device === 'pump' ? 'PUMP' : 'HM';
 
             sizeSelector.innerHTML = '<span class="size-label">Layout:</span>'

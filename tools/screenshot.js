@@ -1,5 +1,5 @@
 // Usage: node screenshot.js <widget-html-path> [slot-size] [--eval "js code"] [--delay ms]
-// slot-size: S, M, L, XL, VS, VM, VL, VXL, PUMP (default: M)
+// slot-size: S, M, L, XL, VS, VM, VL, VXL, PUMP, KB (default: M)
 const puppeteer = require('puppeteer');
 const path = require('path');
 
@@ -16,6 +16,8 @@ const SLOTS = {
     VXL: { width: 696, height: 2536 },
     // Pump
     PUMP: { width: 480, height: 480 },
+    // Keyboard
+    KB: { width: 248, height: 170 },
     // Preview sizes (for testing preview scale detection)
     PS:  { width: 316, height: 130 },
     PM:  { width: 316, height: 262 },
