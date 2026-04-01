@@ -50,7 +50,7 @@ async function main() {
     const args = parseArgs(process.argv);
 
     if (!args.htmlPath) {
-        console.error('Usage: node screenshot.js <path-to-widget.html> [S|M|L|XL|PUMP] [--eval "js"] [--delay ms]');
+        console.error('Usage: node screenshot.js <path-to-widget/index.html> [S|M|L|XL|PUMP] [--eval "js"] [--delay ms]');
         process.exit(1);
     }
 
@@ -61,7 +61,8 @@ async function main() {
     }
 
     const absPath = path.resolve(args.htmlPath);
-    const outName = path.basename(args.htmlPath, '.html') + '_' + args.slotName + '.png';
+    const widgetName = path.basename(path.dirname(absPath));
+    const outName = widgetName + '_' + args.slotName + '.png';
     const outPath = path.join(path.dirname(absPath), outName);
 
     const browser = await puppeteer.launch({
