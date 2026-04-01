@@ -3,40 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tr('QK Binary Clock')</title>
-    <link rel="icon" type="image/svg+xml" href="images/qk-binary-clock.svg">
+    <title>tr('QK Moon Phase')</title>
+    <link rel="icon" type="image/svg+xml" href="images/qk-moon-phase.svg">
 
     <!-- iCUE Widget Metadata -->
-    <meta name="x-icue-widget-preview" content="resources/BinaryClockPreview.png">
+    <meta name="x-icue-widget-preview" content="resources/MoonPhasePreview.png">
     <meta name="x-icue-restrictions"
-        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"}]'>
+        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"},{"device":"keyboard"}]'>
 
-    <!-- Properties: Group 1 - Clock Settings -->
+    <!-- Properties: Group 1 - Display Settings -->
     <meta name="x-icue-property" content="customTitle"
         data-label="tr('Custom Title')" data-type="textfield" data-default="''">
 
-    <meta name="x-icue-property" content="clockMode"
-        data-label="tr('Display Mode')" data-type="tab-buttons"
-        data-values="[{'key':'bcd','value':tr('BCD')},{'key':'binary','value':tr('Binary')}]"
-        data-default="'bcd'">
-    <meta name="x-icue-property" content="timeFormat"
-        data-label="tr('Time Format')" data-type="tab-buttons"
-        data-values="[{'key':'24h','value':tr('24H')},{'key':'12h','value':tr('12H')}]"
-        data-default="'24h'">
-    <meta name="x-icue-property" content="showSeconds"
-        data-label="tr('Show Seconds')" data-type="switch" data-default="true">
-    <meta name="x-icue-property" content="showLabels"
-        data-label="tr('Show Labels')" data-type="switch" data-default="true">
-    <meta name="x-icue-property" content="showDecimal"
-        data-label="tr('Show Decimal Time')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showPhaseName"
+        data-label="tr('Show Phase Name')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showIllumination"
+        data-label="tr('Show Illumination')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showDate"
+        data-label="tr('Show Date')" data-type="switch" data-default="false">
 
     <!-- Properties: Group 2 - Appearance (DP-mapped) -->
     <meta name="x-icue-property" content="textColor"
         data-label="tr('Text Color')" data-type="color" data-default="'#E0E0E0'">
     <meta name="x-icue-property" content="accentColor"
-        data-label="tr('Accent Color')" data-type="color" data-default="'#00E676'">
+        data-label="tr('Accent Color')" data-type="color" data-default="'#F5F5DC'">
     <meta name="x-icue-property" content="backgroundColor"
-        data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
+        data-label="tr('Background Color')" data-type="color" data-default="'#05050A'">
     <meta name="x-icue-property" content="transparency"
         data-label="tr('Transparency')" data-type="slider"
         data-default="100" data-min="0" data-max="100" data-step="1">
@@ -45,8 +37,8 @@
     <script type="application/json" id="x-icue-groups">
     [
         {
-            "title": "tr('QK Binary Clock')",
-            "properties": ["clockMode", "timeFormat", "showSeconds", "showLabels", "showDecimal", "customTitle"]
+            "title": "tr('QK Moon Phase')",
+            "properties": ["showPhaseName", "showIllumination", "showDate", "customTitle"]
         },
         {
             "title": "tr('Appearance')",
@@ -67,8 +59,8 @@
 
         :root {
             --text-color: #E0E0E0;
-            --accent-color: #00E676;
-            --bg-color: #0A0A0A;
+            --accent-color: #F5F5DC;
+            --bg-color: #05050A;
             --widget-opacity: 1.0;
         }
 
@@ -91,10 +83,9 @@
             align-items: center;
             justify-content: center;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
-            gap: 1.5vmin;
+            gap: 2vmin;
             position: relative;
         }
-
 
         .widget-title {
             display: none;
@@ -111,216 +102,153 @@
             z-index: 10;
             pointer-events: none;
         }
-        /* ---- BCD Grid ---- */
-        .bcd-grid {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-end;
-            gap: 1.5vmin;
-        }
 
-        .bcd-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1vmin;
-        }
-
-        .bcd-label {
-            font-size: 3.5vmin;
-            color: color-mix(in srgb, var(--text-color), var(--bg-color) 70%);
-            text-transform: uppercase;
-            letter-spacing: 0.1vmin;
-        }
-
-        .bcd-label.hidden { display: none; }
-
-        .bcd-dots {
-            display: flex;
-            flex-direction: column;
-            gap: 1vmin;
-        }
-
-        .bcd-dot {
-            width: 7vmin;
-            height: 7vmin;
+        /* ---- Moon Visual ---- */
+        .moon-wrapper {
+            position: relative;
+            width: 65vmin;
+            height: 65vmin;
+            background: var(--bg-color);
             border-radius: 50%;
-            border: 0.4vmin solid color-mix(in srgb, var(--accent-color), var(--bg-color) 75%);
-            transition: border-color 0.15s, background-color 0.15s;
         }
 
-        .bcd-dot.on {
-            background: var(--accent-color);
-            border-color: var(--accent-color);
+        .moon-svg {
+            width: 100%;
+            height: 100%;
         }
 
-        .bcd-separator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2vmin;
-            padding: 0 0.5vmin;
-            align-self: center;
-        }
-
-        .sep-dot {
-            width: 1.5vmin;
-            height: 1.5vmin;
-            border-radius: 50%;
-            background: color-mix(in srgb, var(--accent-color), var(--bg-color) 50%);
-        }
-
-        /* ---- Binary Row Mode ---- */
-        .binary-grid {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5vmin;
-        }
-
-        .binary-row {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 1vmin;
-        }
-
-        .binary-label {
-            font-size: 3.5vmin;
-            color: color-mix(in srgb, var(--accent-color), var(--bg-color) 30%);
-            width: 5vmin;
-            text-align: right;
-            margin-right: 1vmin;
-        }
-
-        .binary-label.hidden { display: none; }
-
-        .binary-bit {
-            width: 6vmin;
-            height: 6vmin;
-            border-radius: 1vmin;
-            border: 0.3vmin solid color-mix(in srgb, var(--accent-color), var(--bg-color) 80%);
-            transition: border-color 0.15s, background-color 0.15s;
-        }
-
-        .binary-bit.on {
-            background: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-
-        .binary-value {
-            font-family: 'Jost', sans-serif; font-weight: 700;
+        /* ---- Text Labels ---- */
+        .phase-name {
             font-size: 5vmin;
-            color: color-mix(in srgb, var(--text-color), var(--bg-color) 60%);
-            width: 7vmin;
-            text-align: left;
-            margin-left: 1vmin;
+            color: var(--text-color);
+            text-align: center;
+            letter-spacing: 0.2vmin;
         }
 
-        .binary-value.hidden { display: none; }
-
-        /* ---- Decimal Time Display ---- */
-        .decimal-time {
+        .illumination {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 8vmin;
-            color: color-mix(in srgb, var(--text-color), var(--bg-color) 65%);
-            letter-spacing: 0.5vmin;
-            margin-top: 1vmin;
+            font-size: 7vmin;
+            color: var(--accent-color);
         }
 
-        .decimal-time.hidden { display: none; }
+        .date-text {
+            font-size: 3.5vmin;
+            color: color-mix(in srgb, var(--text-color), var(--bg-color) 50%);
+        }
 
-        /* ---- Wide (HS/HL/HXL) ---- */
+        .hidden { display: none; }
+
+        /* ---- Keyboard LCD (248x170, ~1.46:1) ---- */
+        @media (min-aspect-ratio: 135/100) and (max-aspect-ratio: 155/100) {
+            .container {
+                flex-direction: row;
+                gap: 3vw;
+                padding: 2vh 3vw;
+            }
+            .moon-wrapper {
+                width: 75vh;
+                height: 75vh;
+                flex-shrink: 0;
+            }
+            .text-group {
+                display: flex;
+                flex-direction: column;
+                gap: 1vh;
+            }
+            .phase-name { font-size: 9vh; }
+            .illumination { font-size: 15vh; }
+            .date-text { font-size: 7vh; }
+        }
+
+        /* ---- Wide dashboard layouts ---- */
         @media (min-aspect-ratio: 200/100) {
-            .bcd-dot {
-                width: 12vh;
-                height: 12vh;
+            .container {
+                flex-direction: row;
+                gap: 3vw;
             }
-            .bcd-grid { gap: 2.5vh; }
-            .bcd-column { gap: 2vh; }
-            .bcd-dots { gap: 2vh; }
-            .bcd-label { font-size: 5vh; }
-            .sep-dot { width: 2.5vh; height: 2.5vh; }
-            .bcd-separator { gap: 4vh; }
-            .decimal-time { font-size: 12vh; }
-            .binary-bit { width: 10vh; height: 10vh; }
-            .binary-label { font-size: 5vh; width: 7vh; }
-            .binary-value { font-size: 7vh; width: 9vh; }
-            .binary-grid { gap: 3vh; }
-            .binary-row { gap: 2vh; }
+            .moon-wrapper {
+                width: 80vh;
+                height: 80vh;
+            }
+            .phase-name { font-size: 8vh; }
+            .illumination { font-size: 14vh; }
+            .date-text { font-size: 5vh; }
+
+            .text-group {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5vh;
+            }
         }
 
-        /* ---- VS (1.67:1) ---- */
-        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
-            .bcd-dot {
-                width: 14vh;
-                height: 14vh;
+        /* ---- Pump 1:1 ---- */
+        @media (max-aspect-ratio: 105/100) and (min-aspect-ratio: 95/100) {
+            .container {
+                gap: 0;
+                padding: 0;
+                position: relative;
             }
-            .bcd-grid { gap: 2.5vh; }
-            .bcd-column { gap: 2vh; }
-            .bcd-dots { gap: 2vh; }
-            .bcd-label { font-size: 5vh; }
-            .sep-dot { width: 2.5vh; height: 2.5vh; }
-            .bcd-separator { gap: 4vh; }
-            .decimal-time { font-size: 14vh; }
-            .binary-bit { width: 11vh; height: 11vh; }
-            .binary-label { font-size: 5vh; width: 7vh; }
-            .binary-value { font-size: 8vh; width: 10vh; }
-            .binary-grid { gap: 3vh; }
-            .binary-row { gap: 2vh; }
-        }
-
-        /* ---- Square / Pump (480x480) ---- */
-        @media (max-aspect-ratio: 110/100) and (min-aspect-ratio: 90/100) {
-            .bcd-dot {
-                width: 9vmin;
-                height: 9vmin;
+            .moon-wrapper {
+                width: 100vmin;
+                height: 100vmin;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
             }
-            .bcd-grid { gap: 2vmin; }
-            .bcd-column { gap: 1.5vmin; }
-            .bcd-dots { gap: 1.5vmin; }
-            .bcd-label { font-size: 4vmin; }
-            .sep-dot { width: 2.5vmin; height: 2.5vmin; }
-            .bcd-separator { gap: 3vmin; }
-            .decimal-time { font-size: 10vmin; }
-            .binary-bit { width: 11vmin; height: 11vmin; border-radius: 2vmin; }
-            .binary-label { font-size: 6vmin; width: 8vmin; }
-            .binary-value { font-size: 7vmin; width: 9vmin; }
-            .binary-grid { gap: 3vmin; }
-            .binary-row { gap: 2vmin; }
+            .text-group {
+                position: absolute;
+                bottom: 10vmin;
+                left: 0;
+                right: 0;
+                z-index: 2;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1vmin;
+                background: var(--bg-color);
+                padding: 3vmin 2vmin;
+            }
+            .phase-name { font-size: 6vmin; }
+            .illumination { font-size: 9vmin; }
+            .date-text { font-size: 4vmin; }
         }
 
         /* ---- Portrait ---- */
         @media (max-aspect-ratio: 90/100) {
-            .bcd-grid {
-                flex-direction: column;
-                align-items: center;
+            .moon-wrapper {
+                width: 55vw;
+                height: 55vw;
             }
-            .bcd-column .bcd-dots {
-                flex-direction: row;
+            .phase-name { font-size: 5vw; }
+            .illumination { font-size: 7vw; }
+            .date-text { font-size: 3.5vw; }
+        }
+
+        /* ---- Very tall portrait (VL/VXL) ---- */
+        @media (max-aspect-ratio: 50/100) {
+            .moon-wrapper {
+                width: 80vw;
+                height: 80vw;
             }
-            .bcd-separator {
-                flex-direction: row;
-                padding: 0.5vw 0;
-            }
-            .bcd-dot {
-                width: 8vw;
-                height: 8vw;
-            }
-            .bcd-label { font-size: 3.5vw; }
-            .decimal-time { font-size: 7vw; }
-            .binary-bit { width: 7vw; height: 7vw; }
-            .binary-label { font-size: 3.5vw; width: 5vw; }
-            .binary-value { font-size: 5vw; width: 7vw; }
+            .phase-name { font-size: 7vw; }
+            .illumination { font-size: 10vw; }
+            .date-text { font-size: 4.5vw; }
+            .container { gap: 5vw; }
         }
     </style>
 </head>
 <body>
     <div class="container" id="container">
         <div class="widget-title" id="widget-title"></div>
-        <div id="clock-area"></div>
-        <div class="decimal-time" id="decimal-time"></div>
+        <div class="moon-wrapper">
+            <svg class="moon-svg" id="moon-svg" viewBox="0 0 200 200"></svg>
+        </div>
+        <div class="text-group">
+            <div class="phase-name" id="phase-name"></div>
+            <div class="illumination" id="illumination"></div>
+            <div class="date-text" id="date-text"></div>
+        </div>
     </div>
 
     <script>
@@ -328,40 +256,48 @@
         // Configuration
         // ======================================================================
         var cfg = {
-            mode: 'bcd',
-            timeFormat: '24h',
-            showSeconds: true,
-            showLabels: true,
-            showDecimal: true,
+            showPhaseName: true,
+            showIllumination: true,
+            showDate: false,
             textColor: '#E0E0E0',
-            accentColor: '#00E676',
-            bgColor: '#0A0A0A',
+            accentColor: '#F5F5DC',
+            bgColor: '#05050A',
             transparency: 0
         };
 
-        var elClockArea = document.getElementById('clock-area');
-        var elDecimalTime = document.getElementById('decimal-time');
-        var tickTimer = null;
+        var str = {
+            newMoon: 'New Moon',
+            waxingCrescent: 'Waxing Crescent',
+            firstQuarter: 'First Quarter',
+            waxingGibbous: 'Waxing Gibbous',
+            fullMoon: 'Full Moon',
+            waningGibbous: 'Waning Gibbous',
+            lastQuarter: 'Last Quarter',
+            waningCrescent: 'Waning Crescent'
+        };
+
+        var elMoonSvg = document.getElementById('moon-svg');
+        var elPhaseName = document.getElementById('phase-name');
+        var elIllumination = document.getElementById('illumination');
+        var elDateText = document.getElementById('date-text');
 
         // ======================================================================
         // Settings
         // ======================================================================
         function readSettings() {
-            if (typeof clockMode !== 'undefined') cfg.mode = clockMode || 'bcd';
-            if (typeof timeFormat !== 'undefined') cfg.timeFormat = timeFormat || '24h';
-            if (typeof showSeconds !== 'undefined') cfg.showSeconds = !!showSeconds;
-            if (typeof showLabels !== 'undefined') cfg.showLabels = !!showLabels;
-            if (typeof showDecimal !== 'undefined') cfg.showDecimal = !!showDecimal;
+            if (typeof showPhaseName !== 'undefined') cfg.showPhaseName = !!showPhaseName;
+            if (typeof showIllumination !== 'undefined') cfg.showIllumination = !!showIllumination;
+            if (typeof showDate !== 'undefined') cfg.showDate = !!showDate;
             if (typeof textColor !== 'undefined') cfg.textColor = textColor;
             if (typeof accentColor !== 'undefined') cfg.accentColor = accentColor;
             if (typeof backgroundColor !== 'undefined') cfg.bgColor = backgroundColor;
             if (typeof transparency !== 'undefined') cfg.transparency = Number(transparency) || 0;
-            if (typeof customTitle !== 'undefined') {
-                var wt = document.getElementById('widget-title');
-                wt.textContent = customTitle;
-                wt.style.display = customTitle ? 'block' : 'none';
-            }
-        }
+                    if (typeof customTitle !== 'undefined') {
+                        var wt = document.getElementById('widget-title');
+                        wt.textContent = customTitle;
+                        wt.style.display = customTitle ? 'block' : 'none';
+                    }
+}
 
         function applySettings() {
             var root = document.documentElement;
@@ -370,196 +306,166 @@
             root.style.setProperty('--bg-color', cfg.bgColor);
             root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
-            if (cfg.showDecimal) {
-                elDecimalTime.classList.remove('hidden');
-            } else {
-                elDecimalTime.classList.add('hidden');
-            }
+            elPhaseName.classList.toggle('hidden', !cfg.showPhaseName);
+            elIllumination.classList.toggle('hidden', !cfg.showIllumination);
+            elDateText.classList.toggle('hidden', !cfg.showDate);
 
-            buildClock();
-            updateClock();
-
-            if (tickTimer) clearInterval(tickTimer);
-            tickTimer = setInterval(updateClock, 1000);
+            updateMoon();
         }
 
         // ======================================================================
-        // BCD Mode: Each digit (H1 H2 : M1 M2 : S1 S2) shown as vertical column
+        // Moon phase calculation
+        // Uses a simplified algorithm based on the synodic month (29.53059 days).
+        // Reference: New Moon on January 6, 2000 00:00 UTC (Julian Day 2451550.1)
         // ======================================================================
-        function buildBCDClock() {
-            var html = '<div class="bcd-grid" id="bcd-grid">';
+        var SYNODIC_MONTH = 29.53059;
 
-            // Columns: H tens, H ones, separator, M tens, M ones, separator, S tens, S ones
-            var columns = [
-                { id: 'h1', label: 'H', bits: 2 },
-                { id: 'h2', label: '', bits: 4 },
-                { id: 'sep1', type: 'sep' },
-                { id: 'm1', label: 'M', bits: 3 },
-                { id: 'm2', label: '', bits: 4 },
-            ];
-
-            if (cfg.showSeconds) {
-                columns.push({ id: 'sep2', type: 'sep' });
-                columns.push({ id: 's1', label: 'S', bits: 3 });
-                columns.push({ id: 's2', label: '', bits: 4 });
-            }
-
-            for (var i = 0; i < columns.length; i++) {
-                var col = columns[i];
-                if (col.type === 'sep') {
-                    html += '<div class="bcd-separator"><div class="sep-dot"></div><div class="sep-dot"></div></div>';
-                    continue;
-                }
-
-                html += '<div class="bcd-column">';
-                html += '<div class="bcd-label' + (cfg.showLabels ? '' : ' hidden') + '">' + col.label + '</div>';
-                html += '<div class="bcd-dots">';
-                // Bits from MSB to LSB
-                for (var b = col.bits - 1; b >= 0; b--) {
-                    html += '<div class="bcd-dot" id="bcd-' + col.id + '-' + b + '"></div>';
-                }
-                html += '</div></div>';
-            }
-
-            html += '</div>';
-            elClockArea.innerHTML = html;
+        function getMoonAge(date) {
+            // Days since known new moon (Jan 6, 2000 18:14 UTC)
+            var knownNewMoon = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
+            var diffMs = date.getTime() - knownNewMoon.getTime();
+            var diffDays = diffMs / 86400000;
+            var age = diffDays % SYNODIC_MONTH;
+            if (age < 0) age += SYNODIC_MONTH;
+            return age;
         }
 
-        function updateBCDClock() {
-            var now = new Date();
-            var h = now.getHours();
-            if (cfg.timeFormat === '12h') h = h % 12 || 12;
-            var m = now.getMinutes();
-            var s = now.getSeconds();
+        function getPhaseInfo(age) {
+            // Phase as 0-1 (0 = new, 0.5 = full, 1 = new again)
+            var phase = age / SYNODIC_MONTH;
 
-            var digits = {
-                h1: Math.floor(h / 10),
-                h2: h % 10,
-                m1: Math.floor(m / 10),
-                m2: m % 10,
-                s1: Math.floor(s / 10),
-                s2: s % 10
+            // Illumination: 0 at new, 1 at full
+            var illumination = (1 - Math.cos(phase * 2 * Math.PI)) / 2;
+
+            // Phase name
+            var name;
+            if (phase < 0.0625) name = str.newMoon;
+            else if (phase < 0.1875) name = str.waxingCrescent;
+            else if (phase < 0.3125) name = str.firstQuarter;
+            else if (phase < 0.4375) name = str.waxingGibbous;
+            else if (phase < 0.5625) name = str.fullMoon;
+            else if (phase < 0.6875) name = str.waningGibbous;
+            else if (phase < 0.8125) name = str.lastQuarter;
+            else if (phase < 0.9375) name = str.waningCrescent;
+            else name = str.newMoon;
+
+            return {
+                phase: phase,
+                illumination: illumination,
+                name: name
             };
+        }
 
-            var bitCounts = { h1: 2, h2: 4, m1: 3, m2: 4, s1: 3, s2: 4 };
+        // ======================================================================
+        // Moon SVG rendering
+        // Draws a circle with a crescent/gibbous mask using SVG path arcs
+        // ======================================================================
+        function renderMoon(phase, illumination) {
+            var cx = 100, cy = 100, r = 85;
 
-            for (var key in digits) {
-                var maxBit = bitCounts[key];
-                for (var b = 0; b < maxBit; b++) {
-                    var el = document.getElementById('bcd-' + key + '-' + b);
-                    if (!el) continue;
-                    if ((digits[key] >> b) & 1) {
-                        el.classList.add('on');
+            // Moon background (dark side)
+            var html = '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" ' +
+                'fill="' + cfg.accentColor + '" opacity="0.08" />';
+
+            // Illuminated area
+            // phase 0-0.5: waxing (right side lit first, growing left)
+            // phase 0.5-1: waning (right side dark, shrinking from right)
+            if (illumination < 0.01) {
+                // New moon: just the dark circle
+            } else if (illumination > 0.99) {
+                // Full moon
+                html += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" ' +
+                    'fill="' + cfg.accentColor + '" opacity="0.9" />';
+            } else {
+                // Draw the illuminated portion using SVG path
+                // The terminator is an ellipse with variable x-radius
+                var terminatorX = r * Math.abs(2 * illumination - 1);
+                var isWaxing = phase < 0.5;
+
+                // Build path: arc from top to bottom on the lit edge, ellipse back
+                var path;
+                if (isWaxing) {
+                    if (illumination < 0.5) {
+                        // Waxing crescent: thin sliver on the right
+                        path = 'M ' + cx + ' ' + (cy - r) +
+                            ' A ' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy + r) +
+                            ' A ' + terminatorX + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy - r);
                     } else {
-                        el.classList.remove('on');
+                        // Waxing gibbous: more than half lit, from right
+                        path = 'M ' + cx + ' ' + (cy - r) +
+                            ' A ' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy + r) +
+                            ' A ' + terminatorX + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy - r);
+                    }
+                } else {
+                    if (illumination < 0.5) {
+                        // Waning crescent: thin sliver on the left
+                        path = 'M ' + cx + ' ' + (cy - r) +
+                            ' A ' + r + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy + r) +
+                            ' A ' + terminatorX + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy - r);
+                    } else {
+                        // Waning gibbous: more than half lit, from left
+                        path = 'M ' + cx + ' ' + (cy - r) +
+                            ' A ' + r + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy + r) +
+                            ' A ' + terminatorX + ' ' + r + ' 0 0 0 ' + cx + ' ' + (cy - r);
                     }
                 }
+
+                html += '<path d="' + path + '" fill="' + cfg.accentColor + '" opacity="0.9" />';
             }
+
+            // Subtle crater details (fixed positions)
+            html += '<circle cx="80" cy="75" r="8" fill="' + cfg.accentColor + '" opacity="0.05" />';
+            html += '<circle cx="115" cy="90" r="12" fill="' + cfg.accentColor + '" opacity="0.04" />';
+            html += '<circle cx="95" cy="120" r="6" fill="' + cfg.accentColor + '" opacity="0.06" />';
+            html += '<circle cx="110" cy="70" r="5" fill="' + cfg.accentColor + '" opacity="0.05" />';
+
+            elMoonSvg.innerHTML = html;
         }
 
         // ======================================================================
-        // True Binary Mode: H, M, S as full binary numbers
+        // Update display
         // ======================================================================
-        function buildBinaryClock() {
-            var html = '<div class="binary-grid" id="binary-grid">';
-
-            var rows = [
-                { id: 'h', label: 'H', bits: 5 },
-                { id: 'm', label: 'M', bits: 6 },
-            ];
-
-            if (cfg.showSeconds) {
-                rows.push({ id: 's', label: 'S', bits: 6 });
-            }
-
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                html += '<div class="binary-row">';
-                html += '<div class="binary-label' + (cfg.showLabels ? '' : ' hidden') + '">' + row.label + '</div>';
-                // MSB to LSB
-                for (var b = row.bits - 1; b >= 0; b--) {
-                    html += '<div class="binary-bit" id="bin-' + row.id + '-' + b + '"></div>';
-                }
-                html += '<div class="binary-value' + (cfg.showLabels ? '' : ' hidden') + '" id="binval-' + row.id + '"></div>';
-                html += '</div>';
-            }
-
-            html += '</div>';
-            elClockArea.innerHTML = html;
-        }
-
-        function updateBinaryClock() {
+        function updateMoon() {
             var now = new Date();
-            var h = now.getHours();
-            if (cfg.timeFormat === '12h') h = h % 12 || 12;
-            var values = {
-                h: { val: h, bits: 5 },
-                m: { val: now.getMinutes(), bits: 6 },
-                s: { val: now.getSeconds(), bits: 6 }
-            };
+            var age = getMoonAge(now);
+            var info = getPhaseInfo(age);
 
-            for (var key in values) {
-                var v = values[key];
-                for (var b = 0; b < v.bits; b++) {
-                    var el = document.getElementById('bin-' + key + '-' + b);
-                    if (!el) continue;
-                    if ((v.val >> b) & 1) {
-                        el.classList.add('on');
-                    } else {
-                        el.classList.remove('on');
-                    }
+            renderMoon(info.phase, info.illumination);
+
+            elPhaseName.textContent = info.name;
+            elIllumination.textContent = Math.round(info.illumination * 100) + '%';
+
+            if (cfg.showDate) {
+                var opts = { weekday: 'short', month: 'short', day: 'numeric' };
+                try {
+                    elDateText.textContent = new Intl.DateTimeFormat('en-US', opts).format(now);
+                } catch (e) {
+                    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    elDateText.textContent = months[now.getMonth()] + ' ' + now.getDate();
                 }
-                var valEl = document.getElementById('binval-' + key);
-                if (valEl) valEl.textContent = pad(v.val);
             }
-        }
-
-        // ======================================================================
-        // Build / Update dispatchers
-        // ======================================================================
-        function buildClock() {
-            if (cfg.mode === 'bcd') {
-                buildBCDClock();
-            } else {
-                buildBinaryClock();
-            }
-        }
-
-        function updateClock() {
-            var now = new Date();
-            var h = now.getHours();
-            var m = now.getMinutes();
-            var s = now.getSeconds();
-
-            if (cfg.mode === 'bcd') {
-                updateBCDClock();
-            } else {
-                updateBinaryClock();
-            }
-
-            // Decimal time display
-            var displayH = h;
-            var suffix = '';
-            if (cfg.timeFormat === '12h') {
-                suffix = h >= 12 ? ' PM' : ' AM';
-                displayH = h % 12 || 12;
-            }
-            var timeStr = pad(displayH) + ':' + pad(m);
-            if (cfg.showSeconds) timeStr += ':' + pad(s);
-            timeStr += suffix;
-            elDecimalTime.textContent = timeStr;
-        }
-
-        function pad(n) {
-            return n < 10 ? '0' + n : '' + n;
         }
 
         // ======================================================================
         // iCUE lifecycle
         // ======================================================================
         function onInit() {
+            if (typeof tr === 'function') {
+                tr('New Moon').then(function(s) { str.newMoon = s; updateMoon(); });
+                tr('Waxing Crescent').then(function(s) { str.waxingCrescent = s; updateMoon(); });
+                tr('First Quarter').then(function(s) { str.firstQuarter = s; updateMoon(); });
+                tr('Waxing Gibbous').then(function(s) { str.waxingGibbous = s; updateMoon(); });
+                tr('Full Moon').then(function(s) { str.fullMoon = s; updateMoon(); });
+                tr('Waning Gibbous').then(function(s) { str.waningGibbous = s; updateMoon(); });
+                tr('Last Quarter').then(function(s) { str.lastQuarter = s; updateMoon(); });
+                tr('Waning Crescent').then(function(s) { str.waningCrescent = s; updateMoon(); });
+            }
+
             readSettings();
             applySettings();
+
+            // Update every hour (moon phase barely changes within an hour)
+            setInterval(updateMoon, 3600000);
         }
 
         function onDataUpdated() {
@@ -576,7 +482,6 @@
             onInit();
         }
 
-        // Fallback for standalone testing
         if (typeof iCUE_initialized === 'undefined') {
             onInit();
         }

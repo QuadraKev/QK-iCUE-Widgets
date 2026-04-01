@@ -3,38 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tr('QK Day Progress')</title>
-    <link rel="icon" type="image/svg+xml" href="images/qk-day-progress.svg">
+    <title>tr('QK Binary Clock')</title>
+    <link rel="icon" type="image/svg+xml" href="images/qk-binary-clock.svg">
 
     <!-- iCUE Widget Metadata -->
-    <meta name="x-icue-widget-preview" content="resources/DayProgressPreview.png">
+    <meta name="x-icue-widget-preview" content="resources/BinaryClockPreview.png">
     <meta name="x-icue-restrictions"
-        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"}]'>
+        data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"},{"device":"keyboard"}]'>
 
-    <!-- Properties: Group 1 - Display Settings -->
+    <!-- Properties: Group 1 - Clock Settings -->
     <meta name="x-icue-property" content="customTitle"
         data-label="tr('Custom Title')" data-type="textfield" data-default="''">
 
+    <meta name="x-icue-property" content="clockMode"
+        data-label="tr('Display Mode')" data-type="tab-buttons"
+        data-values="[{'key':'bcd','value':tr('BCD')},{'key':'binary','value':tr('Binary')}]"
+        data-default="'bcd'">
     <meta name="x-icue-property" content="timeFormat"
         data-label="tr('Time Format')" data-type="tab-buttons"
-        data-values="[{'key':'12h','value':tr('12H')},{'key':'24h','value':tr('24H')}]"
-        data-default="'12h'">
-    <meta name="x-icue-property" content="showDay"
-        data-label="tr('Show Day Progress')" data-type="switch" data-default="true">
-    <meta name="x-icue-property" content="showWeek"
-        data-label="tr('Show Week Progress')" data-type="switch" data-default="true">
-    <meta name="x-icue-property" content="showMonth"
-        data-label="tr('Show Month Progress')" data-type="switch" data-default="true">
-    <meta name="x-icue-property" content="showYear"
-        data-label="tr('Show Year Progress')" data-type="switch" data-default="true">
-    <meta name="x-icue-property" content="showPercent"
-        data-label="tr('Show Percentage')" data-type="switch" data-default="true">
+        data-values="[{'key':'24h','value':tr('24H')},{'key':'12h','value':tr('12H')}]"
+        data-default="'24h'">
+    <meta name="x-icue-property" content="showSeconds"
+        data-label="tr('Show Seconds')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showLabels"
+        data-label="tr('Show Labels')" data-type="switch" data-default="true">
+    <meta name="x-icue-property" content="showDecimal"
+        data-label="tr('Show Decimal Time')" data-type="switch" data-default="true">
 
     <!-- Properties: Group 2 - Appearance (DP-mapped) -->
     <meta name="x-icue-property" content="textColor"
         data-label="tr('Text Color')" data-type="color" data-default="'#E0E0E0'">
     <meta name="x-icue-property" content="accentColor"
-        data-label="tr('Accent Color')" data-type="color" data-default="'#7C4DFF'">
+        data-label="tr('Accent Color')" data-type="color" data-default="'#00E676'">
     <meta name="x-icue-property" content="backgroundColor"
         data-label="tr('Background Color')" data-type="color" data-default="'#0A0A0A'">
     <meta name="x-icue-property" content="transparency"
@@ -45,8 +45,8 @@
     <script type="application/json" id="x-icue-groups">
     [
         {
-            "title": "tr('QK Day Progress')",
-            "properties": ["timeFormat", "showDay", "showWeek", "showMonth", "showYear", "showPercent", "customTitle"]
+            "title": "tr('QK Binary Clock')",
+            "properties": ["clockMode", "timeFormat", "showSeconds", "showLabels", "showDecimal", "customTitle"]
         },
         {
             "title": "tr('Appearance')",
@@ -67,10 +67,9 @@
 
         :root {
             --text-color: #E0E0E0;
-            --accent-color: #7C4DFF;
+            --accent-color: #00E676;
             --bg-color: #0A0A0A;
             --widget-opacity: 1.0;
-            --bar-track: rgba(255, 255, 255, 0.06);
         }
 
         body {
@@ -92,10 +91,10 @@
             align-items: center;
             justify-content: center;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
-            padding: 3vmin;
-            gap: 2.5vmin;
+            gap: 1.5vmin;
             position: relative;
         }
+
 
         .widget-title {
             display: none;
@@ -112,251 +111,236 @@
             z-index: 10;
             pointer-events: none;
         }
+        /* ---- BCD Grid ---- */
+        .bcd-grid {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 1.5vmin;
+        }
 
-        /* ---- Progress Row ---- */
-        .progress-row {
-            width: 85%;
+        .bcd-column {
             display: flex;
             flex-direction: column;
-            gap: 0.8vmin;
+            align-items: center;
+            gap: 1vmin;
         }
 
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-        }
-
-        .progress-label {
+        .bcd-label {
             font-size: 3.5vmin;
-            color: color-mix(in srgb, var(--text-color), var(--bg-color) 40%);
+            color: color-mix(in srgb, var(--text-color), var(--bg-color) 70%);
             text-transform: uppercase;
-            letter-spacing: 0.15vmin;
+            letter-spacing: 0.1vmin;
         }
 
-        .progress-percent {
+        .bcd-label.hidden { display: none; }
+
+        .bcd-dots {
+            display: flex;
+            flex-direction: column;
+            gap: 1vmin;
+        }
+
+        .bcd-dot {
+            width: 7vmin;
+            height: 7vmin;
+            border-radius: 50%;
+            border: 0.4vmin solid color-mix(in srgb, var(--accent-color), var(--bg-color) 75%);
+            transition: border-color 0.15s, background-color 0.15s;
+        }
+
+        .bcd-dot.on {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .bcd-separator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2vmin;
+            padding: 0 0.5vmin;
+            align-self: center;
+        }
+
+        .sep-dot {
+            width: 1.5vmin;
+            height: 1.5vmin;
+            border-radius: 50%;
+            background: color-mix(in srgb, var(--accent-color), var(--bg-color) 50%);
+        }
+
+        /* ---- Binary Row Mode ---- */
+        .binary-grid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5vmin;
+        }
+
+        .binary-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 1vmin;
+        }
+
+        .binary-label {
+            font-size: 3.5vmin;
+            color: color-mix(in srgb, var(--accent-color), var(--bg-color) 30%);
+            width: 5vmin;
+            text-align: right;
+            margin-right: 1vmin;
+        }
+
+        .binary-label.hidden { display: none; }
+
+        .binary-bit {
+            width: 6vmin;
+            height: 6vmin;
+            border-radius: 1vmin;
+            border: 0.3vmin solid color-mix(in srgb, var(--accent-color), var(--bg-color) 80%);
+            transition: border-color 0.15s, background-color 0.15s;
+        }
+
+        .binary-bit.on {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .binary-value {
             font-family: 'Jost', sans-serif; font-weight: 700;
             font-size: 5vmin;
-            color: var(--accent-color);
-        }
-
-        .progress-track {
-            width: 100%;
-            height: 2.5vmin;
-            background: var(--bar-track);
-            border-radius: 1.5vmin;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--accent-color);
-            border-radius: 1.5vmin;
-            transition: width 1s ease-out;
-        }
-
-        .progress-detail {
-            font-size: 2.5vmin;
             color: color-mix(in srgb, var(--text-color), var(--bg-color) 60%);
+            width: 7vmin;
+            text-align: left;
+            margin-left: 1vmin;
         }
 
-        /* ---- Pump: Ring layout for 1:1 ---- */
-        .ring-layout {
-            display: none;
+        .binary-value.hidden { display: none; }
+
+        /* ---- Decimal Time Display ---- */
+        .decimal-time {
+            font-family: 'Jost', sans-serif; font-weight: 700;
+            font-size: 8vmin;
+            color: color-mix(in srgb, var(--text-color), var(--bg-color) 65%);
+            letter-spacing: 0.5vmin;
+            margin-top: 1vmin;
         }
 
-        /* ---- Wide dashboard layouts (S horizontal, L horizontal, XL) ---- */
+        .decimal-time.hidden { display: none; }
+
+        /* ---- Wide (HS/HL/HXL) ---- */
         @media (min-aspect-ratio: 200/100) {
-            .container {
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                align-items: center;
-                gap: 2vh 4vw;
-                padding: 2vh 3vw;
+            .bcd-dot {
+                width: 12vh;
+                height: 12vh;
             }
-            .progress-row {
-                width: 44%;
-                gap: 1vh;
+            .bcd-grid { gap: 2.5vh; }
+            .bcd-column { gap: 2vh; }
+            .bcd-dots { gap: 2vh; }
+            .bcd-label { font-size: 5vh; }
+            .sep-dot { width: 2.5vh; height: 2.5vh; }
+            .bcd-separator { gap: 4vh; }
+            .decimal-time { font-size: 12vh; }
+            .binary-bit { width: 10vh; height: 10vh; }
+            .binary-label { font-size: 5vh; width: 7vh; }
+            .binary-value { font-size: 7vh; width: 9vh; }
+            .binary-grid { gap: 3vh; }
+            .binary-row { gap: 2vh; }
+        }
+
+        /* ---- Keyboard LCD (248x170, ~1.46:1) ---- */
+        @media (min-aspect-ratio: 135/100) and (max-aspect-ratio: 155/100) {
+            .bcd-dot {
+                width: 10vh;
+                height: 10vh;
             }
-            .progress-label { font-size: 6vh; }
-            .progress-percent { font-size: 10vh; }
-            .progress-track { height: 4vh; border-radius: 2vh; }
-            .progress-fill { border-radius: 2vh; }
-            .progress-detail { font-size: 4vh; }
+            .bcd-grid { gap: 2vh; }
+            .bcd-column { gap: 1.5vh; }
+            .bcd-dots { gap: 1.5vh; }
+            .bcd-label { font-size: 5vh; }
+            .sep-dot { width: 2vh; height: 2vh; }
+            .bcd-separator { gap: 3vh; }
+            .decimal-time { font-size: 10vh; margin-top: 0; }
+            .binary-bit { width: 9vh; height: 9vh; }
+            .binary-label { font-size: 5vh; width: 7vh; }
+            .binary-value { font-size: 6vh; width: 8vh; }
+            .binary-grid { gap: 2vh; }
+            .binary-row { gap: 1.5vh; }
         }
 
         /* ---- VS (1.67:1) ---- */
-        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
-            .container {
-                gap: 2vh;
-                padding: 2vh 4vw;
+        @media (min-aspect-ratio: 155/100) and (max-aspect-ratio: 200/100) {
+            .bcd-dot {
+                width: 14vh;
+                height: 14vh;
             }
-            .progress-row {
-                width: 90%;
-                gap: 1vh;
-            }
-            .progress-label { font-size: 4.5vh; }
-            .progress-percent { font-size: 7vh; }
-            .progress-track { height: 3vh; border-radius: 2vh; }
-            .progress-fill { border-radius: 2vh; }
-            .progress-detail { font-size: 3vh; }
+            .bcd-grid { gap: 2.5vh; }
+            .bcd-column { gap: 2vh; }
+            .bcd-dots { gap: 2vh; }
+            .bcd-label { font-size: 5vh; }
+            .sep-dot { width: 2.5vh; height: 2.5vh; }
+            .bcd-separator { gap: 4vh; }
+            .decimal-time { font-size: 14vh; }
+            .binary-bit { width: 11vh; height: 11vh; }
+            .binary-label { font-size: 5vh; width: 7vh; }
+            .binary-value { font-size: 8vh; width: 10vh; }
+            .binary-grid { gap: 3vh; }
+            .binary-row { gap: 2vh; }
         }
 
-        /* ---- Square-ish (HM) ---- */
-        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
-            .container {
-                gap: 2vmin;
+        /* ---- Square / Pump (480x480) ---- */
+        @media (max-aspect-ratio: 110/100) and (min-aspect-ratio: 90/100) {
+            .bcd-dot {
+                width: 9vmin;
+                height: 9vmin;
             }
-            .progress-row {
-                width: 80%;
-            }
-        }
-
-        /* ---- Pump 1:1 circular: Use ring display ---- */
-        @media (max-aspect-ratio: 105/100) and (min-aspect-ratio: 95/100) {
-            .container {
-                padding: 0;
-                gap: 0;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .progress-row {
-                display: none;
-            }
-
-            .ring-layout {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                width: 100%;
-                height: 100%;
-                position: relative;
-            }
-
-            .ring-svg {
-                width: 96vmin;
-                height: 96vmin;
-            }
-
-            .ring-center-text {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                text-align: center;
-            }
-
-            .ring-day-label {
-                font-size: 5vmin;
-                color: color-mix(in srgb, var(--text-color), var(--bg-color) 50%);
-                text-transform: uppercase;
-            }
-
-            .ring-day-pct {
-                font-family: 'Jost', sans-serif; font-weight: 700;
-                font-size: 16vmin;
-                color: var(--accent-color);
-                line-height: 1;
-            }
-
-            .ring-day-pct.time-mode {
-                font-size: 12vmin;
-            }
-
-            .ring-day-detail {
-                font-size: 4vmin;
-                color: color-mix(in srgb, var(--text-color), var(--bg-color) 60%);
-            }
+            .bcd-grid { gap: 2vmin; }
+            .bcd-column { gap: 1.5vmin; }
+            .bcd-dots { gap: 1.5vmin; }
+            .bcd-label { font-size: 4vmin; }
+            .sep-dot { width: 2.5vmin; height: 2.5vmin; }
+            .bcd-separator { gap: 3vmin; }
+            .decimal-time { font-size: 10vmin; }
+            .binary-bit { width: 11vmin; height: 11vmin; border-radius: 2vmin; }
+            .binary-label { font-size: 6vmin; width: 8vmin; }
+            .binary-value { font-size: 7vmin; width: 9vmin; }
+            .binary-grid { gap: 3vmin; }
+            .binary-row { gap: 2vmin; }
         }
 
         /* ---- Portrait ---- */
         @media (max-aspect-ratio: 90/100) {
-            .container {
-                gap: 3vw;
-                padding: 3vw;
+            .bcd-grid {
+                flex-direction: column;
+                align-items: center;
             }
-            .progress-row {
-                width: 85%;
+            .bcd-column .bcd-dots {
+                flex-direction: row;
             }
-            .progress-label { font-size: 3.5vw; }
-            .progress-percent { font-size: 5vw; }
-            .progress-track { height: 2.5vw; }
-            .progress-detail { font-size: 2.5vw; }
-        }
-
-        /* ---- Very tall portrait (VL/VXL) ---- */
-        @media (max-aspect-ratio: 50/100) {
-            .container {
-                justify-content: space-evenly;
-                gap: 4vw;
-                padding: 6vw 3vw;
+            .bcd-separator {
+                flex-direction: row;
+                padding: 0.5vw 0;
             }
-            .progress-row {
-                gap: 1.5vw;
+            .bcd-dot {
+                width: 8vw;
+                height: 8vw;
             }
-            .progress-label { font-size: 5vw; }
-            .progress-percent { font-size: 7vw; }
-            .progress-track { height: 3.5vw; }
-            .progress-detail { font-size: 3.5vw; }
+            .bcd-label { font-size: 3.5vw; }
+            .decimal-time { font-size: 7vw; }
+            .binary-bit { width: 7vw; height: 7vw; }
+            .binary-label { font-size: 3.5vw; width: 5vw; }
+            .binary-value { font-size: 5vw; width: 7vw; }
         }
     </style>
 </head>
 <body>
     <div class="container" id="container">
         <div class="widget-title" id="widget-title"></div>
-        <div class="progress-row" id="row-day">
-            <div class="progress-header">
-                <span class="progress-label" id="lbl-day"></span>
-                <span class="progress-percent" id="pct-day"></span>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="fill-day" style="width: 0%"></div>
-            </div>
-            <div class="progress-detail" id="detail-day"></div>
-        </div>
-        <div class="progress-row" id="row-week">
-            <div class="progress-header">
-                <span class="progress-label" id="lbl-week"></span>
-                <span class="progress-percent" id="pct-week"></span>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="fill-week" style="width: 0%"></div>
-            </div>
-            <div class="progress-detail" id="detail-week"></div>
-        </div>
-        <div class="progress-row" id="row-month">
-            <div class="progress-header">
-                <span class="progress-label" id="lbl-month"></span>
-                <span class="progress-percent" id="pct-month"></span>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="fill-month" style="width: 0%"></div>
-            </div>
-            <div class="progress-detail" id="detail-month"></div>
-        </div>
-        <div class="progress-row" id="row-year">
-            <div class="progress-header">
-                <span class="progress-label" id="lbl-year"></span>
-                <span class="progress-percent" id="pct-year"></span>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="fill-year" style="width: 0%"></div>
-            </div>
-            <div class="progress-detail" id="detail-year"></div>
-        </div>
-
-        <!-- Pump ring layout -->
-        <div class="ring-layout" id="ring-layout">
-            <svg class="ring-svg" viewBox="0 0 200 200" id="ring-svg"></svg>
-            <div class="ring-center-text">
-                <div class="ring-day-label" id="ring-day-label"></div>
-                <div class="ring-day-pct" id="ring-day-pct"></div>
-                <div class="ring-day-detail" id="ring-day-detail"></div>
-            </div>
-        </div>
+        <div id="clock-area"></div>
+        <div class="decimal-time" id="decimal-time"></div>
     </div>
 
     <script>
@@ -364,49 +348,40 @@
         // Configuration
         // ======================================================================
         var cfg = {
-            timeFormat: '12h',
-            showDay: true,
-            showWeek: true,
-            showMonth: true,
-            showYear: true,
-            showPercent: true,
+            mode: 'bcd',
+            timeFormat: '24h',
+            showSeconds: true,
+            showLabels: true,
+            showDecimal: true,
             textColor: '#E0E0E0',
-            accentColor: '#7C4DFF',
+            accentColor: '#00E676',
             bgColor: '#0A0A0A',
             transparency: 0
         };
 
-        var str = {
-            day: 'Day',
-            week: 'Week',
-            month: 'Month',
-            year: 'Year'
-        };
-
-        var WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        var MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var elClockArea = document.getElementById('clock-area');
+        var elDecimalTime = document.getElementById('decimal-time');
+        var tickTimer = null;
 
         // ======================================================================
         // Settings
         // ======================================================================
         function readSettings() {
-            if (typeof timeFormat !== 'undefined') cfg.timeFormat = timeFormat || '12h';
-            if (typeof showDay !== 'undefined') cfg.showDay = !!showDay;
-            if (typeof showWeek !== 'undefined') cfg.showWeek = !!showWeek;
-            if (typeof showMonth !== 'undefined') cfg.showMonth = !!showMonth;
-            if (typeof showYear !== 'undefined') cfg.showYear = !!showYear;
-            if (typeof showPercent !== 'undefined') cfg.showPercent = !!showPercent;
+            if (typeof clockMode !== 'undefined') cfg.mode = clockMode || 'bcd';
+            if (typeof timeFormat !== 'undefined') cfg.timeFormat = timeFormat || '24h';
+            if (typeof showSeconds !== 'undefined') cfg.showSeconds = !!showSeconds;
+            if (typeof showLabels !== 'undefined') cfg.showLabels = !!showLabels;
+            if (typeof showDecimal !== 'undefined') cfg.showDecimal = !!showDecimal;
             if (typeof textColor !== 'undefined') cfg.textColor = textColor;
             if (typeof accentColor !== 'undefined') cfg.accentColor = accentColor;
             if (typeof backgroundColor !== 'undefined') cfg.bgColor = backgroundColor;
             if (typeof transparency !== 'undefined') cfg.transparency = Number(transparency) || 0;
-                    if (typeof customTitle !== 'undefined') {
-                        var wt = document.getElementById('widget-title');
-                        wt.textContent = customTitle;
-                        wt.style.display = customTitle ? 'block' : 'none';
-                    }
-}
+            if (typeof customTitle !== 'undefined') {
+                var wt = document.getElementById('widget-title');
+                wt.textContent = customTitle;
+                wt.style.display = customTitle ? 'block' : 'none';
+            }
+        }
 
         function applySettings() {
             var root = document.documentElement;
@@ -415,123 +390,184 @@
             root.style.setProperty('--bg-color', cfg.bgColor);
             root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
-            document.getElementById('row-day').style.display = cfg.showDay ? '' : 'none';
-            document.getElementById('row-week').style.display = cfg.showWeek ? '' : 'none';
-            document.getElementById('row-month').style.display = cfg.showMonth ? '' : 'none';
-            document.getElementById('row-year').style.display = cfg.showYear ? '' : 'none';
+            if (cfg.showDecimal) {
+                elDecimalTime.classList.remove('hidden');
+            } else {
+                elDecimalTime.classList.add('hidden');
+            }
 
-            updateProgress();
+            buildClock();
+            updateClock();
+
+            if (tickTimer) clearInterval(tickTimer);
+            tickTimer = setInterval(updateClock, 1000);
         }
 
         // ======================================================================
-        // Progress calculations
+        // BCD Mode: Each digit (H1 H2 : M1 M2 : S1 S2) shown as vertical column
         // ======================================================================
-        function updateProgress() {
+        function buildBCDClock() {
+            var html = '<div class="bcd-grid" id="bcd-grid">';
+
+            // Columns: H tens, H ones, separator, M tens, M ones, separator, S tens, S ones
+            var columns = [
+                { id: 'h1', label: 'H', bits: 2 },
+                { id: 'h2', label: '', bits: 4 },
+                { id: 'sep1', type: 'sep' },
+                { id: 'm1', label: 'M', bits: 3 },
+                { id: 'm2', label: '', bits: 4 },
+            ];
+
+            if (cfg.showSeconds) {
+                columns.push({ id: 'sep2', type: 'sep' });
+                columns.push({ id: 's1', label: 'S', bits: 3 });
+                columns.push({ id: 's2', label: '', bits: 4 });
+            }
+
+            for (var i = 0; i < columns.length; i++) {
+                var col = columns[i];
+                if (col.type === 'sep') {
+                    html += '<div class="bcd-separator"><div class="sep-dot"></div><div class="sep-dot"></div></div>';
+                    continue;
+                }
+
+                html += '<div class="bcd-column">';
+                html += '<div class="bcd-label' + (cfg.showLabels ? '' : ' hidden') + '">' + col.label + '</div>';
+                html += '<div class="bcd-dots">';
+                // Bits from MSB to LSB
+                for (var b = col.bits - 1; b >= 0; b--) {
+                    html += '<div class="bcd-dot" id="bcd-' + col.id + '-' + b + '"></div>';
+                }
+                html += '</div></div>';
+            }
+
+            html += '</div>';
+            elClockArea.innerHTML = html;
+        }
+
+        function updateBCDClock() {
+            var now = new Date();
+            var h = now.getHours();
+            if (cfg.timeFormat === '12h') h = h % 12 || 12;
+            var m = now.getMinutes();
+            var s = now.getSeconds();
+
+            var digits = {
+                h1: Math.floor(h / 10),
+                h2: h % 10,
+                m1: Math.floor(m / 10),
+                m2: m % 10,
+                s1: Math.floor(s / 10),
+                s2: s % 10
+            };
+
+            var bitCounts = { h1: 2, h2: 4, m1: 3, m2: 4, s1: 3, s2: 4 };
+
+            for (var key in digits) {
+                var maxBit = bitCounts[key];
+                for (var b = 0; b < maxBit; b++) {
+                    var el = document.getElementById('bcd-' + key + '-' + b);
+                    if (!el) continue;
+                    if ((digits[key] >> b) & 1) {
+                        el.classList.add('on');
+                    } else {
+                        el.classList.remove('on');
+                    }
+                }
+            }
+        }
+
+        // ======================================================================
+        // True Binary Mode: H, M, S as full binary numbers
+        // ======================================================================
+        function buildBinaryClock() {
+            var html = '<div class="binary-grid" id="binary-grid">';
+
+            var rows = [
+                { id: 'h', label: 'H', bits: 5 },
+                { id: 'm', label: 'M', bits: 6 },
+            ];
+
+            if (cfg.showSeconds) {
+                rows.push({ id: 's', label: 'S', bits: 6 });
+            }
+
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                html += '<div class="binary-row">';
+                html += '<div class="binary-label' + (cfg.showLabels ? '' : ' hidden') + '">' + row.label + '</div>';
+                // MSB to LSB
+                for (var b = row.bits - 1; b >= 0; b--) {
+                    html += '<div class="binary-bit" id="bin-' + row.id + '-' + b + '"></div>';
+                }
+                html += '<div class="binary-value' + (cfg.showLabels ? '' : ' hidden') + '" id="binval-' + row.id + '"></div>';
+                html += '</div>';
+            }
+
+            html += '</div>';
+            elClockArea.innerHTML = html;
+        }
+
+        function updateBinaryClock() {
+            var now = new Date();
+            var h = now.getHours();
+            if (cfg.timeFormat === '12h') h = h % 12 || 12;
+            var values = {
+                h: { val: h, bits: 5 },
+                m: { val: now.getMinutes(), bits: 6 },
+                s: { val: now.getSeconds(), bits: 6 }
+            };
+
+            for (var key in values) {
+                var v = values[key];
+                for (var b = 0; b < v.bits; b++) {
+                    var el = document.getElementById('bin-' + key + '-' + b);
+                    if (!el) continue;
+                    if ((v.val >> b) & 1) {
+                        el.classList.add('on');
+                    } else {
+                        el.classList.remove('on');
+                    }
+                }
+                var valEl = document.getElementById('binval-' + key);
+                if (valEl) valEl.textContent = pad(v.val);
+            }
+        }
+
+        // ======================================================================
+        // Build / Update dispatchers
+        // ======================================================================
+        function buildClock() {
+            if (cfg.mode === 'bcd') {
+                buildBCDClock();
+            } else {
+                buildBinaryClock();
+            }
+        }
+
+        function updateClock() {
             var now = new Date();
             var h = now.getHours();
             var m = now.getMinutes();
+            var s = now.getSeconds();
 
-            // Day progress
-            var dayMinutes = h * 60 + m;
-            var dayPct = Math.round((dayMinutes / 1440) * 100);
-            setBar('day', dayPct, formatTime(h, m) + ' / ' + (cfg.timeFormat === '12h' ? '12:00 AM' : '24:00'));
-
-            // Week progress (Sunday = 0)
-            var dow = now.getDay();
-            var weekMinutes = dow * 1440 + dayMinutes;
-            var weekPct = Math.round((weekMinutes / (7 * 1440)) * 100);
-            setBar('week', weekPct, WEEK_DAYS[dow] + ' - Day ' + (dow + 1) + ' of 7');
-
-            // Month progress
-            var day = now.getDate();
-            var daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            var monthMinutes = (day - 1) * 1440 + dayMinutes;
-            var monthPct = Math.round((monthMinutes / (daysInMonth * 1440)) * 100);
-            setBar('month', monthPct, MONTH_NAMES[now.getMonth()] + ' ' + day + ' / ' + daysInMonth);
-
-            // Year progress
-            var startOfYear = new Date(now.getFullYear(), 0, 1);
-            var endOfYear = new Date(now.getFullYear() + 1, 0, 1);
-            var yearMs = now - startOfYear;
-            var totalYearMs = endOfYear - startOfYear;
-            var yearPct = Math.round((yearMs / totalYearMs) * 100);
-            var dayOfYear = Math.floor(yearMs / 86400000) + 1;
-            var totalDays = Math.round(totalYearMs / 86400000);
-            setBar('year', yearPct, now.getFullYear() + ' - Day ' + dayOfYear + ' / ' + totalDays);
-
-            // Update pump ring layout
-            updateRingLayout(dayPct, weekPct, monthPct, yearPct, now);
-        }
-
-        function setBar(key, pct, detail) {
-            var fill = document.getElementById('fill-' + key);
-            var pctEl = document.getElementById('pct-' + key);
-            var detailEl = document.getElementById('detail-' + key);
-
-            if (fill) fill.style.width = pct + '%';
-            if (pctEl) {
-                pctEl.textContent = cfg.showPercent ? pct + '%' : '';
-            }
-            if (detailEl) detailEl.textContent = detail;
-        }
-
-        function updateRingLayout(dayPct, weekPct, monthPct, yearPct, now) {
-            var svg = document.getElementById('ring-svg');
-            if (!svg) return;
-
-            // Build concentric ring arcs
-            var rings = [];
-            if (cfg.showYear) rings.push({ pct: yearPct, r: 90 });
-            if (cfg.showMonth) rings.push({ pct: monthPct, r: 78 });
-            if (cfg.showWeek) rings.push({ pct: weekPct, r: 66 });
-            if (cfg.showDay) rings.push({ pct: dayPct, r: 54 });
-
-            var html = '';
-            for (var i = 0; i < rings.length; i++) {
-                var ring = rings[i];
-                var circ = 2 * Math.PI * ring.r;
-                var offset = circ * (1 - ring.pct / 100);
-
-                // Track
-                html += '<circle cx="100" cy="100" r="' + ring.r + '" fill="none" ' +
-                    'stroke="' + cfg.textColor + '" stroke-width="8" stroke-opacity="0.06" />';
-
-                // Fill
-                html += '<circle cx="100" cy="100" r="' + ring.r + '" fill="none" ' +
-                    'stroke="' + cfg.accentColor + '" stroke-width="8" ' +
-                    'stroke-linecap="round" ' +
-                    'stroke-dasharray="' + circ.toFixed(2) + '" ' +
-                    'stroke-dashoffset="' + offset.toFixed(2) + '" ' +
-                    'transform="rotate(-90 100 100)" />';
-            }
-
-            svg.innerHTML = html;
-
-            // Center text
-            var h = now.getHours();
-            var m = now.getMinutes();
-            document.getElementById('ring-day-label').textContent = str.day;
-            var elPct = document.getElementById('ring-day-pct');
-            var elDetail = document.getElementById('ring-day-detail');
-            if (cfg.showPercent) {
-                elPct.textContent = dayPct + '%';
-                elPct.className = 'ring-day-pct';
-                elDetail.textContent = formatTime(h, m);
-                elDetail.style.display = '';
+            if (cfg.mode === 'bcd') {
+                updateBCDClock();
             } else {
-                elPct.textContent = formatTime(h, m);
-                elPct.className = 'ring-day-pct time-mode';
-                elDetail.style.display = 'none';
+                updateBinaryClock();
             }
-        }
 
-        function formatTime(h, m) {
+            // Decimal time display
+            var displayH = h;
+            var suffix = '';
             if (cfg.timeFormat === '12h') {
-                var suffix = h >= 12 ? ' PM' : ' AM';
-                var h12 = h % 12 || 12;
-                return pad(h12) + ':' + pad(m) + suffix;
+                suffix = h >= 12 ? ' PM' : ' AM';
+                displayH = h % 12 || 12;
             }
-            return pad(h) + ':' + pad(m);
+            var timeStr = pad(displayH) + ':' + pad(m);
+            if (cfg.showSeconds) timeStr += ':' + pad(s);
+            timeStr += suffix;
+            elDecimalTime.textContent = timeStr;
         }
 
         function pad(n) {
@@ -542,23 +578,8 @@
         // iCUE lifecycle
         // ======================================================================
         function onInit() {
-            if (typeof tr === 'function') {
-                tr('Day').then(function(s) { str.day = s; document.getElementById('lbl-day').textContent = s; document.getElementById('ring-day-label').textContent = s; });
-                tr('Week').then(function(s) { str.week = s; document.getElementById('lbl-week').textContent = s; });
-                tr('Month').then(function(s) { str.month = s; document.getElementById('lbl-month').textContent = s; });
-                tr('Year').then(function(s) { str.year = s; document.getElementById('lbl-year').textContent = s; });
-            } else {
-                document.getElementById('lbl-day').textContent = str.day;
-                document.getElementById('lbl-week').textContent = str.week;
-                document.getElementById('lbl-month').textContent = str.month;
-                document.getElementById('lbl-year').textContent = str.year;
-            }
-
             readSettings();
             applySettings();
-
-            // Update every 30 seconds
-            setInterval(updateProgress, 30000);
         }
 
         function onDataUpdated() {
@@ -575,6 +596,7 @@
             onInit();
         }
 
+        // Fallback for standalone testing
         if (typeof iCUE_initialized === 'undefined') {
             onInit();
         }
