@@ -1,0 +1,23 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.simon",
+  "name": "Simon",
+  "description": "Simon Says memory game — watch, remember, repeat.",
+  "version": "1.0.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    },
+    {
+      "platform": "mac"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "dashboard_lcd"
+    }
+  ],
+  "interactive": true
+}

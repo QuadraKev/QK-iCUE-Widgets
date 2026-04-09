@@ -1,0 +1,23 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.game2048",
+  "name": "2048",
+  "description": "Classic 2048 sliding puzzle game for the Xeneon Edge touchscreen.",
+  "version": "1.0.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    },
+    {
+      "platform": "mac"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "dashboard_lcd"
+    }
+  ],
+  "interactive": true
+}
