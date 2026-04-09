@@ -1,0 +1,28 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.dayprogress",
+  "name": "Day Progress",
+  "description": "Visual day completion percentage bar — see how much of your day is left.",
+  "version": "1.0.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    },
+    {
+      "platform": "mac"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "pump_lcd"
+    },
+    {
+      "type": "dashboard_lcd"
+    },
+    {
+      "type": "keyboard_lcd"
+    }
+  ]
+}
