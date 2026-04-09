@@ -35,7 +35,7 @@ async function generateIcons() {
       continue;
     }
 
-    const svgFile = fs.readdirSync(resourcesDir).find(f => f.endsWith('.svg'));
+    const svgFile = fs.readdirSync(resourcesDir).sort().find(f => f.endsWith('.svg')); // expects exactly one SVG per resources/
     if (!svgFile) {
       console.warn(`  No SVG in ${folder}/resources/, skipping`);
       continue;
@@ -48,7 +48,7 @@ async function generateIcons() {
       const page = await browser.newPage();
       await page.setViewport({ width: size, height: size, deviceScaleFactor: 1 });
 
-      // Embed SVG in an HTML page: white icon centered on black background
+      // Embed SVG in an HTML page: icon centered on black background
       const html = `<!DOCTYPE html>
 <html>
 <head>
