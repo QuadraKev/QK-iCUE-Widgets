@@ -140,6 +140,14 @@ const widgets = [
     devices: [{ type: 'pump_lcd' }, { type: 'dashboard_lcd' }],
     interactive: false,
   },
+  {
+    folder: 'QKWeather',
+    id: 'com.quadrakev.weather',
+    name: 'Weather',
+    description: 'Live weather conditions and forecast with customizable location.',
+    devices: [{ type: 'pump_lcd' }, { type: 'dashboard_lcd' }, { type: 'keyboard_lcd' }],
+    interactive: false,
+  },
 ];
 
 const widgetsDir = path.join(__dirname, '..', 'widgets');
@@ -163,7 +171,24 @@ for (const w of widgets) {
   if (w.interactive) manifest.interactive = true;
 
   const outPath = path.join(widgetsDir, w.folder, 'manifest.json');
-  fs.writeFileSync(outPath, JSON.stringify(manifest, null, 2) + '\n');
-  console.log(`Written: ${outPath}`);
+  try {
+    fs.writeFileSync(outPath, JSON.stringify(manifest, null, 2) + '\n');
+    console.log(`Written: ${outPath}`);
+  } catch (err) {
+    console.error(`ERROR: could not write ${outPath}: ${err.message}`);
+    process.exitCode = 1;
+  }
 }
 console.log(`\nDone. ${widgets.length} manifest.json files created.`);
+
+// After the main loop, check for uncovered widget folders
+const INTENTIONALLY_OMITTED = new Set(['QKPumpVisualizer']); // pump-only, not going to Marketplace
+const actualFolders = fs.readdirSync(widgetsDir).filter(f =>
+  fs.statSync(path.join(widgetsDir, f)).isDirectory() && f.startsWith('QK')
+);
+const coveredFolders = new Set(widgets.map(w => w.folder));
+const skipped = actualFolders.filter(f => !coveredFolders.has(f) && !INTENTIONALLY_OMITTED.has(f));
+if (skipped.length > 0) {
+  console.warn(`\nWARNING: ${skipped.length} widget folder(s) have no manifest entry and were skipped:`);
+  skipped.forEach(f => console.warn(`  - ${f}`));
+}
