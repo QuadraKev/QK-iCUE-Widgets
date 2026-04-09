@@ -6,5 +6,13 @@ node_modules/
 catalog/
 dist/
 .claude/
-docs/
+docs/WidgetBuilder-kit/
+docs/superpowers/
+docs/iCUE-Widget-System-Documentation.md
+docs/Touchscreen_Design_Guidelines.md
+docs/jost-woff2-base64.txt
+docs/widget-skeleton.html
+docs/widget-skeleton_translation.json
+docs/iCUE-included-widgets/
+docs/widgets.csv
 install.bat

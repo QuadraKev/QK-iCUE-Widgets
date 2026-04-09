@@ -1,6 +1,6 @@
-# QK iCUE Widget Design Rules
+# QK iCUE Widget Design Guidelines
 
-Rules and patterns for building QK widgets. For the iCUE widget API reference (meta tags, properties, events, translation), see `iCUE-Widget-System-Documentation.md`.
+**These are QK project-specific guidelines**, not official iCUE requirements. They define the conventions, quality standards, and patterns used across all QK widgets to keep them visually and technically consistent. For the iCUE widget API reference (meta tags, properties, events, translation), see `iCUE-Widget-System-Documentation.md`. For official iCUE requirements, see the [Official Widget Specification](WidgetBuilder-kit/Documentation/docs/WidgetSpecification.md) and [Marketplace Guidelines](WidgetBuilder-kit/Documentation/Marketplace_Guidelines.md) (NDA — do not commit to GitHub).
 
 ## Device Specifications
 
@@ -191,7 +191,7 @@ All QK widgets share a consistent visual identity. Follow these rules to keep wi
 
 ### Font
 
-All QK widgets use **Jost** as the sole typeface. Do not use OpenSans, Segoe UI, Bebas Neue, or any other font. Jost is a variable font (weights 100-900, latin subset, woff2), embedded as a base64 data URI in each HTML file (~35KB overhead). This keeps widgets self-contained with no network dependency.
+All QK widgets use **Jost** as the project typeface. This is a QK project decision for visual consistency — iCUE itself allows any locally packaged or system font. Do not use other fonts in QK widgets (OpenSans, Segoe UI, Bebas Neue, etc.). Jost is a variable font (weights 100-900, latin subset, woff2), embedded as a base64 data URI in each HTML file (~35KB overhead). This keeps widgets self-contained with no network dependency.
 
 The base64 data is stored at `docs/jost-woff2-base64.txt`.
 
@@ -298,12 +298,16 @@ Canvas-based widgets (matrix-rain, starfield): apply transparency via body `back
 
 - Prefer `tab-buttons` over `combobox` for small option sets (2-5 choices). Tab-buttons always show the selected option visually.
 - Reserve combobox for large option lists (e.g., timezone pickers).
-- Combobox `data-values` MUST use `key/value` format: `[{'key':'Foo','value':tr('Foo')}]`. Using `title/value` causes blank dropdowns.
+- Combobox `data-values` MUST use `key/value` format: `[{'key':'Foo','value':tr('Foo')}]`. `title/value` is not a documented format — using it results in a blank dropdown.
 
 ## iCUE JavaScript Constraints
 
-- NEVER use `'use strict'`: iCUE injects properties via `eval(backend.data)` with bare global assignments. Strict mode breaks this.
+- NEVER use `'use strict'`: iCUE injects properties via `eval(backend.data)` with bare global assignments. Strict mode breaks this. (Qt WebEngine quirk — not documented in official iCUE docs, confirmed through testing.)
 - NEVER use `var icueEvents` or `var iCUE_initialized`: use bare assignment (`icueEvents = {...}`) so iCUE's bootstrap can find the object.
+- NEVER call `getUserMedia()`: the function exists in the webview but **hangs indefinitely** — no permission dialog is shown, and the widget freezes. There is no system audio capture path from inside a widget.
+- `navigator.mediaSession.metadata` is always `null` in the webview. Reading other apps' Now Playing info is not possible from a widget.
+- `iCUE.fpsLimit` (default: 30) is readable if you need to know the current frame rate cap.
+- **Interactive widget focus:** When the iCUE desktop app is open (not minimized to tray), touching a widget on the Xeneon Edge steals focus from the user's active application. When iCUE is minimized to the system tray, this does not occur. Design interactive widgets with this in mind.
 
 ## Standalone Testing
 
@@ -322,6 +326,92 @@ if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {
 // Standalone fallback (outside iCUE)
 if (typeof iCUE_initialized === 'undefined') { onInit(); }
 ```
+
+## Marketplace Compliance
+
+The official iCUE Marketplace currently accepts **Xeneon Edge (`dashboard_lcd`) widgets only**. When submitting QK widgets to the Marketplace, the following requirements apply on top of our existing QK conventions. Full details: `docs/WidgetBuilder-kit/Documentation/Marketplace_Guidelines.md`.
+
+### Code Safety
+
+- All code must be **human-readable**. No obfuscation, minification, or base64-encoded JavaScript.
+- No remote `<script src>` — every script must be bundled locally in the widget package.
+- No remote fonts — already compliant (Jost is embedded as base64).
+- No hardcoded API keys or tokens. If a widget requires an API key, the user must enter it via a `textfield` meta property. Never log or persist API keys.
+- `eval()` and `Function()` are restricted. The narrowly-scoped `getIcueProperty()` compatibility helper (used in several widgets to read iCUE-injected globals) is acceptable because it is well-commented, minimal in scope, and only handles documented iCUE runtime behavior — never untrusted input. Keep it clearly commented.
+- All external network requests must use **HTTPS** (no plain HTTP).
+- No tracking, analytics, or telemetry of any kind.
+
+### Widget Icon
+
+The widget icon appearing in iCUE's widget picker must be:
+- **SVG format** with a **transparent background**
+- **Monochromatic** — white (`#FFFFFF`) as the primary stroke and fill color
+- No colored styling, gradients, or solid backgrounds
+
+Our existing `qk-{widget-name}.svg` icons are compliant as long as they meet the monochromatic/white/transparent requirements.
+
+### Marketplace Listing Assets
+
+Required at package root for Marketplace submission (not needed for local install):
+
+| File | Size | Purpose |
+|------|------|---------|
+| `/icon.png` | 256×256 px | Marketplace store icon |
+| `/icon@2x.png` | 512×512 px | High-DPI store icon |
+
+All rasterized images must include a `@2x` variant at exactly double the dimensions.
+
+The **preview image** (`x-icue-widget-preview` meta tag) should show the widget in its normal content state at a **128×56 aspect ratio**. Do not show loading, empty, or error states. (Note: this tag exists in the API but doesn't appear to be used in the iCUE picker — it is used on the Marketplace listing page.)
+
+### Localization
+
+`tr()` is **required** by the Marketplace for:
+- All `data-label` attributes on meta properties
+- The widget `<title>` tag
+
+Every `tr()` key must have a corresponding entry in `translation.json`. Multi-language support is not required but is strongly recommended.
+
+### Accessibility
+
+- Minimum contrast ratio: **4.5:1** for normal text, **3:1** for large text (24px+ or 19px+ bold) and non-text UI elements.
+- This applies to all color combinations the widget can produce, including user-chosen personalization colors. If a user picks a low-contrast combination, the widget should still be legible (e.g., enforce a minimum contrast floor or adjust automatically).
+- **Recommended:** respect `prefers-reduced-motion` — disable or simplify animations when set.
+- **Required:** no flashing content more than **3 times per second** (photosensitivity risk).
+- Minimum readable font size: ~12px on any supported display size.
+- Do not rely on color alone to convey information — pair color with an icon, label, or other indicator.
+
+### Safe Area Margins
+
+Keep meaningful content away from screen edges to prevent clipping on physical hardware:
+- Predominantly horizontal layouts (HS/HL/HXL): at least 5% horizontal, 10% vertical margin
+- Predominantly vertical layouts (VL/VXL): at least 10% margin on all sides
+- Compact/balanced layouts (HM/VM/VS): at least 12% margin on all sides
+
+### Visual States
+
+Every widget must handle all states deliberately:
+- **Loading**: show a visual indicator — a blank screen looks broken.
+- **Empty / no data**: explain why in plain language (e.g., "Select a sensor in widget settings"), not a blank screen or raw "null".
+- **Error**: communicate the problem honestly and suggest what to do (e.g., "Unable to reach weather service — check your internet connection"), not "Error 503" or a stack trace.
+
+### Settings Panel Rules
+
+- **No "Save" button** — settings save automatically in iCUE.
+- **No donation, sponsor, or fundraising links** in the settings UI — use the Marketplace listing's "Additional Links" section.
+- **No copyright notices or changelogs** in the settings panel — use the listing description.
+- Setting names should be concise and self-explanatory, ~30 characters or less.
+- Appearance controls (textColor, accentColor, backgroundColor, transparency) must be the **last group** in the settings panel.
+
+### Performance
+
+- Cap update frequency to no more than **10 requests per second** for external APIs.
+- No unbounded update loops. Debounce and throttle repeated triggers.
+- Cache API responses and avoid redundant fetches.
+- For widgets connecting to external services, make the refresh rate configurable with a sensible default.
+
+### Manifest IDs
+
+Once a widget is published to the Marketplace, its `id` field in `manifest.json` must never change — it is the permanent identifier used for updates. Plan IDs in reverse-domain format: `com.quadrakev.{widgetname}`.
 
 ## Screenshots
 
