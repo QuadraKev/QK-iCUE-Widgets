@@ -1,0 +1,23 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.fidgetspinner",
+  "name": "Fidget Spinner",
+  "description": "Swipe-to-spin fidget spinner with real-time RPM display.",
+  "version": "1.0.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    },
+    {
+      "platform": "mac"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "dashboard_lcd"
+    }
+  ],
+  "interactive": true
+}

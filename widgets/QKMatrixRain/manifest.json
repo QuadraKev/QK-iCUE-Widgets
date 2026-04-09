@@ -1,0 +1,25 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.matrixrain",
+  "name": "Matrix Rain",
+  "description": "Animated Matrix-style digital rain effect with customizable colors.",
+  "version": "1.0.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    },
+    {
+      "platform": "mac"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "pump_lcd"
+    },
+    {
+      "type": "dashboard_lcd"
+    }
+  ]
+}
