@@ -591,10 +591,15 @@
         // ══════════════════════════════════════════════════════════════
         // Preferences (localStorage)
         // ══════════════════════════════════════════════════════════════
+        function storageKey(name) {
+            var prefix = (typeof uniqueId !== 'undefined' && uniqueId) ? uniqueId + '.' : '';
+            return prefix + name;
+        }
+
         function loadPrefs() {
             try {
-                var d = localStorage.getItem('qk-paint-draw-color');
-                var b = localStorage.getItem('qk-paint-bg-color');
+                var d = localStorage.getItem(storageKey('qk-paint-draw-color'));
+                var b = localStorage.getItem(storageKey('qk-paint-bg-color'));
                 if (d) drawColor = d;
                 if (b) canvasBg = b;
 
@@ -609,8 +614,8 @@
 
         function savePrefs() {
             try {
-                localStorage.setItem('qk-paint-draw-color', drawColor);
-                localStorage.setItem('qk-paint-bg-color', canvasBg);
+                localStorage.setItem(storageKey('qk-paint-draw-color'), drawColor);
+                localStorage.setItem(storageKey('qk-paint-bg-color'), canvasBg);
             } catch (e) {}
         }
 
@@ -882,6 +887,7 @@
 
         canvas.addEventListener('pointerup', endStroke);
         canvas.addEventListener('pointercancel', endStroke);
+        canvas.addEventListener('pointerleave', endStroke);
 
         // ══════════════════════════════════════════════════════════════
         // Undo
@@ -917,13 +923,13 @@
         // localStorage persistence
         // ══════════════════════════════════════════════════════════════
         function persistCanvas() {
-            try { localStorage.setItem('qk-paint-canvas', canvas.toDataURL()); }
+            try { localStorage.setItem(storageKey('qk-paint-canvas'), canvas.toDataURL()); }
             catch (e) {}
         }
 
         function restoreCanvas() {
             try {
-                var data = localStorage.getItem('qk-paint-canvas');
+                var data = localStorage.getItem(storageKey('qk-paint-canvas'));
                 if (!data) return;
                 var img = new Image();
                 img.onload = function() {
