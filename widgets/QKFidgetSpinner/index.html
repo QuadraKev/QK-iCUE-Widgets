@@ -149,7 +149,14 @@
             .rpm-display .value { font-size: 6vw; }
             .hint { font-size: 2.5vw; bottom: 2vw; }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="container" id="container">
@@ -173,6 +180,7 @@
         accentColor: '#E91E63',
         textColor: '#E0E0E0'
     };
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Physics state
     let angle = 0;           // radians
@@ -319,6 +327,7 @@
     }
 
     function update() {
+        if (reduceMotion) { drawSpinner(); return; }
         // Only apply physics when not being dragged
         if (!touchStart) {
             if (Math.abs(angVel) > minVel) {

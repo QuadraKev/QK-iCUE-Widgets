@@ -346,7 +346,14 @@
             .game-msg { font-size: 8vw; }
             .new-game-btn { font-size: 6.5vw; padding: 2.5vw 5vw; }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="container" id="container">

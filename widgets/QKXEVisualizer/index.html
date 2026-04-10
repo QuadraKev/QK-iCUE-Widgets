@@ -595,7 +595,14 @@
                 height: 1.2vw;
             }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="np-container" id="np-container">
@@ -653,6 +660,7 @@
             backgroundColor: '#0A0A0A',
             transparency: 0
         };
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // ── Runtime state ──
         var rawBins = [];
@@ -1360,6 +1368,7 @@
         // Main render loop
         // ══════════════════════════════════════════════════════════════
         function render() {
+            if (reduceMotion) return;
             // Show/hide sections
             vizSection.style.display = cfg.showViz ? '' : 'none';
             infoSection.style.display = cfg.showMediaInfo ? '' : 'none';
