@@ -310,7 +310,14 @@
             .display-value.small { font-size: 13vw; }
             .display-value.xsmall { font-size: 9vw; }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="container">

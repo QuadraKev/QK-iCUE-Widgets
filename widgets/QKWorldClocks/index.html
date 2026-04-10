@@ -275,7 +275,14 @@
             .clock-ampm { font-size: 5.5vw; }
             .clock-day-diff { font-size: 3.5vw; }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="widget-title" id="widget-title"></div>

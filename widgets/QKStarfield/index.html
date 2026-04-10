@@ -72,6 +72,13 @@
             pointer-events: none;
             position: relative;
         }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
 </style>
 </head>
 <body>
@@ -88,6 +95,7 @@
             bgColor: '#000005',
             transparency: 100
         };
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
@@ -138,6 +146,7 @@
         }
 
         function render() {
+            if (reduceMotion) return;
             var bgRGB = hexToRGB(cfg.bgColor);
             var starRGB = hexToRGB(cfg.accentColor);
             var speedMul = cfg.speed * 2;

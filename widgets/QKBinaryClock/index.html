@@ -335,7 +335,14 @@
             .binary-label { font-size: 3.5vw; width: 5vw; }
             .binary-value { font-size: 5vw; width: 7vw; }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="container" id="container">

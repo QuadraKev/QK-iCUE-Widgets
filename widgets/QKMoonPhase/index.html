@@ -237,7 +237,14 @@
             .date-text { font-size: 4.5vw; }
             .container { gap: 5vw; }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="container" id="container">

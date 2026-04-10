@@ -194,7 +194,14 @@
                 display: none;
             }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="container">
@@ -224,6 +231,7 @@
             bgColor: '#0A0A0A',
             transparency: 0
         };
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         var CELL_SIZES = { small: 2, medium: 3, large: 4.5 };
 
@@ -390,6 +398,7 @@
         // Animation loop
         // ================================================================
         function tick(timestamp) {
+            if (reduceMotion) { render(); return; }
             animFrame = requestAnimationFrame(tick);
 
             var interval = 1000 / (cfg.speed * 2);

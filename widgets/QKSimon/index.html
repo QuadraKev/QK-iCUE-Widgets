@@ -278,7 +278,14 @@
             .status { font-size: 3.5vw; }
             .start-btn { font-size: 4vw; padding: 2vw 4vw; border-radius: 1.5vw; }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="container">
