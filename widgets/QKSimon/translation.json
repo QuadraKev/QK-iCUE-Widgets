@@ -1,5 +1,9 @@
 {
-    "en": {},
+    "en": {
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
+    },
     "de": {
         "QK Simon": "QK Simon",
         "Appearance": "Erscheinungsbild",
@@ -13,7 +17,10 @@
         "Watch...": "Schau...",
         "Your turn!": "Du bist dran!",
         "Wrong!": "Falsch!",
-        "Custom Title": "Eigener Titel"
+        "Custom Title": "Eigener Titel",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "es": {
         "QK Simon": "QK Simon",
@@ -28,7 +35,10 @@
         "Watch...": "Mira...",
         "Your turn!": "Tu turno!",
         "Wrong!": "Incorrecto!",
-        "Custom Title": "Titulo Personalizado"
+        "Custom Title": "Titulo Personalizado",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "fr": {
         "QK Simon": "QK Simon",
@@ -43,7 +53,10 @@
         "Watch...": "Regarde...",
         "Your turn!": "A toi!",
         "Wrong!": "Faux!",
-        "Custom Title": "Titre Personnalise"
+        "Custom Title": "Titre Personnalise",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "it": {
         "QK Simon": "QK Simon",
@@ -58,7 +71,10 @@
         "Watch...": "Guarda...",
         "Your turn!": "Tocca a te!",
         "Wrong!": "Sbagliato!",
-        "Custom Title": "Titolo Personalizzato"
+        "Custom Title": "Titolo Personalizzato",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ja": {
         "QK Simon": "QK サイモン",
@@ -73,7 +89,10 @@
         "Watch...": "見て...",
         "Your turn!": "あなたの番!",
         "Wrong!": "不正解!",
-        "Custom Title": "カスタムタイトル"
+        "Custom Title": "カスタムタイトル",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ko": {
         "QK Simon": "QK 사이먼",
@@ -88,7 +107,10 @@
         "Watch...": "보세요...",
         "Your turn!": "당신 차례!",
         "Wrong!": "틀렸어요!",
-        "Custom Title": "사용자 정의 제목"
+        "Custom Title": "사용자 정의 제목",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "pt": {
         "QK Simon": "QK Simon",
@@ -103,7 +125,10 @@
         "Watch...": "Olhe...",
         "Your turn!": "Sua vez!",
         "Wrong!": "Errado!",
-        "Custom Title": "Titulo Personalizado"
+        "Custom Title": "Titulo Personalizado",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ru": {
         "QK Simon": "QK Саймон",
@@ -118,7 +143,10 @@
         "Watch...": "Смотри...",
         "Your turn!": "Ваш ход!",
         "Wrong!": "Неправильно!",
-        "Custom Title": "Пользовательский заголовок"
+        "Custom Title": "Пользовательский заголовок",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "zh_CN": {
         "QK Simon": "QK 西蒙",
@@ -133,7 +161,10 @@
         "Watch...": "看...",
         "Your turn!": "轮到你了!",
         "Wrong!": "错了!",
-        "Custom Title": "自定义标题"
+        "Custom Title": "自定义标题",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "zh_TW": {
         "QK Simon": "QK 西蒙",
@@ -148,7 +179,10 @@
         "Watch...": "看...",
         "Your turn!": "輪到你了!",
         "Wrong!": "錯了!",
-        "Custom Title": "自訂標題"
+        "Custom Title": "自訂標題",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "uk": {
         "QK Simon": "QK Саймон",
@@ -163,6 +197,9 @@
         "Watch...": "Дивись...",
         "Your turn!": "Ваш хід!",
         "Wrong!": "Неправильно!",
-        "Custom Title": "Користувацький заголовок"
+        "Custom Title": "Користувацький заголовок",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     }
 }
