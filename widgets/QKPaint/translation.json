@@ -1,59 +1,100 @@
 {
-    "en": {},
+    "en": {
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
+    },
     "de": {
         "QK Paint": "QK Paint",
         "Canvas Color": "Leinwandfarbe",
-        "Custom Title": "Eigener Titel"
+        "Custom Title": "Eigener Titel",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "es": {
         "QK Paint": "QK Paint",
         "Canvas Color": "Color del Lienzo",
-        "Custom Title": "Titulo Personalizado"
+        "Custom Title": "Titulo Personalizado",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "fr": {
         "QK Paint": "QK Paint",
         "Canvas Color": "Couleur du Canevas",
-        "Custom Title": "Titre Personnalise"
+        "Custom Title": "Titre Personnalise",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "it": {
         "QK Paint": "QK Paint",
         "Canvas Color": "Colore della Tela",
-        "Custom Title": "Titolo Personalizzato"
+        "Custom Title": "Titolo Personalizzato",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ja": {
         "QK Paint": "QK Paint",
         "Canvas Color": "キャンバスカラー",
-        "Custom Title": "カスタムタイトル"
+        "Custom Title": "カスタムタイトル",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ko": {
         "QK Paint": "QK Paint",
         "Canvas Color": "캔버스 색상",
-        "Custom Title": "사용자 정의 제목"
+        "Custom Title": "사용자 정의 제목",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "pt": {
         "QK Paint": "QK Paint",
         "Canvas Color": "Cor da Tela",
-        "Custom Title": "Titulo Personalizado"
+        "Custom Title": "Titulo Personalizado",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ru": {
         "QK Paint": "QK Paint",
         "Canvas Color": "Цвет холста",
-        "Custom Title": "Пользовательский заголовок"
+        "Custom Title": "Пользовательский заголовок",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "zh_CN": {
         "QK Paint": "QK Paint",
         "Canvas Color": "画布颜色",
-        "Custom Title": "自定义标题"
+        "Custom Title": "自定义标题",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "zh_TW": {
         "QK Paint": "QK Paint",
         "Canvas Color": "畫布顏色",
-        "Custom Title": "自訂標題"
+        "Custom Title": "自訂標題",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "uk": {
         "QK Paint": "QK Paint",
         "Canvas Color": "Колір полотна",
-        "Custom Title": "Користувацький заголовок"
+        "Custom Title": "Користувацький заголовок",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
-    "en_FAKE": {}
+    "en_FAKE": {
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
+    }
 }

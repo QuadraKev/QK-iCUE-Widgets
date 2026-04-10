@@ -1,5 +1,9 @@
 {
-    "en": {},
+    "en": {
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
+    },
     "de": {
         "QK Matrix Rain": "QK Matrix-Regen",
         "Appearance": "Erscheinungsbild",
@@ -10,7 +14,10 @@
         "Background Color": "Hintergrundfarbe",
         "Transparency": "Transparenz",
         "Custom Title": "Eigener Titel",
-        "Trail Strength": "Spurstaerke"
+        "Trail Strength": "Spurstaerke",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "es": {
         "QK Matrix Rain": "QK Lluvia Matrix",
@@ -22,7 +29,10 @@
         "Background Color": "Color de Fondo",
         "Transparency": "Transparencia",
         "Custom Title": "Titulo Personalizado",
-        "Trail Strength": "Intensidad de Estela"
+        "Trail Strength": "Intensidad de Estela",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "fr": {
         "QK Matrix Rain": "QK Pluie Matrix",
@@ -34,7 +44,10 @@
         "Background Color": "Couleur de Fond",
         "Transparency": "Transparence",
         "Custom Title": "Titre Personnalise",
-        "Trail Strength": "Intensite de la Trainee"
+        "Trail Strength": "Intensite de la Trainee",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "it": {
         "QK Matrix Rain": "QK Pioggia Matrix",
@@ -46,7 +59,10 @@
         "Background Color": "Colore di Sfondo",
         "Transparency": "Trasparenza",
         "Custom Title": "Titolo Personalizzato",
-        "Trail Strength": "Intensita della Scia"
+        "Trail Strength": "Intensita della Scia",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ja": {
         "QK Matrix Rain": "QK マトリックスレイン",
@@ -58,7 +74,10 @@
         "Background Color": "背景色",
         "Transparency": "透明度",
         "Custom Title": "カスタムタイトル",
-        "Trail Strength": "軌跡の強さ"
+        "Trail Strength": "軌跡の強さ",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ko": {
         "QK Matrix Rain": "QK 매트릭스 레인",
@@ -70,7 +89,10 @@
         "Background Color": "배경 색상",
         "Transparency": "투명도",
         "Custom Title": "사용자 정의 제목",
-        "Trail Strength": "궤적 강도"
+        "Trail Strength": "궤적 강도",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "pt": {
         "QK Matrix Rain": "QK Chuva Matrix",
@@ -82,7 +104,10 @@
         "Background Color": "Cor de Fundo",
         "Transparency": "Transparencia",
         "Custom Title": "Titulo Personalizado",
-        "Trail Strength": "Intensidade do Rastro"
+        "Trail Strength": "Intensidade do Rastro",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ru": {
         "QK Matrix Rain": "QK Матричный Дождь",
@@ -94,7 +119,10 @@
         "Background Color": "Цвет фона",
         "Transparency": "Прозрачность",
         "Custom Title": "Пользовательский заголовок",
-        "Trail Strength": "Сила следа"
+        "Trail Strength": "Сила следа",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "zh_CN": {
         "QK Matrix Rain": "QK 矩阵雨",
@@ -106,7 +134,10 @@
         "Background Color": "背景颜色",
         "Transparency": "透明度",
         "Custom Title": "自定义标题",
-        "Trail Strength": "轨迹强度"
+        "Trail Strength": "轨迹强度",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "zh_TW": {
         "QK Matrix Rain": "QK 矩陣雨",
@@ -118,7 +149,10 @@
         "Background Color": "背景顏色",
         "Transparency": "透明度",
         "Custom Title": "自訂標題",
-        "Trail Strength": "軌跡強度"
+        "Trail Strength": "軌跡強度",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "uk": {
         "QK Matrix Rain": "QK Матричний Дощ",
@@ -130,6 +164,9 @@
         "Background Color": "Колір фону",
         "Transparency": "Прозорість",
         "Custom Title": "Користувацький заголовок",
-        "Trail Strength": "Сила сліду"
+        "Trail Strength": "Сила сліду",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     }
 }
