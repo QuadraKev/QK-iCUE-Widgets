@@ -221,6 +221,47 @@
             word-wrap: break-word;
         }
 
+        /* ---- Answer History Panel (L/XL wide layouts) ---- */
+        .history-panel {
+            display: none;
+            flex-direction: column;
+            gap: 1.2vh;
+            padding: 2vh;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .history-label {
+            font-family: 'Jost', sans-serif; font-weight: 700;
+            font-size: 1.8vh;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.15vh;
+            opacity: 0.7;
+            margin-bottom: 0.5vh;
+        }
+
+        .history-item {
+            font-family: 'Jost', sans-serif; font-weight: 500;
+            font-size: 2vh;
+            color: var(--text-color);
+            opacity: 0.45;
+            text-transform: uppercase;
+            letter-spacing: 0.05vh;
+            line-height: 1.3;
+            padding: 0.8vh 0;
+            border-bottom: 1px solid color-mix(in srgb, var(--text-color), transparent 85%);
+            transition: opacity 0.4s ease;
+        }
+
+        .history-item:first-of-type {
+            opacity: 0.7;
+        }
+
+        .history-item.cat-positive { border-left: 3px solid #4CAF50; padding-left: 1vh; }
+        .history-item.cat-neutral  { border-left: 3px solid #FFC107; padding-left: 1vh; }
+        .history-item.cat-negative { border-left: 3px solid #F44336; padding-left: 1vh; }
+
         /* ---- Wide horizontal layouts on XE ---- */
         @media (min-aspect-ratio: 200/100) {
             .ball-outer {
@@ -229,6 +270,39 @@
             }
             .ball-eight { font-size: 20vh; }
             .answer-text { font-size: 5vh; }
+        }
+
+        /* L/XL wide layouts: show history panel, scale up ball */
+        @media (min-aspect-ratio: 200/100) and (min-width: 1400px) {
+            .container {
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                gap: 3vw;
+            }
+            .ball-outer {
+                width: 85vh;
+                height: 85vh;
+            }
+            .ball-eight { font-size: 24vh; }
+            .answer-text { font-size: 5.5vh; }
+            .history-panel {
+                display: flex;
+                width: 18vw;
+                min-width: 180px;
+                flex-shrink: 0;
+            }
+            .tap-hint {
+                position: absolute;
+                bottom: 2vh;
+                left: 0;
+                right: 0;
+                text-align: center;
+            }
+            .widget-title {
+                position: absolute;
+                top: 1vh;
+            }
         }
 
         /* Square-ish (HM, VS) */
@@ -271,6 +345,9 @@
             <div class="ball-eight">8</div>
         </div>
         <div class="tap-hint" id="tap-hint">Tap to shake</div>
+        <div class="history-panel" id="history-panel">
+            <div class="history-label">Recent Answers</div>
+        </div>
     </div>
 
     <script>
@@ -393,10 +470,13 @@
         var mediaViewer = null;
         var shaking = false;
         var hideTimer = null;
+        var answerHistory = [];
+        var MAX_HISTORY = 5;
 
         var elBallOuter = document.getElementById('ball-outer');
         var elBallInner = document.getElementById('ball-inner');
         var elAnswerText = document.getElementById('answer-text');
+        var elHistoryPanel = document.getElementById('history-panel');
         var elTapHint = document.getElementById('tap-hint');
 
         // ======================================================================
@@ -463,9 +543,15 @@
                 } while (idx === lastIndex && ANSWERS.length > 1);
                 lastIndex = idx;
 
-                elAnswerText.textContent = ANSWERS[idx].text;
+                var answer = ANSWERS[idx];
+                elAnswerText.textContent = answer.text;
                 elBallInner.classList.add('visible');
                 shaking = false;
+
+                // Add to history
+                answerHistory.unshift({ text: answer.text, cat: answer.cat });
+                if (answerHistory.length > MAX_HISTORY) answerHistory.pop();
+                renderHistory();
 
                 // Auto-hide answer after 5 seconds
                 hideTimer = setTimeout(function() {
@@ -482,6 +568,25 @@
             e.preventDefault();
             shakeBall();
         }, { passive: false });
+
+        // ======================================================================
+        // Answer history panel
+        // ======================================================================
+        function renderHistory() {
+            // Remove old history items (keep the label)
+            var items = elHistoryPanel.querySelectorAll('.history-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].remove();
+            }
+            // Render current history
+            for (var j = 0; j < answerHistory.length; j++) {
+                var entry = answerHistory[j];
+                var div = document.createElement('div');
+                div.className = 'history-item cat-' + entry.cat;
+                div.textContent = entry.text;
+                elHistoryPanel.appendChild(div);
+            }
+        }
 
         // ======================================================================
         // iCUE lifecycle
