@@ -254,6 +254,8 @@ iCUE provides a native Size selector (S/M/L/XL) as the first group. This group:
 
 ### Group 2: Appearance
 
+The iCUE "Custom Style" toggle ONLY appears on the **second** settings group. This is why Appearance must always be Group 2. If color properties are placed in Group 1, the toggle will not appear.
+
 MUST contain the four standard DP-mapped properties in this order:
 1. `textColor` (color): main text color
 2. `accentColor` (color): highlights and accents
