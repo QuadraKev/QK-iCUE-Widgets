@@ -1,5 +1,9 @@
 {
-    "en": {},
+    "en": {
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
+    },
     "de": {
         "QK World Clocks": "QK World Clocks",
         "Appearance": "Erscheinungsbild",
@@ -26,6 +30,9 @@
         "Accent Color": "Akzentfarbe",
         "Background Color": "Hintergrundfarbe",
         "Transparency": "Transparenz",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Eigener Titel"
     },
     "es": {
@@ -54,6 +61,9 @@
         "Accent Color": "Color de Acento",
         "Background Color": "Color de Fondo",
         "Transparency": "Transparencia",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Titulo Personalizado"
     },
     "fr": {
@@ -82,6 +92,9 @@
         "Accent Color": "Couleur d'Accent",
         "Background Color": "Couleur de Fond",
         "Transparency": "Transparence",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Titre Personnalise"
     },
     "it": {
@@ -110,6 +123,9 @@
         "Accent Color": "Colore di Accento",
         "Background Color": "Colore di Sfondo",
         "Transparency": "Trasparenza",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Titolo Personalizzato"
     },
     "ja": {
@@ -137,6 +153,9 @@
         "Accent Color": "アクセントカラー",
         "Background Color": "背景色",
         "Transparency": "透明度",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "カスタムタイトル"
     },
     "ko": {
@@ -164,6 +183,9 @@
         "Accent Color": "강조 색상",
         "Background Color": "배경 색상",
         "Transparency": "투명도",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "사용자 정의 제목"
     },
     "pt": {
@@ -192,6 +214,9 @@
         "Accent Color": "Cor de Destaque",
         "Background Color": "Cor de Fundo",
         "Transparency": "Transparencia",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Titulo Personalizado"
     },
     "ru": {
@@ -219,6 +244,9 @@
         "Accent Color": "Цвет акцента",
         "Background Color": "Цвет фона",
         "Transparency": "Прозрачность",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Пользовательский заголовок"
     },
     "zh_CN": {
@@ -246,6 +274,9 @@
         "Accent Color": "强调颜色",
         "Background Color": "背景颜色",
         "Transparency": "透明度",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "自定义标题"
     },
     "zh_TW": {
@@ -273,6 +304,9 @@
         "Accent Color": "強調顏色",
         "Background Color": "背景顏色",
         "Transparency": "透明度",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "自訂標題"
     },
     "uk": {
@@ -300,6 +334,9 @@
         "Accent Color": "Колір акценту",
         "Background Color": "Колір фону",
         "Transparency": "Прозорість",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Користувацький заголовок"
     }
 }
