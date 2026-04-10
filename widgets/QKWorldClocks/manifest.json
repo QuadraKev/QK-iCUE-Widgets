@@ -11,7 +11,7 @@
       "platform": "windows"
     },
     {
-      "platform": "mac"
+      "platform": "macos"
     }
   ],
   "supported_devices": [
