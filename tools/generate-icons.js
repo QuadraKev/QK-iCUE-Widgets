@@ -42,13 +42,23 @@ async function generateIcons() {
     }
 
     const svgPath = path.join(resourcesDir, svgFile);
-    const svgContent = fs.readFileSync(svgPath, 'utf8');
+    let svgContent = fs.readFileSync(svgPath, 'utf8');
+
+    // Ensure SVG scales properly: add viewBox from width/height if missing,
+    // then strip width/height so CSS controls dimensions
+    const wMatch = svgContent.match(/\bwidth="(\d+(?:\.\d+)?)"/);
+    const hMatch = svgContent.match(/\bheight="(\d+(?:\.\d+)?)"/);
+    if (!/viewBox/.test(svgContent) && wMatch && hMatch) {
+      svgContent = svgContent.replace(/<svg/, `<svg viewBox="0 0 ${wMatch[1]} ${hMatch[1]}"`);
+    }
+    svgContent = svgContent.replace(/(<svg[^>]*?)\s*width="[^"]*"/, '$1');
+    svgContent = svgContent.replace(/(<svg[^>]*?)\s*height="[^"]*"/, '$1');
 
     for (const { size, filename } of SIZES) {
       const page = await browser.newPage();
       await page.setViewport({ width: size, height: size, deviceScaleFactor: 1 });
 
-      // Embed SVG in an HTML page: icon centered on black background
+      // Embed SVG in an HTML page: icon centered on black background with padding
       const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -64,8 +74,8 @@ async function generateIcons() {
     overflow: hidden;
   }
   svg {
-    width: ${size}px;
-    height: ${size}px;
+    width: 70%;
+    height: 70%;
   }
 </style>
 </head>
