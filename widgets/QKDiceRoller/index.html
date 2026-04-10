@@ -31,6 +31,17 @@
         data-label="tr('Transparency')" data-type="slider"
         data-default="100" data-min="0" data-max="100" data-step="1">
 
+    <meta name="x-icue-property" content="backgroundImage"
+        data-label="tr('Background Image')" data-type="media-selector" data-default="">
+
+    <meta name="x-icue-property" content="bgBrightness"
+        data-label="tr('Background Brightness')" data-type="slider"
+        data-min="0" data-max="100" data-step="1" data-default="100">
+
+    <meta name="x-icue-property" content="glassBlur"
+        data-label="tr('Glass Blur')" data-type="slider"
+        data-min="0" data-max="20" data-step="1" data-default="0">
+
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
     [
@@ -40,7 +51,7 @@
         },
         {
             "title": "tr('Appearance')",
-            "properties": ["textColor", "accentColor", "backgroundColor", "transparency"]
+            "properties": ["textColor", "accentColor", "backgroundColor", "backgroundImage", "bgBrightness", "glassBlur", "transparency"]
         }
     ]
     </script>
@@ -75,6 +86,23 @@
             cursor: pointer;
         }
 
+        .widget-background {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+        #media-background {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            filter: blur(var(--bg-blur, 0px)) brightness(var(--bg-brightness, 100%));
+            will-change: filter;
+        }
+        .position-container { position: absolute; transform-origin: top left; }
+        .scale-container { transform-origin: top left; }
+        .rotation-container { transform-origin: center center; }
+        .rotation-container img, .rotation-container video { display: block; object-fit: contain; }
         .container {
             width: 100%;
             height: 100%;
@@ -82,6 +110,7 @@
             flex-direction: row;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
             position: relative;
+            z-index: 1;
         }
 
         .widget-title {
@@ -585,6 +614,9 @@
 </style>
 </head>
 <body>
+    <div class="widget-background" id="widget-background">
+        <div id="media-background"></div>
+    </div>
     <div class="container" id="container">
         <div class="widget-title" id="widget-title"></div>
         <div class="dice-area" id="dice-area">
@@ -618,6 +650,82 @@
     </div>
 
     <script>
+        /* MediaViewer - Corsair common tool for media-selector backgrounds */
+        function resolveMediaPath(value) {
+            if (!value) return '';
+            if (typeof value === 'string') return value;
+            if (value.pathToAsset) return value.pathToAsset;
+            if (value.path) return value.path;
+            if (value.value) return value.value;
+            return '';
+        }
+        function normalizeMediaConfig(rawMedia) {
+            var mediaPath = resolveMediaPath(rawMedia);
+            if (!mediaPath) return null;
+            var base = (rawMedia && typeof rawMedia === 'object') ? rawMedia : {};
+            return {
+                path: base.pathToAsset || mediaPath,
+                baseWidth: Number(base.baseWidth) || 0,
+                baseHeight: Number(base.baseHeight) || 0,
+                scale: Number.isFinite(Number(base.scale)) ? Number(base.scale) : 1,
+                positionX: Number(base.positionX) || 0,
+                positionY: Number(base.positionY) || 0,
+                angle: Number(base.angle) || 0
+            };
+        }
+        var MediaViewer = (function() {
+            var imgExts = ['jpg','jpeg','png','gif','bmp','webp','svg','ico'];
+            var vidExts = ['mp4','webm','ogg','mov','avi','mkv'];
+            function MV(opts) {
+                this.container = opts.container;
+                this.pos = null; this.scl = null; this.rot = null;
+                this.media = null; this.curPath = null;
+            }
+            MV.prototype.loadMedia = function(p) {
+                var path = p.path; if (!path) { this.clear(); return; }
+                var decoded = decodeURIComponent(path);
+                if (this.curPath === decoded) { this._transform(p); return; }
+                this.clear();
+                var ext = decoded.split('.').pop().toLowerCase();
+                if (imgExts.indexOf(ext) !== -1) {
+                    this.media = document.createElement('img');
+                    this.media.src = decoded;
+                } else if (vidExts.indexOf(ext) !== -1) {
+                    this.media = document.createElement('video');
+                    this.media.autoplay = true; this.media.loop = true;
+                    this.media.muted = true; this.media.playsInline = true;
+                    this.media.src = decoded;
+                    this.media.play().catch(function(){});
+                } else { return; }
+                this.rot = document.createElement('div'); this.rot.className = 'rotation-container';
+                this.scl = document.createElement('div'); this.scl.className = 'scale-container';
+                this.pos = document.createElement('div'); this.pos.className = 'position-container';
+                this.rot.appendChild(this.media);
+                this.scl.appendChild(this.rot);
+                this.pos.appendChild(this.scl);
+                this.container.appendChild(this.pos);
+                this.container.style.visibility = 'visible';
+                this._transform(p); this.curPath = decoded;
+            };
+            MV.prototype._transform = function(p) {
+                if (!this.pos) return;
+                var bw = p.baseWidth || 100, bh = p.baseHeight || 100;
+                var s = p.scale !== undefined ? p.scale : 1;
+                var ms = Math.min(this.container.clientWidth / bw, this.container.clientHeight / bh);
+                this.pos.style.transform = 'translate(' + (p.positionX || 0) * ms + 'px,' + (p.positionY || 0) * ms + 'px)';
+                this.scl.style.transform = 'scale(' + s * ms + ')';
+                this.rot.style.transform = 'rotate(' + (p.angle || 0) + 'deg)';
+            };
+            MV.prototype.clear = function() {
+                this.container.innerHTML = '';
+                this.container.style.visibility = 'hidden';
+                this.pos = this.scl = this.rot = this.media = this.curPath = null;
+            };
+            return MV;
+        })();
+    </script>
+
+    <script>
         // ══════════════════════════════════════════════════════════════
         // Configuration
         // ══════════════════════════════════════════════════════════════
@@ -630,6 +738,8 @@
             bgColor: '#0A0A0A',
             transparency: 0
         };
+
+        var mediaViewer = null;
 
         var DICE_TYPES = [4, 6, 8, 10, 12, 20, 100];
 
@@ -1028,6 +1138,21 @@
             root.style.setProperty('--bg-color', cfg.bgColor);
             root.style.setProperty('--widget-opacity', cfg.transparency / 100);
 
+            // Background image
+            var bgImage = (typeof backgroundImage !== 'undefined') ? backgroundImage : null;
+            var brightness = (typeof bgBrightness !== 'undefined') ? bgBrightness : 100;
+            var blur = (typeof glassBlur !== 'undefined') ? glassBlur : 0;
+            root.style.setProperty('--bg-brightness', brightness + '%');
+            root.style.setProperty('--bg-blur', blur + 'px');
+            if (mediaViewer) {
+                var media = normalizeMediaConfig(bgImage);
+                if (media) {
+                    mediaViewer.loadMedia(media);
+                } else {
+                    mediaViewer.clear();
+                }
+            }
+
             elCountValue.textContent = cfg.diceCount;
             elTypeValue.textContent = 'd' + cfg.diceMax;
             updateDiceShape();
@@ -1232,6 +1357,7 @@
         // iCUE lifecycle
         // ══════════════════════════════════════════════════════════════
         function onInit() {
+            mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
             // Load translated strings
             if (typeof tr === 'function') {
                 tr('Tap to Roll').then(function(s) { str.tapToRoll = s; elHint.textContent = s; });
