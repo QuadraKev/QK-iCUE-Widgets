@@ -1,5 +1,9 @@
 {
-    "en": {},
+    "en": {
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
+    },
     "de": {
         "QK Binary Clock": "QK Binary Clock",
         "Appearance": "Erscheinungsbild",
@@ -11,6 +15,9 @@
         "Accent Color": "Akzentfarbe",
         "Background Color": "Hintergrundfarbe",
         "Transparency": "Transparenz",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Eigener Titel",
         "Time Format": "Zeitformat"
     },
@@ -25,6 +32,9 @@
         "Accent Color": "Color de Acento",
         "Background Color": "Color de Fondo",
         "Transparency": "Transparencia",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Titulo Personalizado",
         "Time Format": "Formato de Hora"
     },
@@ -39,6 +49,9 @@
         "Accent Color": "Couleur d'Accent",
         "Background Color": "Couleur de Fond",
         "Transparency": "Transparence",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Titre Personnalise",
         "Time Format": "Format Horaire"
     },
@@ -53,6 +66,9 @@
         "Accent Color": "Colore di Accento",
         "Background Color": "Colore di Sfondo",
         "Transparency": "Trasparenza",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Titolo Personalizzato",
         "Time Format": "Formato Orario"
     },
@@ -67,6 +83,9 @@
         "Accent Color": "アクセントカラー",
         "Background Color": "背景色",
         "Transparency": "透明度",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "カスタムタイトル",
         "Time Format": "時刻形式"
     },
@@ -81,6 +100,9 @@
         "Accent Color": "강조 색상",
         "Background Color": "배경 색상",
         "Transparency": "투명도",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "사용자 정의 제목",
         "Time Format": "시간 형식"
     },
@@ -95,6 +117,9 @@
         "Accent Color": "Cor de Destaque",
         "Background Color": "Cor de Fundo",
         "Transparency": "Transparencia",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Titulo Personalizado",
         "Time Format": "Formato de Hora"
     },
@@ -109,6 +134,9 @@
         "Accent Color": "Цвет акцента",
         "Background Color": "Цвет фона",
         "Transparency": "Прозрачность",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Пользовательский заголовок",
         "Time Format": "Формат времени"
     },
@@ -123,6 +151,9 @@
         "Accent Color": "强调颜色",
         "Background Color": "背景颜色",
         "Transparency": "透明度",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "自定义标题",
         "Time Format": "时间格式"
     },
@@ -137,6 +168,9 @@
         "Accent Color": "強調顏色",
         "Background Color": "背景顏色",
         "Transparency": "透明度",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "自訂標題",
         "Time Format": "時間格式"
     },
@@ -151,6 +185,9 @@
         "Accent Color": "Колір акценту",
         "Background Color": "Колір фону",
         "Transparency": "Прозорість",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur",
         "Custom Title": "Користувацький заголовок",
         "Time Format": "Формат часу"
     }
