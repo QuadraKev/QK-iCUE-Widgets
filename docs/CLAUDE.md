@@ -52,12 +52,12 @@ Key documentation:
 - Key aspect ratios: HS (2.44), HL (2.43), HXL (3.64), VS (1.67), HM (1.21), VM (0.83), VL (0.41), VXL (0.27)
 - **ALWAYS add `-webkit-tap-highlight-color: transparent;` to the body CSS.** Without this, iCUE's Chromium engine shows a dark overlay flash on tap/click interactions.
 
-### Keyboard LCD (keyboard)
+### Keyboard LCD (keyboard_lcd)
 - 320x170 px display, 1.9" LCD (sidebars consume 72px horizontally)
 - Widget viewport: 248x170 px, ~1.46:1 aspect ratio
 - Framerate: 2-4 FPS (animated widgets impractical)
 - No touchscreen
-- Restriction value: `keyboard`
+- Restriction value: `keyboard_lcd` (official spec; older iCUE versions may have used `keyboard`)
 - Used by: Corsair VANGUARD series keyboards
 
 ### Pump LCD (pump_lcd)
@@ -126,18 +126,18 @@ Device compatibility is tracked in `widgets.csv` and encoded in each widget's HT
 ## iCUE Widget Technical Notes
 
 ### Widget API Essentials
-- Properties defined via `<meta name="x-icue-property">` tags
+- Properties defined via `<meta name="x-icue-property">` tags. The `content` attribute (property variable name) must use **Latin letters and digits only** — no underscores, hyphens, or special characters.
 - Groups defined via `<script type="application/json" id="x-icue-groups">`
 - Lifecycle: `icueEvents = { onICUEInitialized: fn, onDataUpdated: fn }` (bare assignment, no `var`)
 - Properties become global variables (e.g., `data-default="'#FFD700'"` -> `accentColor = '#FFD700'`)
 - Translation: `tr('string key')` returns a Promise
-- Interactive widgets need `<meta name="x-icue-interactive">`
+- Interactive widgets need BOTH `<meta name="x-icue-interactive">` in the HTML AND `"interactive": true` in `manifest.json`. The manifest field is the canonical source per the official spec.
 - **NEVER use `'use strict'`**: iCUE injects property values via `eval(backend.data)` which assigns bare globals. Strict mode breaks this mechanism in Qt WebEngine, causing properties to not be injected, settings to not apply, and interactive widgets to become unresponsive.
 - **NEVER use `var icueEvents` or `var iCUE_initialized`**: Use bare assignment (`icueEvents = {...}`) so iCUE's bootstrap can find the object. Declaring `iCUE_initialized` with `var` overwrites the flag set by iCUE's bootstrap.
 - **Prefer `tab-buttons` over `combobox`** for any setting with a small set of options (2-5 choices). Tab-buttons always display the selected option visually, avoiding blank-state issues.
 - **Combobox `data-values` MUST use `key/value` format**, not `title/value`. Only `key/value` (`[{'key':'Foo','value':tr('Foo')}, ...]`) and plain string arrays are documented formats. `title/value` is unsupported and results in a blank dropdown. Reserve combobox for large option lists (e.g., timezone pickers) where tab-buttons would be impractical.
 - Fonts: **Jost is the QK project typeface** (a project convention for visual consistency — iCUE itself allows any locally packaged or system font). Do not use other fonts in QK widgets. Jost (variable, weights 100-900) is embedded as base64 woff2 in each HTML file (~35KB). Base64 data: `docs/jost-woff2-base64.txt`. Weight hierarchy: 700 for headings/numbers, 600 for body/labels, 400 for secondary text. See `docs/QK-widget-design-guidelines.md` for the full visual style guide.
-- The `x-icue-widget-preview` meta tag is not used in the iCUE widget picker, but **is** used on the Marketplace listing page. Not needed for local install; required for Marketplace submissions.
+- The `x-icue-widget-preview` meta tag is not used in the iCUE widget picker, but **is** used on the Marketplace listing page. Expected size: **128x56 pixels** (PNG preferred). Not needed for local install; required for Marketplace submissions.
 - **NEVER call `getUserMedia()`**: it exists in the webview but hangs indefinitely — no permission dialog appears and the widget freezes. There is no system audio capture path from inside a widget.
 - `navigator.mediaSession.metadata` is always `null` in the webview. Reading other apps' Now Playing info is not possible.
 - **`iCUE.fpsLimit`** (default: 30) is a readable property for checking the current frame rate cap.
@@ -159,7 +159,7 @@ Every Xeneon Edge widget (including "both" widgets) MUST have an Appearance prop
 - May contain additional widget-specific settings (e.g., grid size, timer options) before `customTitle`
 - The `customTitle` property ensures Group 1 always has at least one property, which is required for iCUE to enable the Custom Style toggle on Group 2
 
-**Group 2: Appearance**
+**Group 2: Appearance** (the Custom Style toggle ONLY appears on the second settings group — this is why Appearance must be Group 2)
 - MUST contain the four standard DP-mapped properties in this order:
   - textColor (color): main text color
   - accentColor (color): highlights and accents
