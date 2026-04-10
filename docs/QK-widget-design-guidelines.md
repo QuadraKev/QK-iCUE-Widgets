@@ -177,6 +177,27 @@ body {
 ```
 Without this, iCUE's Chromium engine (Qt WebEngine) shows a dark overlay flash on tap/click interactions.
 
+### Reduced Motion
+
+All widgets SHOULD respect the `prefers-reduced-motion` system setting. Add this CSS rule:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+```
+
+For canvas-based animations (requestAnimationFrame loops), also check in JS:
+
+```javascript
+var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+```
+
+When `reduceMotion` is true, either pause the animation loop, show a static frame, or significantly reduce the frame rate.
+
 ## Sizing and Units
 
 - Use viewport units (vh, vw, vmin) for all layout sizing; never px or rem for layout elements
@@ -301,6 +322,7 @@ Canvas-based widgets (matrix-rain, starfield): apply transparency via body `back
 - Prefer `tab-buttons` over `combobox` for small option sets (2-5 choices). Tab-buttons always show the selected option visually.
 - Reserve combobox for large option lists (e.g., timezone pickers).
 - Combobox `data-values` MUST use `key/value` format: `[{'key':'Foo','value':tr('Foo')}]`. `title/value` is not a documented format — using it results in a blank dropdown.
+- Slider properties MUST always include `data-min`, `data-max`, and `data-step` together. Missing `data-step` causes silent iCUE import validation failure.
 
 ## iCUE JavaScript Constraints
 
@@ -327,6 +349,36 @@ if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {
 
 // Standalone fallback (outside iCUE)
 if (typeof iCUE_initialized === 'undefined') { onInit(); }
+```
+
+## Visual States
+
+For widgets with loading, empty, error, and content states, use a standardized state management function:
+
+```javascript
+function showState(state) {
+    var states = ['loading-state', 'error-state', 'empty-state', 'content'];
+    states.forEach(function(s) {
+        var el = document.querySelector('.' + s);
+        if (el) el.style.display = s === state ? '' : 'none';
+    });
+}
+```
+
+Usage:
+```javascript
+showState('loading-state');  // widget loading
+showState('content');        // data ready
+showState('error-state');    // API/network failure
+showState('empty-state');    // no sensor selected, etc.
+```
+
+HTML structure — one container per state, all but the initial state hidden:
+```html
+<div class="loading-state">Loading...</div>
+<div class="error-state" style="display:none">Unable to connect</div>
+<div class="empty-state" style="display:none">Select a sensor in settings</div>
+<div class="content" style="display:none"><!-- widget content --></div>
 ```
 
 ## Marketplace Compliance
