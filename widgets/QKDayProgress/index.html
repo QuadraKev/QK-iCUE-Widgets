@@ -226,9 +226,9 @@
                 width: 92%;
                 gap: 0.5vh;
             }
-            .progress-label { font-size: 6vh; }
-            .progress-percent { font-size: 9vh; }
-            .progress-track { height: 4vh; border-radius: 2vh; }
+            .progress-label { font-size: 8vh; }
+            .progress-percent { font-size: 15vh; }
+            .progress-track { height: 5vh; border-radius: 2vh; }
             .progress-fill { border-radius: 2vh; }
             .progress-detail { display: none; }
         }
@@ -564,10 +564,27 @@
                 }
             }
 
-            document.getElementById('row-day').style.display = cfg.showDay ? '' : 'none';
-            document.getElementById('row-week').style.display = cfg.showWeek ? '' : 'none';
-            document.getElementById('row-month').style.display = cfg.showMonth ? '' : 'none';
-            document.getElementById('row-year').style.display = cfg.showYear ? '' : 'none';
+            // On keyboard LCD, show only the first enabled bar
+            var kbdQuery = window.matchMedia('(min-aspect-ratio: 135/100) and (max-aspect-ratio: 155/100)');
+            var isKbd = kbdQuery.matches;
+            var barOrder = ['day', 'week', 'month', 'year'];
+            var showFlags = { day: cfg.showDay, week: cfg.showWeek, month: cfg.showMonth, year: cfg.showYear };
+            var firstShown = false;
+            for (var i = 0; i < barOrder.length; i++) {
+                var key = barOrder[i];
+                var show = showFlags[key];
+                if (isKbd) {
+                    // On keyboard: show only the first enabled bar
+                    if (show && !firstShown) {
+                        document.getElementById('row-' + key).style.display = '';
+                        firstShown = true;
+                    } else {
+                        document.getElementById('row-' + key).style.display = 'none';
+                    }
+                } else {
+                    document.getElementById('row-' + key).style.display = show ? '' : 'none';
+                }
+            }
 
             updateProgress();
         }
