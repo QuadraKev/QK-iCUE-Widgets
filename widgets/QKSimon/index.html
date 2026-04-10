@@ -193,6 +193,26 @@
         .pad-blue.lit   { background: var(--pad-blue-lit); }
         .pad-yellow.lit { background: var(--pad-yellow-lit); }
 
+        /* ---- Pad icons (colorblind accessibility) ---- */
+        .pad-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8vmin;
+            color: white;
+            opacity: 0.3;
+            pointer-events: none;
+            line-height: 1;
+            user-select: none;
+            transition: opacity 0.15s;
+            z-index: 1;
+        }
+
+        .pad.lit .pad-icon {
+            opacity: 0.6;
+        }
+
         /* ---- Info panel ---- */
         .info {
             display: flex;
@@ -319,10 +339,10 @@
     <div class="container">
         <div class="widget-title" id="widget-title"></div>
         <div class="board" id="board">
-            <div class="pad pad-green disabled" data-idx="0"></div>
-            <div class="pad pad-red disabled" data-idx="1"></div>
-            <div class="pad pad-yellow disabled" data-idx="2"></div>
-            <div class="pad pad-blue disabled" data-idx="3"></div>
+            <div class="pad pad-green disabled" data-idx="0"><span class="pad-icon">&#9650;</span></div>
+            <div class="pad pad-red disabled" data-idx="1"><span class="pad-icon">&#9679;</span></div>
+            <div class="pad pad-yellow disabled" data-idx="2"><span class="pad-icon">&#9670;</span></div>
+            <div class="pad pad-blue disabled" data-idx="3"><span class="pad-icon">&#9632;</span></div>
         </div>
         <div class="info">
             <div class="score-area">
