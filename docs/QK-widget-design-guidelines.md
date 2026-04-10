@@ -22,14 +22,22 @@
 
 Note: The actual viewport reported by `window.innerWidth/innerHeight` is 1px larger than the documented slot size in each dimension.
 
-### Keyboard LCD (keyboard)
+### Keyboard LCD (keyboard_lcd)
 - 320x170 px display, 1.9" LCD
 - Widget viewport: 248x170 px (sidebars consume 72px horizontally)
 - Aspect ratio: ~1.46:1
 - Framerate: 2-4 FPS (animated widgets will not perform well)
 - No touchscreen: widgets must be non-interactive
-- Restriction value: `keyboard`
+- Restriction value: `keyboard_lcd`
 - Used by: Corsair VANGUARD series keyboards
+
+**Keyboard design principles:**
+- The 170px short edge always triggers compact layout — show only the single most important value
+- Use an **icon-plus-value layout** for maximum readability
+- **Readability floors**: primary text minimum **24px**, secondary text minimum **13px**
+- Apply a **1.25x font size multiplier** relative to other devices to compensate for the tiny screen
+- Avoid animations entirely — the 2-4 FPS hardware refresh makes them impractical
+- Simplify aggressively: prioritize readability over completeness
 
 ### Pump LCD (pump_lcd)
 - 480x480 pixels, 1:1, 2.1" display, 323.25 PPI
@@ -167,6 +175,20 @@ For JS-based S detection, use `window.innerWidth < 500 || window.innerHeight < 5
 - **S/M/L/XL** without prefix = both orientations of that size
 - Examples: "HS" = horizontal small, "VL" = vertical large, "M" = both HM and VM
 
+### Layout modes
+
+Widgets should adapt content density to the available space using three modes:
+
+| Mode | When | Approach |
+|------|------|----------|
+| **Compact** | S slots, keyboard LCD | Show only the primary value. Simplify aggressively. Icon-plus-value layout. |
+| **Balanced** | M slots | Standard layout with primary and secondary information. |
+| **Expanded** | L/XL slots | Add information density — additional metrics, richer secondary panels, wider compositions. Don't just enlarge the M layout with more whitespace. |
+
+**Large/XL utilization rule:** Unless the user explicitly requests a compact-centered design, content should fill **>=80% of the primary axis** and **>=70% of the secondary axis** on L/XL slots. Do not use fixed `max-width`/`max-height` wrappers that force content into a small central block.
+
+**S-H (840×344) is the most height-constrained slot.** Consider hiding lower-priority elements rather than cramming everything in. CSS percentage padding (top/bottom) is relative to **width**, not height — `padding: 8%` on S-H means 8% of 840px = 67px top+bottom, consuming 40% of the 344px height. Use small percentages or fixed values for vertical padding in short slots.
+
 ## Body CSS
 
 Every widget's body element MUST include:
@@ -206,6 +228,15 @@ When `reduceMotion` is true, either pause the animation loop, show a static fram
 - UI bars and labels: use `max(Npx, Xvmin)` pattern for consistent sizing across all slot sizes
 - Remove per-breakpoint size overrides when vmin+max() base styles handle all sizes
 
+## UX Design Principles
+
+- **Glanceability:** The primary piece of information should be understood in **under two seconds** — large, prominent, and unambiguous. A widget that tries to show everything at once effectively shows nothing.
+- **Localization expansion:** Translated strings can be **30-50% longer** than their English originals. Leave room in layouts for text expansion — don't design to the exact width of English text.
+- **No decorative tappable elements:** Display-only widgets must NOT include shapes that look interactive but don't respond to touch. A button shape that doesn't respond erodes trust.
+- **Don't rely on color alone** to convey information. If red means "error" or green means "OK", include an icon, label, or other non-color indicator alongside it.
+- **Content layout default:** Use `justify-content: space-evenly` (not `center`) for content panels to fill the full slot height. Override to `center` with explicit `gap` for tall vertical slots (VL/VXL).
+- **Hold gestures** (>500ms press-and-hold): Use `touch-action: none`, suppress `contextmenu`, and clear hold timers on `pointerup`, `pointercancel`, AND `pointerleave`.
+
 ## Visual Style Guide
 
 All QK widgets share a consistent visual identity. Follow these rules to keep widgets visually cohesive across devices and slot sizes.
@@ -240,6 +271,20 @@ iCUE also bundles OpenSans-SemiBold.ttf and BebasNeuePro-SemiExpBold.otf via `ur
 | 400 (default) | Secondary/supporting text | artist, album, descriptions, offline messages |
 
 Always use `font-family: 'Jost', sans-serif;` with an explicit weight where needed. Elements inheriting from body get weight 600 by default (set on `body`).
+
+### Readability Floors
+
+Minimum font sizes by device to ensure text remains readable:
+
+| Device | Primary text | Secondary text | Label text |
+|--------|-------------|---------------|------------|
+| Xeneon Edge | 18px | 12px | 11px |
+| Keyboard LCD | 24px | 13px | 11px |
+| Pump LCD | 18px | 12px | 11px |
+
+Keyboard LCD uses a **1.25x font size multiplier** relative to other devices. Build visual hierarchy through the weight scale (700/600/400), not by going below these floors.
+
+Use a single font family across all widget elements. The only justified exception is a monospace/tabular font for numeric displays (clocks, counters) where fixed-width digits prevent layout jitter on updates.
 
 ### Color Roles
 
