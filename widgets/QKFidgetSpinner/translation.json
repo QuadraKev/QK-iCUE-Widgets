@@ -9,7 +9,10 @@
         "Accent Color": "Akzentfarbe",
         "Background Color": "Hintergrundfarbe",
         "Transparency": "Transparenz",
-        "Custom Title": "Eigener Titel"
+        "Custom Title": "Eigener Titel",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "es": {
         "QK Fidget Spinner": "QK Fidget Spinner",
@@ -20,7 +23,10 @@
         "Accent Color": "Color de Acento",
         "Background Color": "Color de Fondo",
         "Transparency": "Transparencia",
-        "Custom Title": "Titulo Personalizado"
+        "Custom Title": "Titulo Personalizado",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "fr": {
         "QK Fidget Spinner": "QK Fidget Spinner",
@@ -31,7 +37,10 @@
         "Accent Color": "Couleur d'Accent",
         "Background Color": "Couleur de Fond",
         "Transparency": "Transparence",
-        "Custom Title": "Titre Personnalise"
+        "Custom Title": "Titre Personnalise",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ja": {
         "QK Fidget Spinner": "QK Fidget Spinner",
@@ -42,7 +51,10 @@
         "Accent Color": "アクセントカラー",
         "Background Color": "背景色",
         "Transparency": "透明度",
-        "Custom Title": "カスタムタイトル"
+        "Custom Title": "カスタムタイトル",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "ko": {
         "QK Fidget Spinner": "QK Fidget Spinner",
@@ -53,7 +65,10 @@
         "Accent Color": "강조 색상",
         "Background Color": "배경 색상",
         "Transparency": "투명도",
-        "Custom Title": "사용자 정의 제목"
+        "Custom Title": "사용자 정의 제목",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     },
     "zh_CN": {
         "QK Fidget Spinner": "QK Fidget Spinner",
@@ -64,6 +79,9 @@
         "Accent Color": "强调颜色",
         "Background Color": "背景颜色",
         "Transparency": "透明度",
-        "Custom Title": "自定义标题"
+        "Custom Title": "自定义标题",
+        "Background Image": "Background Image",
+        "Background Brightness": "Background Brightness",
+        "Glass Blur": "Glass Blur"
     }
 }
