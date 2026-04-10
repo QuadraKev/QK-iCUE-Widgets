@@ -1,8 +1,8 @@
 <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
     <!-- Globe with clock hands -->
-    <circle cx="8" cy="8" r="6.5" stroke="silver" stroke-width="1.2" fill="none"/>
-    <ellipse cx="8" cy="8" rx="3" ry="6.5" stroke="silver" stroke-width="0.8" fill="none"/>
-    <line x1="1.5" y1="8" x2="14.5" y2="8" stroke="silver" stroke-width="0.8"/>
-    <line x1="3" y1="4" x2="13" y2="4" stroke="silver" stroke-width="0.6"/>
-    <line x1="3" y1="12" x2="13" y2="12" stroke="silver" stroke-width="0.6"/>
+    <circle cx="8" cy="8" r="6.5" stroke="#FFFFFF" stroke-width="1.2" fill="none"/>
+    <ellipse cx="8" cy="8" rx="3" ry="6.5" stroke="#FFFFFF" stroke-width="0.8" fill="none"/>
+    <line x1="1.5" y1="8" x2="14.5" y2="8" stroke="#FFFFFF" stroke-width="0.8"/>
+    <line x1="3" y1="4" x2="13" y2="4" stroke="#FFFFFF" stroke-width="0.6"/>
+    <line x1="3" y1="12" x2="13" y2="12" stroke="#FFFFFF" stroke-width="0.6"/>
 </svg>
