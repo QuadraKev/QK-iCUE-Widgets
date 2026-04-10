@@ -320,7 +320,14 @@
             .progress-track { height: 3.5vw; }
             .progress-detail { font-size: 3.5vw; }
         }
-    </style>
+    
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
     <div class="container" id="container">
