@@ -5,8 +5,10 @@
 This repo contains custom iCUE widgets for Corsair LCD displays, built for iCUE's native widget system (Qt WebEngine / Chromium 130). All widgets are self-contained single-HTML-file applications with no external dependencies.
 
 Key documentation:
-- `docs/iCUE-Widget-System-Documentation.md`: comprehensive reference for the widget API (meta tags, properties, events, translation, fonts)
-- `docs/Touchscreen_Design_Guidelines.md`: touch target sizing and UI design principles
+- `docs/QK-widget-design-guidelines.md`: visual style guide and Marketplace compliance checklist (tracked)
+- `docs/iCUE-Widget-System-Documentation.md`: widget API reference — meta tags, properties, events, translation, fonts (local-only, gitignored)
+- `docs/Touchscreen_Design_Guidelines.md`: touch target sizing and UI design principles (local-only, gitignored)
+- `docs/WidgetBuilder-kit/`: official Corsair WidgetBuilder NDA materials — local-only (gitignored). See memory `project_nda_docs.md`
 
 ## Target Devices
 
@@ -70,12 +72,15 @@ Key documentation:
 
 ```
 QK-iCUE-Widgets/
+  CLAUDE.md         This file
+  README.md         Public-facing widget catalog and install instructions
   widgets/          All widgets (one QK{PascalCase} folder each)
-  docs/             Widget API docs, design guidelines, shared assets
-  tools/            Build and screenshot scripts
-  .github/          CI workflows
-  widgets.csv       Widget inventory, versions, and release status
-  install.bat       Copies all widgets into iCUE's widget directory
+  docs/             Design guidelines, API docs, shared assets, local-only working files
+  tools/            Build, screenshot, manifest, and icon-generation scripts
+  dist/             Release ZIP output (gitignored)
+  .github/          CI workflows (release.yml, pages.yml)
+  docs/widgets.csv  Personal QA tracker (local-only, gitignored — NOT a release gate)
+  install.bat       Copies all widgets into iCUE's widget directory (local-only, gitignored)
 ```
 
 **IMPORTANT:** Do NOT create new widgets without explicit user approval. Focus on reviewing and fixing existing widgets.
@@ -84,13 +89,19 @@ Each widget follows this structure:
 ```
 widgets/QK{WidgetName}/
   index.html                       # main widget file (single self-contained HTML)
+  manifest.json                    # widget metadata (id, name, devices, interactive flag, version)
   translation.json                 # i18n strings
+  icon.png, icon@2x.png            # 256/512 PNG icons for Marketplace listing (tracked despite *.png ignore rule)
   resources/
-    qk-{widget-name}.svg           # widget icon for iCUE picker
-  README.md                        # documentation
+    qk-{widget-name}.svg           # widget picker icon (monochromatic white per Marketplace rules)
+  modules/                         # optional: .mjs ES modules referenced from manifest "modules" key
+    *.mjs
+  README.md                        # widget documentation (optional)
 ```
 
-Device compatibility is tracked in `widgets.csv` and encoded in each widget's HTML via `x-icue-restriction` meta tags.
+Device compatibility is encoded in each widget's `manifest.json` (`supported_devices`) and HTML via `x-icue-restriction` meta tags. `docs/widgets.csv` is a personal QA tracker and does NOT gate what ships.
+
+Widgets that ship companion software (e.g., `QKXEVisualizer/server/NowPlayingServer.pyw`) get packaged as a separate ZIP by `tools/build-release.sh`.
 
 ## Widget Inventory
 
@@ -113,15 +124,18 @@ Device compatibility is tracked in `widgets.csv` and encoded in each widget's HT
 |--------|--------|-------------|
 | Pump Visualizer | QKPumpVisualizer | Audio visualizer |
 
-### Both Devices (6 widgets)
+### Both Devices / Tri-device (7 widgets)
+Most "both" widgets target Xeneon Edge + Pump LCD. Several (Binary Clock, Day Progress, Moon Phase, Weather) also support keyboard LCD via the `keyboard_lcd` restriction.
+
 | Widget | Folder | Description |
 |--------|--------|-------------|
-| Binary Clock | QKBinaryClock | Time in binary |
-| Day Progress | QKDayProgress | Day completion percentage |
+| Binary Clock | QKBinaryClock | Time in binary (also keyboard LCD) |
+| Day Progress | QKDayProgress | Day completion percentage (also keyboard LCD) |
 | Game of Life | QKGameOfLife | Conway's Game of Life |
 | Matrix Rain | QKMatrixRain | Matrix digital rain effect |
-| Moon Phase | QKMoonPhase | Current moon phase display |
+| Moon Phase | QKMoonPhase | Current moon phase display (also keyboard LCD) |
 | Starfield | QKStarfield | Animated star field |
+| Weather | QKWeather | Open-Meteo current conditions and forecast (also keyboard LCD; uses `modules/OpenMeteo.mjs`) |
 
 ## iCUE Widget Technical Notes
 
@@ -207,19 +221,36 @@ if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {
 if (typeof iCUE_initialized === 'undefined') { onInit(); }
 ```
 
-### Screenshots
+### Tooling
 
-Render widgets at specific slot sizes using puppeteer:
-```
-node tools/screenshot.js <widget.html> [S|M|L|XL|VS|VM|VL|VXL|PUMP]
-```
+All scripts run from repo root.
 
-Inject JS to modify widget state before capture with `--eval`:
+**Screenshots** — render widgets at any slot size via puppeteer:
 ```
-node tools/screenshot.js <widget.html> M --eval "cfg.diceMax=100; updateDiceShape();"
+node tools/screenshot.js <widget.html> [S|M|L|XL|VS|VM|VL|VXL|PUMP|KB]
 ```
+- `KB` = keyboard LCD (248x170)
+- `--eval "<js>"` injects JS before capture, e.g. `--eval "cfg.diceMax=100; updateDiceShape();"`
+- `--delay <ms>` controls post-eval wait (default 500ms)
+- Preview-scale slots (`PS`, `PM`, `PL`, ...) also exist for testing the iCUE preview path
 
-Use `--delay <ms>` to control the wait time after eval before capturing (default: 500ms).
+**Manifest generation** — regenerate every widget's `manifest.json`:
+```
+node tools/generate-manifests.js
+```
+Per-widget metadata (id, name, description, devices, interactive, modules) lives inside the script as a JS array. Edit the array to change a manifest, then re-run.
+
+**Icon generation** — regenerate `icon.png` and `icon@2x.png` from each widget's SVG:
+```
+node tools/generate-icons.js
+```
+PNGs use the brand magenta `#f84bff` on dark `#4f5458`. SVG picker icons stay monochromatic white per Marketplace rules. Per-widget color overrides live in the script's `colorize()` function.
+
+**Release build** — package every shippable widget into a ZIP:
+```
+tools/build-release.sh
+```
+Scans `widgets/QK*/`, packages each dir that contains an `index.html` (no CSV gating), writes per-widget ZIPs and an `all-widgets-{tag}.zip` bundle to `dist/`. Also packages `widgets/QKXEVisualizer/server/` as `NowPlayingServer.zip` if present.
 
 ## Naming Conventions
 - All widget names prefixed with "QK" (QuadraKev)
@@ -235,26 +266,31 @@ Widgets are installed by copying widget folders to iCUE's widgets directory:
 - **iCUE must be restarted** for new widgets to appear in the widget picker
 
 ### Releases
-- Releases are built via `tools/build-release.sh` and automated with GitHub Actions on tag push
-- `widgets.csv` gates which widgets are included: only rows with `Release Ready` = `Y` are packaged
-- ZIP naming convention: `QK{PascalCase}.zip`
-- An all-widgets bundle (`all-widgets-v{date}.zip`) is also produced
-- Install link: `[Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases)`
+- Triggered by pushing a tag matching `v*` (see `.github/workflows/release.yml`)
+- CI runs `tools/build-release.sh`, which packages every `widgets/QK*/` dir containing an `index.html` — there is **no allow-list and no CSV gating**. To exclude a widget from a release, remove or rename its `index.html` (or move it out of `widgets/`).
+- Per-widget ZIPs: `QK{PascalCase}.zip`
+- All-widgets bundle: `all-widgets-{tag}.zip`
+- Companion server (when present): `NowPlayingServer.zip`
+- Release notes are auto-generated from commit messages between the previous tag and the new tag (Co-Authored-By lines stripped, capped at 50 commits)
+- Public install link: `[Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases)`
 
 ### Versioning
 
-**Widget version (x.y.z in widgets.csv):**
+**Per-widget version (in each widget's `manifest.json`):**
 - **x (major)**: Breaking changes (removed settings, changed behavior that would surprise existing users)
 - **y (minor)**: New features or visible changes (new settings, layout improvements, UI changes)
 - **z (patch)**: Bug fixes, performance tweaks, code cleanup with no visible change
 
+To bump versions in bulk, edit `tools/generate-manifests.js` and re-run it.
+
 **Release tags:**
 - Date-based: `v2026.03`, `v2026.03.1` (multiple releases in same month)
-- A release packages ALL release-ready widgets at their current versions
+- A release packages ALL widgets in `widgets/QK*/` at their current versions
 - Multiple widget updates can ship in a single release
 
 ### Update Workflow
-1. Make changes and commit to main (as many commits as needed)
-2. Bump the version in `widgets.csv` for each changed widget
-3. Add an entry to `CHANGELOG.md` with per-widget patch notes
-4. Push a tag (e.g., `v2026.03.1`) to trigger CI and publish the release
+1. Make changes and commit to main (as many commits as needed). Commit messages will become the release notes — write them accordingly.
+2. Bump the `version` field in each changed widget's `manifest.json` (or update `tools/generate-manifests.js` and re-run it).
+3. Push a tag (e.g., `v2026.03.1`) to trigger CI and publish the release.
+
+`docs/widgets.csv` is a personal QA tracker (Reviewed / Tested / QA / Vertical QA columns). It's gitignored and CI never reads it — update it for your own tracking only.
