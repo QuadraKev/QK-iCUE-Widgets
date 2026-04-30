@@ -4,14 +4,11 @@
   "name": "Day Progress",
   "description": "Visual day completion percentage bar — see how much of your day is left.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-day-progress.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [

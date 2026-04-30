@@ -144,13 +144,14 @@ Most "both" widgets target Xeneon Edge + Pump LCD. Several (Binary Clock, Day Pr
 - Groups defined via `<script type="application/json" id="x-icue-groups">`
 - Lifecycle: `icueEvents = { onICUEInitialized: fn, onDataUpdated: fn }` (bare assignment, no `var`)
 - Properties become global variables (e.g., `data-default="'#FFD700'"` -> `accentColor = '#FFD700'`)
-- Translation: `tr('string key')` returns a Promise
+- Translation: `tr('string key')` returns a Promise. **`translation.json` MUST use nested `"translation"` key** per language: `{"en": {"translation": {"Key": "Value"}}}`. Flat format `{"en": {"Key": "Value"}}` causes silent widget rejection.
 - Interactive widgets need BOTH `<meta name="x-icue-interactive">` in the HTML AND `"interactive": true` in `manifest.json`. The manifest field is the canonical source per the official spec.
 - **NEVER use `'use strict'`**: iCUE injects property values via `eval(backend.data)` which assigns bare globals. Strict mode breaks this mechanism in Qt WebEngine, causing properties to not be injected, settings to not apply, and interactive widgets to become unresponsive.
 - **NEVER use `var icueEvents` or `var iCUE_initialized`**: Use bare assignment (`icueEvents = {...}`) so iCUE's bootstrap can find the object. Declaring `iCUE_initialized` with `var` overwrites the flag set by iCUE's bootstrap.
 - **Prefer `tab-buttons` over `combobox`** for any setting with a small set of options (2-5 choices). Tab-buttons always display the selected option visually, avoiding blank-state issues.
 - **Combobox `data-values` MUST use `key/value` format**, not `title/value`. Only `key/value` (`[{'key':'Foo','value':tr('Foo')}, ...]`) and plain string arrays are documented formats. `title/value` is unsupported and results in a blank dropdown. Reserve combobox for large option lists (e.g., timezone pickers) where tab-buttons would be impractical.
 - **Slider `data-step` is REQUIRED.** Always include `data-min`, `data-max`, and `data-step` together on every slider property. Missing `data-step` causes silent iCUE import validation failure — the widget will not appear in the picker.
+- **`media-selector` `data-filters` is REQUIRED.** Always include `data-filters` on every `media-selector` property. Without it, the entire widget is silently rejected from the picker. Use `data-filters="['*.png','*.jpg','*.jpeg','*.webp']"` for images (add `'*.webm','*.mp4','*.mkv','*.gif'` etc. for video support). Do NOT include `data-default=""` — omit `data-default` entirely for media-selector.
 - Fonts: **Jost is the QK project typeface** (a project convention for visual consistency — iCUE itself allows any locally packaged or system font). Do not use other fonts in QK widgets. Jost (variable, weights 100-900) is embedded as base64 woff2 in each HTML file (~35KB). Base64 data: `docs/jost-woff2-base64.txt`. Weight hierarchy: 700 for headings/numbers, 600 for body/labels, 400 for secondary text. See `docs/QK-widget-design-guidelines.md` for the full visual style guide.
 - The `x-icue-widget-preview` meta tag is not used in the iCUE widget picker, but **is** used on the Marketplace listing page. Expected size: **128x56 pixels** (PNG preferred). Not needed for local install; required for Marketplace submissions.
 - **NEVER call `getUserMedia()`**: it exists in the webview but hangs indefinitely — no permission dialog appears and the widget freezes. There is no system audio capture path from inside a widget.
@@ -164,7 +165,7 @@ Most "both" widgets target Xeneon Edge + Pump LCD. Several (Binary Clock, Day Pr
 
 ### Required Settings Pattern (Xeneon Edge widgets)
 
-Every Xeneon Edge widget (including "both" widgets) MUST have an Appearance property group with the four standard DP-mapped properties.
+Every Xeneon Edge widget (including "both" widgets) MUST have a Widget Personalization property group following the official iCUE pattern.
 
 **IMPORTANT: iCUE rejects groups with empty `"properties": []` arrays and unknown property types (e.g., `hidden`).** A group must contain at least one property with a valid type. The widget will not appear in iCUE at all if either condition is violated.
 
@@ -174,16 +175,18 @@ Every Xeneon Edge widget (including "both" widgets) MUST have an Appearance prop
 - May contain additional widget-specific settings (e.g., grid size, timer options) before `customTitle`
 - The `customTitle` property ensures Group 1 always has at least one property, which is required for iCUE to enable the Custom Style toggle on Group 2
 
-**Group 2: Appearance** (the Custom Style toggle ONLY appears on the second settings group — this is why Appearance must be Group 2)
-- MUST contain the four standard DP-mapped properties in this order:
+**Group 2: Widget Personalization** (the Custom Style toggle ONLY appears on the second settings group — this is why Personalization must be Group 2)
+- Property order follows the official iCUE widget pattern:
+  - backgroundMedia (media-selector): background image. **MUST include `data-filters`** — omit `data-default`
+  - glassBlur (slider 0-30, default 0): background blur effect
   - textColor (color): main text color
   - accentColor (color): highlights and accents
+  - *widget-specific colors* (e.g., moonColor, warmColor) go here
   - backgroundColor (color): widget background
   - transparency (slider 0-100, default 100): background transparency. **Value semantics match iCUE convention: 100 = fully opaque, 0 = fully transparent.**
-- When these four properties exist in a second group, iCUE automatically renders a "Custom Style" toggle
+- When color properties exist in a second group, iCUE automatically renders a "Custom Style" toggle
 - When Custom Style is OFF, the widget inherits Device Personalization colors
 - When Custom Style is ON, the user can override with per-widget values
-- Widget-specific color properties (e.g., moonColor, xColor) go in this group alongside the standard four
 - Canvas-only widgets without text (matrix-rain, starfield) may omit textColor
 
 **Text styling rules:**

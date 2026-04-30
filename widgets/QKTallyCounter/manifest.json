@@ -4,14 +4,11 @@
   "name": "Tally Counter",
   "description": "Simple tap counter for tracking anything on the fly.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-tally-counter.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [

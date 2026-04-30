@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
-# build-release.sh: Package all widgets into installable ZIPs.
+# build-release.sh: Package all widgets into installable ZIPs and .icuewidget files.
 #
 # Scans widgets/ for QK* directories containing index.html,
-# packages each into a ZIP (preserving folder structure), and
+# packages each into a ZIP (preserving folder structure) and
+# a flat .icuewidget archive (for iCUE's import button), and
 # builds an all-widgets bundle.
 # Output goes to dist/.
 #
@@ -20,6 +21,9 @@ mkdir -p "$DIST"
 BUNDLE_DIR=$(mktemp -d)
 COUNT=0
 
+# Widgets to exclude from release builds
+EXCLUDE_WIDGETS="QKTest"
+
 for WIDGET_DIR in "$REPO_ROOT"/widgets/QK*/; do
     [ -d "$WIDGET_DIR" ] || continue
 
@@ -27,21 +31,30 @@ for WIDGET_DIR in "$REPO_ROOT"/widgets/QK*/; do
     [ -f "$WIDGET_DIR/index.html" ] || continue
 
     WIDGET=$(basename "$WIDGET_DIR")
+
+    # Skip excluded widgets
+    case ",$EXCLUDE_WIDGETS," in *",$WIDGET,"*) echo "Skipping $WIDGET"; continue ;; esac
+
     ZIP_NAME="${WIDGET}.zip"
-    echo "Packaging $ZIP_NAME..."
+    ICUE_NAME="${WIDGET}.icuewidget"
+    echo "Packaging $ZIP_NAME + $ICUE_NAME..."
 
     # Create a temp staging dir
     STAGE=$(mktemp -d)
     mkdir -p "$STAGE/$WIDGET"
 
-    # Copy installable files: index.html, translation.json, resources/, modules/
+    # Copy installable files: index.html, manifest.json, translation.json, resources/, modules/
     cp "$WIDGET_DIR/index.html" "$STAGE/$WIDGET/"
+    [ -f "$WIDGET_DIR/manifest.json" ] && cp "$WIDGET_DIR/manifest.json" "$STAGE/$WIDGET/"
     [ -f "$WIDGET_DIR/translation.json" ] && cp "$WIDGET_DIR/translation.json" "$STAGE/$WIDGET/"
     [ -d "$WIDGET_DIR/resources" ] && cp -r "$WIDGET_DIR/resources" "$STAGE/$WIDGET/"
     [ -d "$WIDGET_DIR/modules" ] && cp -r "$WIDGET_DIR/modules" "$STAGE/$WIDGET/"
 
-    # Build per-widget ZIP
+    # Build per-widget ZIP (folder-wrapped, for manual install)
     (cd "$STAGE" && zip -r "$DIST/$ZIP_NAME" "$WIDGET" -x ".*") > /dev/null
+
+    # Build .icuewidget (flat, for iCUE import)
+    (cd "$STAGE/$WIDGET" && zip -r "$DIST/$ICUE_NAME" . -x ".*") > /dev/null
 
     # Also copy to bundle staging
     cp -r "$STAGE/$WIDGET" "$BUNDLE_DIR/"

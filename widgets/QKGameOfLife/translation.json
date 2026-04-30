@@ -1,172 +1,196 @@
 {
-    "en": {
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "de": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "Erscheinungsbild",
-        "Speed": "Geschwindigkeit",
-        "Cell Size": "Zellgroesse",
-        "Auto-Restart": "Auto-Neustart",
-        "Text Color": "Textfarbe",
-        "Accent Color": "Akzentfarbe",
-        "Background Color": "Hintergrundfarbe",
-        "Transparency": "Transparenz",
-        "Custom Title": "Eigener Titel",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "es": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "Apariencia",
-        "Speed": "Velocidad",
-        "Cell Size": "Tamano de Celda",
-        "Auto-Restart": "Auto-Reinicio",
-        "Text Color": "Color de Texto",
-        "Accent Color": "Color de Acento",
-        "Background Color": "Color de Fondo",
-        "Transparency": "Transparencia",
-        "Custom Title": "Titulo Personalizado",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "fr": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "Apparence",
-        "Speed": "Vitesse",
-        "Cell Size": "Taille de Cellule",
-        "Auto-Restart": "Redemarrage Auto",
-        "Text Color": "Couleur du Texte",
-        "Accent Color": "Couleur d'Accent",
-        "Background Color": "Couleur de Fond",
-        "Transparency": "Transparence",
-        "Custom Title": "Titre Personnalise",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "it": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "Aspetto",
-        "Speed": "Velocita",
-        "Cell Size": "Dimensione Cella",
-        "Auto-Restart": "Riavvio Automatico",
-        "Text Color": "Colore del Testo",
-        "Accent Color": "Colore di Accento",
-        "Background Color": "Colore di Sfondo",
-        "Transparency": "Trasparenza",
-        "Custom Title": "Titolo Personalizzato",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "ja": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "外観",
-        "Speed": "速度",
-        "Cell Size": "セルサイズ",
-        "Auto-Restart": "自動再開",
-        "Text Color": "テキストカラー",
-        "Accent Color": "アクセントカラー",
-        "Background Color": "背景色",
-        "Transparency": "透明度",
-        "Custom Title": "カスタムタイトル",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "ko": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "외관",
-        "Speed": "속도",
-        "Cell Size": "셀 크기",
-        "Auto-Restart": "자동 재시작",
-        "Text Color": "텍스트 색상",
-        "Accent Color": "강조 색상",
-        "Background Color": "배경 색상",
-        "Transparency": "투명도",
-        "Custom Title": "사용자 정의 제목",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "pt": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "Aparencia",
-        "Speed": "Velocidade",
-        "Cell Size": "Tamanho da Celula",
-        "Auto-Restart": "Reinicio Automatico",
-        "Text Color": "Cor do Texto",
-        "Accent Color": "Cor de Destaque",
-        "Background Color": "Cor de Fundo",
-        "Transparency": "Transparencia",
-        "Custom Title": "Titulo Personalizado",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "ru": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "Внешний вид",
-        "Speed": "Скорость",
-        "Cell Size": "Размер клетки",
-        "Auto-Restart": "Автоперезапуск",
-        "Text Color": "Цвет текста",
-        "Accent Color": "Цвет акцента",
-        "Background Color": "Цвет фона",
-        "Transparency": "Прозрачность",
-        "Custom Title": "Пользовательский заголовок",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "zh_CN": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "外观",
-        "Speed": "速度",
-        "Cell Size": "单元格大小",
-        "Auto-Restart": "自动重启",
-        "Text Color": "文本颜色",
-        "Accent Color": "强调颜色",
-        "Background Color": "背景颜色",
-        "Transparency": "透明度",
-        "Custom Title": "自定义标题",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "zh_TW": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "外觀",
-        "Speed": "速度",
-        "Cell Size": "單元格大小",
-        "Auto-Restart": "自動重啟",
-        "Text Color": "文字顏色",
-        "Accent Color": "強調顏色",
-        "Background Color": "背景顏色",
-        "Transparency": "透明度",
-        "Custom Title": "自訂標題",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "uk": {
-        "QK Game of Life": "QK Game of Life",
-        "Appearance": "Зовнішній вигляд",
-        "Speed": "Швидкість",
-        "Cell Size": "Розмір клітини",
-        "Auto-Restart": "Автоперезапуск",
-        "Text Color": "Колір тексту",
-        "Accent Color": "Колір акценту",
-        "Background Color": "Колір фону",
-        "Transparency": "Прозорість",
-        "Custom Title": "Користувацький заголовок",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
+  "en": {
+    "translation": {
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
     }
+  },
+  "de": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "Erscheinungsbild",
+      "Speed": "Geschwindigkeit",
+      "Cell Size": "Zellgroesse",
+      "Auto-Restart": "Auto-Neustart",
+      "Text Color": "Textfarbe",
+      "Accent Color": "Akzentfarbe",
+      "Background Color": "Hintergrundfarbe",
+      "Transparency": "Transparenz",
+      "Custom Title": "Eigener Titel",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "es": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "Apariencia",
+      "Speed": "Velocidad",
+      "Cell Size": "Tamano de Celda",
+      "Auto-Restart": "Auto-Reinicio",
+      "Text Color": "Color de Texto",
+      "Accent Color": "Color de Acento",
+      "Background Color": "Color de Fondo",
+      "Transparency": "Transparencia",
+      "Custom Title": "Titulo Personalizado",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "fr": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "Apparence",
+      "Speed": "Vitesse",
+      "Cell Size": "Taille de Cellule",
+      "Auto-Restart": "Redemarrage Auto",
+      "Text Color": "Couleur du Texte",
+      "Accent Color": "Couleur d'Accent",
+      "Background Color": "Couleur de Fond",
+      "Transparency": "Transparence",
+      "Custom Title": "Titre Personnalise",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "it": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "Aspetto",
+      "Speed": "Velocita",
+      "Cell Size": "Dimensione Cella",
+      "Auto-Restart": "Riavvio Automatico",
+      "Text Color": "Colore del Testo",
+      "Accent Color": "Colore di Accento",
+      "Background Color": "Colore di Sfondo",
+      "Transparency": "Trasparenza",
+      "Custom Title": "Titolo Personalizzato",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "ja": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "外観",
+      "Speed": "速度",
+      "Cell Size": "セルサイズ",
+      "Auto-Restart": "自動再開",
+      "Text Color": "テキストカラー",
+      "Accent Color": "アクセントカラー",
+      "Background Color": "背景色",
+      "Transparency": "透明度",
+      "Custom Title": "カスタムタイトル",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "ko": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "외관",
+      "Speed": "속도",
+      "Cell Size": "셀 크기",
+      "Auto-Restart": "자동 재시작",
+      "Text Color": "텍스트 색상",
+      "Accent Color": "강조 색상",
+      "Background Color": "배경 색상",
+      "Transparency": "투명도",
+      "Custom Title": "사용자 정의 제목",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "pt": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "Aparencia",
+      "Speed": "Velocidade",
+      "Cell Size": "Tamanho da Celula",
+      "Auto-Restart": "Reinicio Automatico",
+      "Text Color": "Cor do Texto",
+      "Accent Color": "Cor de Destaque",
+      "Background Color": "Cor de Fundo",
+      "Transparency": "Transparencia",
+      "Custom Title": "Titulo Personalizado",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "ru": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "Внешний вид",
+      "Speed": "Скорость",
+      "Cell Size": "Размер клетки",
+      "Auto-Restart": "Автоперезапуск",
+      "Text Color": "Цвет текста",
+      "Accent Color": "Цвет акцента",
+      "Background Color": "Цвет фона",
+      "Transparency": "Прозрачность",
+      "Custom Title": "Пользовательский заголовок",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "zh_CN": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "外观",
+      "Speed": "速度",
+      "Cell Size": "单元格大小",
+      "Auto-Restart": "自动重启",
+      "Text Color": "文本颜色",
+      "Accent Color": "强调颜色",
+      "Background Color": "背景颜色",
+      "Transparency": "透明度",
+      "Custom Title": "自定义标题",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "zh_TW": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "外觀",
+      "Speed": "速度",
+      "Cell Size": "單元格大小",
+      "Auto-Restart": "自動重啟",
+      "Text Color": "文字顏色",
+      "Accent Color": "強調顏色",
+      "Background Color": "背景顏色",
+      "Transparency": "透明度",
+      "Custom Title": "自訂標題",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "uk": {
+    "translation": {
+      "QK Game of Life": "QK Game of Life",
+      "Appearance": "Зовнішній вигляд",
+      "Speed": "Швидкість",
+      "Cell Size": "Розмір клітини",
+      "Auto-Restart": "Автоперезапуск",
+      "Text Color": "Колір тексту",
+      "Accent Color": "Колір акценту",
+      "Background Color": "Колір фону",
+      "Transparency": "Прозорість",
+      "Custom Title": "Користувацький заголовок",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  }
 }

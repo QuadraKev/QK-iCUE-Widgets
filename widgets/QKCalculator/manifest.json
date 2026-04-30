@@ -4,14 +4,11 @@
   "name": "Calculator",
   "description": "Full-featured touchscreen calculator for the Xeneon Edge.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-calculator.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [
