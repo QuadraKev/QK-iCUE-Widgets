@@ -1,0 +1,19 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.pumpvisualizer",
+  "name": "Pump Visualizer",
+  "description": "Audio visualizer for pump LCD with album art and now-playing info.",
+  "version": "1.0.0",
+  "preview_icon": "resources/qk-pump-visualizer.svg",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "pump_lcd"
+    }
+  ]
+}
