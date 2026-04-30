@@ -3,6 +3,7 @@ node_modules/
 # Marketplace listing icons are intentionally tracked
 !widgets/*/icon.png
 !widgets/*/icon@2x.png
+!site-resources/*.png
 catalog/
 dist/
 .claude/
