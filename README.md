@@ -39,7 +39,13 @@ Custom widgets for Corsair iCUE LCD displays (Xeneon Edge, pump LCD, and VANGUAR
 
 ## Installation
 
-### From a release
+### Using iCUE's import (recommended)
+
+1. Download a `.icuewidget` file from [Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases)
+2. In iCUE, navigate to the widgets section and click the **+** button
+3. Select the `.icuewidget` file
+
+### Manual install from a release
 
 1. Download a widget ZIP (or the all-widgets bundle) from [Releases](https://github.com/QuadraKev/QK-iCUE-Widgets/releases)
 2. Extract the contents into `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets\`
