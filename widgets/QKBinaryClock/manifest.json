@@ -4,14 +4,11 @@
   "name": "Binary Clock",
   "description": "Current time displayed in binary — for those who think in bits.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-binary-clock.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [

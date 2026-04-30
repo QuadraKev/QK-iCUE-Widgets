@@ -4,14 +4,11 @@
   "name": "Moon Phase",
   "description": "Current moon phase with illumination percentage and phase name.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-moon-phase.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [

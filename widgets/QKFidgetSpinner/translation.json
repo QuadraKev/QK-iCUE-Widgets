@@ -1,87 +1,101 @@
 {
-    "en": {},
-    "de": {
-        "QK Fidget Spinner": "QK Fidget Spinner",
-        "Number of Arms": "Anzahl der Arme",
-        "Friction": "Reibung",
-        "Appearance": "Erscheinungsbild",
-        "Text Color": "Textfarbe",
-        "Accent Color": "Akzentfarbe",
-        "Background Color": "Hintergrundfarbe",
-        "Transparency": "Transparenz",
-        "Custom Title": "Eigener Titel",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "es": {
-        "QK Fidget Spinner": "QK Fidget Spinner",
-        "Number of Arms": "Numero de Brazos",
-        "Friction": "Friccion",
-        "Appearance": "Apariencia",
-        "Text Color": "Color de Texto",
-        "Accent Color": "Color de Acento",
-        "Background Color": "Color de Fondo",
-        "Transparency": "Transparencia",
-        "Custom Title": "Titulo Personalizado",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "fr": {
-        "QK Fidget Spinner": "QK Fidget Spinner",
-        "Number of Arms": "Nombre de Bras",
-        "Friction": "Frottement",
-        "Appearance": "Apparence",
-        "Text Color": "Couleur du Texte",
-        "Accent Color": "Couleur d'Accent",
-        "Background Color": "Couleur de Fond",
-        "Transparency": "Transparence",
-        "Custom Title": "Titre Personnalise",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "ja": {
-        "QK Fidget Spinner": "QK Fidget Spinner",
-        "Number of Arms": "アームの数",
-        "Friction": "摩擦",
-        "Appearance": "外観",
-        "Text Color": "テキストカラー",
-        "Accent Color": "アクセントカラー",
-        "Background Color": "背景色",
-        "Transparency": "透明度",
-        "Custom Title": "カスタムタイトル",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "ko": {
-        "QK Fidget Spinner": "QK Fidget Spinner",
-        "Number of Arms": "팔 수",
-        "Friction": "마찰",
-        "Appearance": "외관",
-        "Text Color": "텍스트 색상",
-        "Accent Color": "강조 색상",
-        "Background Color": "배경 색상",
-        "Transparency": "투명도",
-        "Custom Title": "사용자 정의 제목",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
-    },
-    "zh_CN": {
-        "QK Fidget Spinner": "QK Fidget Spinner",
-        "Number of Arms": "臂数",
-        "Friction": "摩擦力",
-        "Appearance": "外观",
-        "Text Color": "文本颜色",
-        "Accent Color": "强调颜色",
-        "Background Color": "背景颜色",
-        "Transparency": "透明度",
-        "Custom Title": "自定义标题",
-        "Background Image": "Background Image",
-        "Background Brightness": "Background Brightness",
-        "Glass Blur": "Glass Blur"
+  "en": {
+    "translation": {}
+  },
+  "de": {
+    "translation": {
+      "QK Fidget Spinner": "QK Fidget Spinner",
+      "Number of Arms": "Anzahl der Arme",
+      "Friction": "Reibung",
+      "Appearance": "Erscheinungsbild",
+      "Text Color": "Textfarbe",
+      "Accent Color": "Akzentfarbe",
+      "Background Color": "Hintergrundfarbe",
+      "Transparency": "Transparenz",
+      "Custom Title": "Eigener Titel",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
     }
+  },
+  "es": {
+    "translation": {
+      "QK Fidget Spinner": "QK Fidget Spinner",
+      "Number of Arms": "Numero de Brazos",
+      "Friction": "Friccion",
+      "Appearance": "Apariencia",
+      "Text Color": "Color de Texto",
+      "Accent Color": "Color de Acento",
+      "Background Color": "Color de Fondo",
+      "Transparency": "Transparencia",
+      "Custom Title": "Titulo Personalizado",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "fr": {
+    "translation": {
+      "QK Fidget Spinner": "QK Fidget Spinner",
+      "Number of Arms": "Nombre de Bras",
+      "Friction": "Frottement",
+      "Appearance": "Apparence",
+      "Text Color": "Couleur du Texte",
+      "Accent Color": "Couleur d'Accent",
+      "Background Color": "Couleur de Fond",
+      "Transparency": "Transparence",
+      "Custom Title": "Titre Personnalise",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "ja": {
+    "translation": {
+      "QK Fidget Spinner": "QK Fidget Spinner",
+      "Number of Arms": "アームの数",
+      "Friction": "摩擦",
+      "Appearance": "外観",
+      "Text Color": "テキストカラー",
+      "Accent Color": "アクセントカラー",
+      "Background Color": "背景色",
+      "Transparency": "透明度",
+      "Custom Title": "カスタムタイトル",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "ko": {
+    "translation": {
+      "QK Fidget Spinner": "QK Fidget Spinner",
+      "Number of Arms": "팔 수",
+      "Friction": "마찰",
+      "Appearance": "외관",
+      "Text Color": "텍스트 색상",
+      "Accent Color": "강조 색상",
+      "Background Color": "배경 색상",
+      "Transparency": "투명도",
+      "Custom Title": "사용자 정의 제목",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  },
+  "zh_CN": {
+    "translation": {
+      "QK Fidget Spinner": "QK Fidget Spinner",
+      "Number of Arms": "臂数",
+      "Friction": "摩擦力",
+      "Appearance": "外观",
+      "Text Color": "文本颜色",
+      "Accent Color": "强调颜色",
+      "Background Color": "背景颜色",
+      "Transparency": "透明度",
+      "Custom Title": "自定义标题",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
+  }
 }

@@ -8,7 +8,6 @@
     <link rel="icon" type="image/svg+xml" href="resources/qk-starfield.svg">
 
     <!-- iCUE Widget Metadata -->
-    <meta name="x-icue-widget-preview" content="resources/StarfieldPreview.png">
     <meta name="x-icue-restrictions"
         data-restrictions='[{"device":"pump_lcd"},{"device":"dashboard_lcd"}]'>
 
@@ -37,16 +36,13 @@
         data-label="tr('Transparency')" data-type="slider"
         data-default="100" data-min="0" data-max="100" data-step="1">
 
-    <meta name="x-icue-property" content="backgroundImage"
-        data-label="tr('Background Image')" data-type="media-selector" data-default="">
-
-    <meta name="x-icue-property" content="bgBrightness"
-        data-label="tr('Background Brightness')" data-type="slider"
-        data-min="0" data-max="100" data-step="1" data-default="100">
+    <meta name="x-icue-property" content="backgroundMedia"
+        data-label="tr('Background Image')" data-type="media-selector"
+        data-filters="['*.png','*.jpg','*.jpeg','*.webp']">
 
     <meta name="x-icue-property" content="glassBlur"
         data-label="tr('Glass Blur')" data-type="slider"
-        data-min="0" data-max="20" data-step="1" data-default="0">
+        data-min="0" data-max="30" data-step="1" data-default="0">
 
     <!-- Property Groups -->
     <script type="application/json" id="x-icue-groups">
@@ -56,8 +52,8 @@
             "properties": ["starCount", "speed", "showTrails", "trailStrength", "customTitle"]
         },
         {
-            "title": "tr('Appearance')",
-            "properties": ["accentColor", "backgroundColor", "backgroundImage", "bgBrightness", "glassBlur", "transparency"]
+            "title": "tr('Widget Personalization')",
+            "properties": ["backgroundMedia", "glassBlur", "accentColor", "backgroundColor", "transparency"]
         }
     ]
     </script>
@@ -71,7 +67,7 @@
         }
         #media-background {
             position: relative; width: 100%; height: 100%;
-            filter: blur(var(--bg-blur, 0px)) brightness(var(--bg-brightness, 100%));
+            filter: blur(var(--bg-blur, 0px));
             will-change: filter;
         }
         .position-container { position: absolute; transform-origin: top left; }
@@ -340,10 +336,8 @@
         function applySettings() {
             var root = document.documentElement;
             // Background image
-            var bgImage = (typeof backgroundImage !== 'undefined') ? backgroundImage : null;
-            var brightness = (typeof bgBrightness !== 'undefined') ? bgBrightness : 100;
+            var bgImage = (typeof backgroundMedia !== 'undefined') ? backgroundMedia : null;
             var blur = (typeof glassBlur !== 'undefined') ? glassBlur : 0;
-            root.style.setProperty('--bg-brightness', brightness + '%');
             root.style.setProperty('--bg-blur', blur + 'px');
             if (mediaViewer) {
                 var media = normalizeMediaConfig(bgImage);
