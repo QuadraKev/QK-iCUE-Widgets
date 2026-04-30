@@ -686,10 +686,10 @@
             <div class="info-box">
                 <h2>Installation</h2>
                 <ol>
-                    <li>Download a widget ZIP using the Download button below (or grab the <a href="https://github.com/QuadraKev/QK-iCUE-Widgets/releases" target="_blank" rel="noopener">all-widgets bundle</a> from Releases)</li>
-                    <li>Extract the contents into<br><code>C:\Program Files\Corsair\Corsair iCUE5 Software\widgets\</code></li>
-                    <li>Restart iCUE</li>
-                    <li>Add the widget to your dashboard in iCUE</li>
+                    <li>Download a <code>.icuewidget</code> file using the Download button below</li>
+                    <li>In iCUE, navigate to the widgets section and click the <strong>+</strong> button</li>
+                    <li>Select the downloaded <code>.icuewidget</code> file</li>
+                    <li>The widget will appear in your widget picker</li>
                 </ol>
             </div>
             <div class="info-box">
@@ -806,7 +806,7 @@
 
             grid.innerHTML = list.map(function (w, i) {
                 var icon = 'widgets/' + w.id + '/resources/' + w.icon;
-                var dlHref = 'https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/' + w.id + '.zip';
+                var dlHref = 'https://github.com/QuadraKev/QK-iCUE-Widgets/releases/latest/download/' + w.id + '.icuewidget';
                 var deviceBadges = w.devices.map(function (d) {
                     var dev = DEVICE_LABELS[d];
                     return '<span class="badge ' + dev.cls + '">' + dev.text + '</span>';
