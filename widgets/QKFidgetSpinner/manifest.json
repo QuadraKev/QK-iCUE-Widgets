@@ -4,14 +4,11 @@
   "name": "Fidget Spinner",
   "description": "Swipe-to-spin fidget spinner with real-time RPM display.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-fidget-spinner.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [

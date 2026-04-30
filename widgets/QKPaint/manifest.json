@@ -4,14 +4,11 @@
   "name": "Paint",
   "description": "Freehand drawing canvas for the Xeneon Edge touchscreen.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-paint.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [

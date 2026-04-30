@@ -4,14 +4,11 @@
   "name": "Game of Life",
   "description": "Conway's Game of Life cellular automaton, continuously evolving.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-game-of-life.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [

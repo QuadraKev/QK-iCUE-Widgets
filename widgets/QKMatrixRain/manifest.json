@@ -4,14 +4,11 @@
   "name": "Matrix Rain",
   "description": "Animated Matrix-style digital rain effect with customizable colors.",
   "version": "1.0.0",
-  "preview_icon": "icon.png",
+  "preview_icon": "resources/qk-matrix-rain.svg",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [
