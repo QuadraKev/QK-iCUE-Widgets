@@ -676,7 +676,6 @@
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="xeneon_edge">Xeneon Edge</button>
                 <button class="filter-btn" data-filter="pump">Pump LCD</button>
-                <button class="filter-btn" data-filter="keyboard">Keyboard</button>
             </div>
         </div>
     </nav>
@@ -752,13 +751,13 @@
             { id: 'QKWorldClocks', name: 'World Clocks', icon: 'qk-world-clocks.svg', desc: 'Up to 4 clocks side by side set to different timezones', devices: ['xeneon_edge'], interactive: false },
             { id: 'QKXEVisualizer', name: 'XE Visualizer', icon: 'qk-visualizer.svg', desc: 'Real-time audio spectrum visualizer with track info. Requires a Python companion server for audio capture.', devices: ['xeneon_edge'], interactive: false, server: true },
             { id: 'QKPumpVisualizer', name: 'Pump Visualizer', icon: 'qk-pump-visualizer.svg', desc: 'Circular audio visualizer in a radial layout with track info. Requires a Python companion server for audio capture.', devices: ['pump'], interactive: false, server: true },
-            { id: 'QKBinaryClock', name: 'Binary Clock', icon: 'qk-binary-clock.svg', desc: 'Current time displayed as illuminated dots in binary', devices: ['xeneon_edge', 'pump', 'keyboard'], interactive: false },
-            { id: 'QKDayProgress', name: 'Day Progress', icon: 'qk-day-progress.svg', desc: 'Day, week, month, and year elapsed as progress bars', devices: ['xeneon_edge', 'pump', 'keyboard'], interactive: false },
+            { id: 'QKBinaryClock', name: 'Binary Clock', icon: 'qk-binary-clock.svg', desc: 'Current time displayed as illuminated dots in binary', devices: ['xeneon_edge', 'pump'], interactive: false },
+            { id: 'QKDayProgress', name: 'Day Progress', icon: 'qk-day-progress.svg', desc: 'Day, week, month, and year elapsed as progress bars', devices: ['xeneon_edge', 'pump'], interactive: false },
             { id: 'QKGameOfLife', name: 'Game of Life', icon: 'qk-game-of-life.svg', desc: "Conway's Game of Life cellular automaton", devices: ['xeneon_edge', 'pump'], interactive: false },
             { id: 'QKMatrixRain', name: 'Matrix Rain', icon: 'qk-matrix-rain.svg', desc: 'Digital rain effect with cascading characters and fading green trails', devices: ['xeneon_edge', 'pump'], interactive: false },
-            { id: 'QKMoonPhase', name: 'Moon Phase', icon: 'qk-moon-phase.svg', desc: 'Current lunar phase with phase name and illumination percentage', devices: ['xeneon_edge', 'pump', 'keyboard'], interactive: false },
+            { id: 'QKMoonPhase', name: 'Moon Phase', icon: 'qk-moon-phase.svg', desc: 'Current lunar phase with phase name and illumination percentage', devices: ['xeneon_edge', 'pump'], interactive: false },
             { id: 'QKStarfield', name: 'Starfield', icon: 'qk-starfield.svg', desc: 'Warp-speed starfield with motion trails', devices: ['xeneon_edge', 'pump'], interactive: false },
-            { id: 'QKWeather', name: 'Weather', icon: 'qk-weather.svg', desc: 'Current conditions and forecast powered by Open-Meteo with dynamic UV index coloring', devices: ['xeneon_edge', 'pump', 'keyboard'], interactive: false }
+            { id: 'QKWeather', name: 'Weather', icon: 'qk-weather.svg', desc: 'Current conditions and forecast powered by Open-Meteo with dynamic UV index coloring', devices: ['xeneon_edge', 'pump'], interactive: false }
         ];
 
         // Slot sizes (native resolution)
@@ -771,20 +770,17 @@
             VM:   { w: 696,  h: 840,  label: 'VM',   name: 'Vertical Medium' },
             VL:   { w: 696,  h: 1688, label: 'VL',   name: 'Vertical Large' },
             VXL:  { w: 696,  h: 2536, label: 'VXL',  name: 'Vertical XL' },
-            PUMP: { w: 480,  h: 480,  label: 'PUMP', name: 'Pump LCD' },
-            KB:   { w: 248,  h: 170,  label: 'KB',   name: 'Keyboard LCD' }
+            PUMP: { w: 480,  h: 480,  label: 'PUMP', name: 'Pump LCD' }
         };
 
         var DEVICE_SLOTS = {
             xeneon_edge: ['HS', 'HM', 'HL', 'HXL', 'VS', 'VM', 'VL', 'VXL'],
-            pump: ['PUMP'],
-            keyboard: ['KB']
+            pump: ['PUMP']
         };
 
         var DEVICE_LABELS = {
             xeneon_edge: { text: 'Xeneon Edge', cls: 'badge-xe' },
-            pump:        { text: 'Pump LCD',   cls: 'badge-pump' },
-            keyboard:    { text: 'Keyboard',   cls: 'badge-keyboard' }
+            pump:        { text: 'Pump LCD',   cls: 'badge-pump' }
         };
 
         // State
