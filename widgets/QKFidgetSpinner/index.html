@@ -110,6 +110,7 @@
             align-items: center;
             justify-content: center;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            padding: var(--squircle-inset, 0px);
             position: relative;
             z-index: 1;
         }
@@ -153,7 +154,7 @@
             bottom: 2vh;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 2.5vh;
+            font-size: 5vh;
             color: var(--text-color);
             letter-spacing: 0.1vw;
             white-space: nowrap;
@@ -165,14 +166,21 @@
         @media (min-aspect-ratio: 200/100) {
             .rpm-display { font-size: 7vh; }
             .rpm-display .value { font-size: 10vh; }
-            .hint { font-size: 4.5vh; }
+            .hint { font-size: 5vh; }
+        }
+
+        /* ---- Responsive: VS (1.67:1) ---- */
+        @media (max-aspect-ratio: 180/100) and (min-aspect-ratio: 150/100) {
+            .rpm-display { font-size: 4vw; bottom: 2vw; right: 3vw; }
+            .rpm-display .value { font-size: 6vw; }
+            .hint { font-size: 5vw; bottom: 2vw; }
         }
 
         /* ---- Responsive: Portrait ---- */
         @media (max-aspect-ratio: 90/100) {
             .rpm-display { font-size: 4vw; bottom: 2vw; right: 3vw; }
             .rpm-display .value { font-size: 6vw; }
-            .hint { font-size: 2.5vw; bottom: 2vw; }
+            .hint { font-size: 5vw; bottom: 2vw; }
         }
     
 @media (prefers-reduced-motion: reduce) {
@@ -578,11 +586,36 @@
     function onInit() {
         mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
         readSettings();
+            updateSquircle();
         resize();
         update();
     }
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', function() { updateSquircle(); resize(); });
+
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var w = el.offsetWidth, h = el.offsetHeight;
+            if (w === 0 || h === 0) return;
+            var r = Math.min(w, h) * 0.125;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            el.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+
+            el.style.clipPath = "path('" + d.join(' ') + "')";
+        }
 
     icueEvents = {
         "onICUEInitialized": onInit,

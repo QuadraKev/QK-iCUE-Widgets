@@ -3,12 +3,15 @@
   "id": "com.quadrakev.fidgetspinner",
   "name": "Fidget Spinner",
   "description": "Swipe-to-spin fidget spinner with real-time RPM display.",
-  "version": "1.0.0",
-  "preview_icon": "resources/qk-fidget-spinner.svg",
+  "version": "1.1.0",
+  "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
+    },
+    {
+      "platform": "macos"
     }
   ],
   "supported_devices": [

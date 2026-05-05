@@ -1,17 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Circular game board divided into 4 quadrants -->
-  <circle cx="50" cy="50" r="44" fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.4"/>
-  <!-- Top-left quadrant (brightest = "lit") -->
-  <path d="M50,50 L9.4,26 A44,44 0 0,1 50,6 Z" fill="#FFFFFF" opacity="0.9"/>
-  <!-- Top-right quadrant -->
-  <path d="M50,50 L50,6 A44,44 0 0,1 90.6,26 Z" fill="#FFFFFF" opacity="0.4"/>
-  <!-- Bottom-right quadrant -->
-  <path d="M50,50 L90.6,74 A44,44 0 0,1 50,94 Z" fill="#FFFFFF" opacity="0.6"/>
-  <!-- Bottom-left quadrant -->
-  <path d="M50,50 L50,94 A44,44 0 0,1 9.4,74 Z" fill="#FFFFFF" opacity="0.25"/>
-  <!-- Dividing lines — white at low opacity so they're visible on both dark and light renders -->
-  <line x1="50" y1="6" x2="50" y2="94" stroke="#FFFFFF" stroke-width="2" opacity="0.15"/>
-  <line x1="6" y1="50" x2="94" y2="50" stroke="#FFFFFF" stroke-width="2" opacity="0.15"/>
+  <defs>
+    <clipPath id="c">
+      <circle cx="50" cy="50" r="44"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <!-- Top-left quadrant -->
+    <rect x="6" y="6" width="41" height="41" rx="6" fill="#FFFFFF" opacity="0.9"/>
+    <!-- Top-right quadrant -->
+    <rect x="53" y="6" width="41" height="41" rx="6" fill="#FFFFFF" opacity="0.4"/>
+    <!-- Bottom-right quadrant -->
+    <rect x="53" y="53" width="41" height="41" rx="6" fill="#FFFFFF" opacity="0.6"/>
+    <!-- Bottom-left quadrant -->
+    <rect x="6" y="53" width="41" height="41" rx="6" fill="#FFFFFF" opacity="0.25"/>
+  </g>
   <!-- Center ring -->
   <circle cx="50" cy="50" r="12" fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.6"/>
 </svg>

@@ -1,6 +1,19 @@
 {
   "en": {
-    "translation": {}
+    "translation": {
+      "QK Fidget Spinner": "QK Fidget Spinner",
+      "Number of Arms": "Number of Arms",
+      "Friction": "Friction",
+      "Appearance": "Appearance",
+      "Text Color": "Text Color",
+      "Accent Color": "Accent Color",
+      "Background Color": "Background Color",
+      "Transparency": "Transparency",
+      "Custom Title": "Custom Title",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
   },
   "de": {
     "translation": {

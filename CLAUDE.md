@@ -145,6 +145,7 @@ Most "both" widgets target Xeneon Edge + Pump LCD. Several (Binary Clock, Day Pr
 - Lifecycle: `icueEvents = { onICUEInitialized: fn, onDataUpdated: fn }` (bare assignment, no `var`)
 - Properties become global variables (e.g., `data-default="'#FFD700'"` -> `accentColor = '#FFD700'`)
 - Translation: `tr('string key')` returns a Promise. **`translation.json` MUST use nested `"translation"` key** per language: `{"en": {"translation": {"Key": "Value"}}}`. Flat format `{"en": {"Key": "Value"}}` causes silent widget rejection.
+- **The `"en"` translation section MUST contain all keys.** An empty `"en": {"translation": {}}` causes iCUE to flood `Default language not found` warnings for every property label, which can crash iCUE. English is the default/fallback language — always populate it with key=value pairs (e.g., `"Text Color": "Text Color"`).
 - Interactive widgets need BOTH `<meta name="x-icue-interactive">` in the HTML AND `"interactive": true` in `manifest.json`. The manifest field is the canonical source per the official spec.
 - **NEVER use `'use strict'`**: iCUE injects property values via `eval(backend.data)` which assigns bare globals. Strict mode breaks this mechanism in Qt WebEngine, causing properties to not be injected, settings to not apply, and interactive widgets to become unresponsive.
 - **NEVER use `var icueEvents` or `var iCUE_initialized`**: Use bare assignment (`icueEvents = {...}`) so iCUE's bootstrap can find the object. Declaring `iCUE_initialized` with `var` overwrites the flag set by iCUE's bootstrap.
@@ -247,13 +248,18 @@ Per-widget metadata (id, name, description, devices, interactive, modules) lives
 ```
 node tools/generate-icons.js
 ```
-PNGs use the brand magenta `#f84bff` on dark `#4f5458`. SVG picker icons stay monochromatic white per Marketplace rules. Per-widget color overrides live in the script's `colorize()` function.
+PNGs use the brand palette on dark `#4f5458` background. Brand colors: primary `#f84bff` (magenta), secondary `#009bff` (blue), tertiary `#ffae30` (amber). SVG picker icons stay monochromatic white per Marketplace rules. Per-widget color overrides live in the script's `colorize()` function.
 
 **Release build** — package every shippable widget into a ZIP:
 ```
 tools/build-release.sh
 ```
-Scans `widgets/QK*/`, packages each dir that contains an `index.html` (no CSV gating), writes per-widget ZIPs and an `all-widgets-{tag}.zip` bundle to `dist/`. Also packages `widgets/QKXEVisualizer/server/` as `NowPlayingServer.zip` if present.
+Scans `widgets/QK*/`, packages each dir that contains an `index.html` (skips `QKTest`), writes per-widget ZIPs and `.icuewidget` files, plus an `all-widgets-{tag}.zip` bundle to `dist/`. Also packages `widgets/QKXEVisualizer/server/` as `NowPlayingServer.zip` if present.
+
+**IMPORTANT: Always build a `.icuewidget` file after modifying a widget** so the user can import and test it in iCUE. A `.icuewidget` is a flat ZIP of the widget folder contents:
+```powershell
+Compress-Archive -Path "widgets\QK{Name}\*" -DestinationPath "dist\QK{Name}.icuewidget" -Force
+```
 
 ## Naming Conventions
 - All widget names prefixed with "QK" (QuadraKev)
@@ -263,15 +269,15 @@ Scans `widgets/QK*/`, packages each dir that contains an `index.html` (no CSV ga
 - SVG icons: `qk-{kebab-case}.svg` (in `resources/`)
 
 ## Installation
-Widgets are installed by copying widget folders to iCUE's widgets directory:
+Widgets are installed by importing `.icuewidget` files through iCUE's **+** button, or by copying widget folders to iCUE's widgets directory:
 `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets`
 - Each widget folder (e.g., `QKWeather/`) goes directly under `widgets/`
-- **iCUE must be restarted** for new widgets to appear in the widget picker
+- **iCUE must be restarted** for new/updated widgets to appear in the widget picker
 
 ### Releases
 - Triggered by pushing a tag matching `v*` (see `.github/workflows/release.yml`)
-- CI runs `tools/build-release.sh`, which packages every `widgets/QK*/` dir containing an `index.html` — there is **no allow-list and no CSV gating**. To exclude a widget from a release, remove or rename its `index.html` (or move it out of `widgets/`).
-- Per-widget ZIPs: `QK{PascalCase}.zip`
+- CI runs `tools/build-release.sh`, which packages every `widgets/QK*/` dir containing an `index.html` (skips `QKTest`). To exclude a widget from a release, remove or rename its `index.html` (or move it out of `widgets/`).
+- Per-widget: `QK{PascalCase}.zip` (folder-wrapped) + `QK{PascalCase}.icuewidget` (flat, for iCUE import)
 - All-widgets bundle: `all-widgets-{tag}.zip`
 - Companion server (when present): `NowPlayingServer.zip`
 - Release notes are auto-generated from commit messages between the previous tag and the new tag (Co-Authored-By lines stripped, capped at 50 commits)

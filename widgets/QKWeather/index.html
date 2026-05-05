@@ -26,6 +26,10 @@
         data-label="tr('Wind Speed')" data-type="tab-buttons"
         data-values="[{'key':'mph','value':tr('mph')},{'key':'kmh','value':tr('km/h')}]"
         data-default="'mph'">
+    <meta name="x-icue-property" content="precipUnits"
+        data-label="tr('Precipitation')" data-type="tab-buttons"
+        data-values="[{'key':'mm','value':tr('mm')},{'key':'inch','value':tr('in')}]"
+        data-default="'mm'">
     <meta name="x-icue-property" content="customTitle"
         data-label="tr('Custom Title')" data-type="textfield" data-default="''">
 
@@ -48,7 +52,7 @@
     [
         {
             "title": "tr('QK Weather')",
-            "properties": ["weatherLocation", "temperatureUnits", "windSpeedUnits", "customTitle"],
+            "properties": ["weatherLocation", "temperatureUnits", "windSpeedUnits", "precipUnits", "customTitle"],
             "info": "`Weather data by &lt;a href='https://open-meteo.com/' style='color: #00AAFF;'&gt;Open-Meteo.com&lt;/a&gt;`"
         },
         {
@@ -104,6 +108,7 @@
             gap: calc(2 * var(--u));
             padding: calc(2 * var(--u));
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            padding: var(--squircle-inset, 0px);
             position: relative;
         }
 
@@ -154,7 +159,7 @@
             padding: calc(1.5 * var(--u)) calc(3 * var(--u));
             background: var(--accent-color);
             color: var(--bg-color);
-            border: none; border-radius: calc(1 * var(--u));
+            border: none;
             font-family: 'Jost', sans-serif; font-weight: 700;
             font-size: calc(2 * var(--u));
             cursor: pointer;
@@ -170,17 +175,10 @@
             display: flex; flex-direction: column;
             gap: calc(1.5 * var(--u));
             background: var(--card-bg);
-            border-radius: calc(1.5 * var(--u));
             padding: calc(2 * var(--u));
             border: 1px solid var(--border);
             position: relative; overflow: hidden;
             flex: 0 0 auto;
-        }
-        .current::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0;
-            height: calc(0.4 * var(--u));
-            background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
         }
 
         .current-head {
@@ -200,12 +198,12 @@
 
         .live-wrap {
             display: flex; align-items: center; gap: calc(0.8 * var(--u));
-            font-size: calc(1.5 * var(--u));
+            font-size: calc(2.5 * var(--u));
             color: var(--text-muted);
             white-space: nowrap;
         }
         .live-dot {
-            width: calc(1 * var(--u)); height: calc(1 * var(--u));
+            width: calc(1.5 * var(--u)); height: calc(1.5 * var(--u));
             background: var(--accent-color);
             border-radius: 50%;
             animation: pulse 2s infinite;
@@ -220,7 +218,6 @@
             width: calc(18 * var(--u)); height: calc(18 * var(--u));
             display: flex; align-items: center; justify-content: center;
             background: color-mix(in srgb, var(--text-color) 3%, var(--bg-color));
-            border-radius: calc(1.5 * var(--u));
             border: 1px solid var(--border);
             flex-shrink: 0;
         }
@@ -260,12 +257,11 @@
         .detail-card {
             background: color-mix(in srgb, var(--text-color) 3%, var(--bg-color));
             padding: calc(1.8 * var(--u));
-            border-radius: calc(1 * var(--u));
             text-align: center;
             border: 1px solid var(--border);
         }
         .detail-lbl {
-            font-size: calc(1.8 * var(--u));
+            font-size: calc(2.5 * var(--u));
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: calc(0.1 * var(--u));
@@ -288,7 +284,6 @@
             display: flex; flex-direction: column;
             gap: calc(1 * var(--u));
             background: var(--card-bg);
-            border-radius: calc(1.5 * var(--u));
             padding: calc(2 * var(--u));
             border: 1px solid var(--border);
             flex: 1; min-height: 0;
@@ -312,7 +307,6 @@
 
         .fday {
             background: color-mix(in srgb, var(--text-color) 3%, var(--bg-color));
-            border-radius: calc(1 * var(--u));
             padding: calc(1.5 * var(--u));
             display: flex; flex-direction: column;
             align-items: center; justify-content: space-evenly;
@@ -320,7 +314,6 @@
             overflow: hidden;
         }
         .fday.today {
-            border-color: var(--accent-color);
             background: color-mix(in srgb, var(--accent-color) 8%, color-mix(in srgb, var(--text-color) 3%, var(--bg-color)));
         }
         .fday-name {
@@ -368,7 +361,7 @@
                 border: none; background: transparent; padding: 0;
                 flex: 0 0 auto; gap: calc(1 * var(--u));
             }
-            .current::before { display: none; }
+
             .current-body { flex-direction: row; gap: calc(3 * var(--u)); align-items: center; justify-content: center; }
             .current-head { display: none; }
             .details { display: none; }
@@ -382,14 +375,15 @@
         /* Wide (HS/HL/HXL): aspect >= 2.0 */
         @media (min-aspect-ratio: 200/100) {
             .container { flex-direction: row; }
-            .current { flex: 0 0 38%; }
+            .current.shown { flex: 0 0 35%; }
             .current-body { flex: 1; }
             .forecast { flex: 1; }
+            .details { grid-template-columns: repeat(2, 1fr); }
             .temp { font-size: calc(20 * var(--u)); }
             .icon-wrap { width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
             .detail-val { font-size: calc(5 * var(--u)); }
-            .detail-lbl { font-size: calc(2 * var(--u)); }
-            .detail-card { padding: calc(1.2 * var(--u)); }
+            .detail-lbl { font-size: calc(2.5 * var(--u)); }
+            .detail-card { padding: calc(1.5 * var(--u)); }
             .loc-name { font-size: calc(7 * var(--u)); }
             .forecast-head { font-size: calc(3.5 * var(--u)); }
             .fday-name { font-size: calc(3 * var(--u)); }
@@ -441,9 +435,33 @@
             .feels { font-size: calc(5 * var(--u)); }
             .desc { font-size: calc(6 * var(--u)); }
             .detail-val { font-size: calc(8 * var(--u)); }
-            .detail-lbl { font-size: calc(3 * var(--u)); }
+            .detail-lbl { font-size: calc(4.5 * var(--u)); }
             .detail-card { padding: calc(2 * var(--u)); }
             .current-body { gap: calc(4 * var(--u)); }
+            .live-wrap { font-size: calc(4.2 * var(--u)); }
+            .live-dot { width: calc(2.5 * var(--u)); height: calc(2.5 * var(--u)); }
+        }
+
+        /* VS only: stack detail cards vertically with timestamp above */
+        @media (max-aspect-ratio: 180/100) and (min-aspect-ratio: 150/100) {
+            .current-head { grid-column: 1; }
+            .live-wrap {
+                position: absolute;
+                top: calc(3 * var(--u));
+                right: calc(2 * var(--u));
+            }
+            .current.shown { position: relative; }
+            .details {
+                grid-column: 2;
+                grid-row: 1 / -1;
+                grid-template-columns: 1fr;
+                gap: calc(0.5 * var(--u));
+                align-self: start;
+                margin-top: calc(7 * var(--u));
+            }
+            .detail-card { padding: calc(0.8 * var(--u)) calc(1.5 * var(--u)); }
+            .detail-lbl { font-size: calc(4 * var(--u)); margin-bottom: calc(0.1 * var(--u)); }
+            .detail-val { font-size: calc(8 * var(--u)); }
         }
 
         /* Pump (1:1): 0.95 to 1.05 */
@@ -451,7 +469,7 @@
             .container { padding: calc(10 * var(--u)); justify-content: center; }
             .forecast { display: none !important; }
             .current, .current.shown { border: none; background: transparent; padding: 0; flex: 0 0 auto; gap: calc(2 * var(--u)); }
-            .current::before { display: none; }
+
             .current-body { flex-direction: column; gap: calc(3 * var(--u)); align-items: center; }
             .current-head { flex-direction: column; align-items: center; }
             .loc-name { text-align: center; font-size: calc(7.5 * var(--u)); }
@@ -481,7 +499,7 @@
             .desc { font-size: calc(5 * var(--u)); }
             .feels { font-size: calc(4 * var(--u)); }
             .detail-val { font-size: calc(6 * var(--u)); }
-            .detail-lbl { font-size: calc(2.5 * var(--u)); }
+            .detail-lbl { font-size: calc(3.5 * var(--u)); }
             .detail-card { padding: calc(2.5 * var(--u)); }
             .forecast { flex: 1; }
             .forecast-head { font-size: calc(4 * var(--u)); }
@@ -562,6 +580,7 @@
             weatherLocation: '',
             temperatureUnits: 'fahrenheit',
             windSpeedUnits: 'mph',
+            precipUnits: 'mm',
             textColor: '#E0E0E0',
             accentColor: '#E660FF',
             secondaryColor: '#529BFF',
@@ -571,7 +590,7 @@
         };
 
         var refreshTimer = null;
-        var REFRESH_MS = 900000; // 15 minutes
+        var REFRESH_MS = 3600000; // 60 minutes
         var lastForecastData = null;
         var locationData = null;
 
@@ -679,6 +698,7 @@
             if (typeof weatherLocation !== 'undefined') cfg.weatherLocation = weatherLocation;
             if (typeof temperatureUnits !== 'undefined') cfg.temperatureUnits = temperatureUnits;
             if (typeof windSpeedUnits !== 'undefined') cfg.windSpeedUnits = windSpeedUnits;
+            if (typeof precipUnits !== 'undefined') cfg.precipUnits = precipUnits;
             if (typeof textColor !== 'undefined') cfg.textColor = textColor;
             if (typeof accentColor !== 'undefined') cfg.accentColor = accentColor;
             if (typeof secondaryColor !== 'undefined') cfg.secondaryColor = secondaryColor;
@@ -722,6 +742,7 @@
             var days = getForecastDays();
             document.getElementById('forecast').classList.toggle('shown', days > 0);
             document.getElementById('current').style.flex = days > 0 ? '' : '1';
+            requestAnimationFrame(updateSquircle);
         }
 
         // ================================================================
@@ -740,14 +761,14 @@
         // ================================================================
         // API fetch (Open-Meteo)
         // ================================================================
-        function fetchWeather() {
+        function fetchWeather(silent) {
             var locId = String(cfg.weatherLocation || '').trim();
             if (!locId) {
                 showStatus('Select a location in widget settings', false, false);
                 return;
             }
 
-            showStatus('Loading weather data...', true, false);
+            if (!silent) showStatus('Loading weather data...', true, false);
 
             // Step 1: resolve location ID to coordinates
             fetch('https://geocoding-api.open-meteo.com/v1/get?id=' + encodeURIComponent(locId))
@@ -763,11 +784,12 @@
                     var url = 'https://api.open-meteo.com/v1/forecast' +
                         '?latitude=' + loc.latitude +
                         '&longitude=' + loc.longitude +
-                        '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m,uv_index,precipitation,is_day' +
+                        '&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m,uv_index,precipitation,is_day' +
                         '&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max' +
                         '&timezone=auto&forecast_days=7' +
                         '&wind_speed_unit=' + cfg.windSpeedUnits +
-                        '&temperature_unit=' + cfg.temperatureUnits;
+                        '&temperature_unit=' + cfg.temperatureUnits +
+                        '&precipitation_unit=' + cfg.precipUnits;
                     return fetch(url);
                 })
                 .then(function(r) {
@@ -811,7 +833,12 @@
             document.getElementById('wxIcon').alt = wmo.desc;
 
             var windUnit = cfg.windSpeedUnits === 'mph' ? ' mph' : ' km/h';
-            document.getElementById('windVal').textContent = Math.round(c.wind_speed_10m) + windUnit;
+            var windDir = '';
+            if (c.wind_direction_10m !== undefined) {
+                var dirs = ['N','NE','E','SE','S','SW','W','NW'];
+                windDir = dirs[Math.round(c.wind_direction_10m / 45) % 8] + ' ';
+            }
+            document.getElementById('windVal').textContent = windDir + Math.round(c.wind_speed_10m) + windUnit;
             document.getElementById('humVal').textContent = Math.round(c.relative_humidity_2m) + '%';
             var uvRound = Math.round(c.uv_index);
             var uvEl = document.getElementById('uvVal');
@@ -869,19 +896,21 @@
         function onInit() {
             readSettings();
             applySettings();
+            updateSquircle();
             fetchWeather();
             if (refreshTimer) clearInterval(refreshTimer);
-            refreshTimer = setInterval(fetchWeather, REFRESH_MS);
+            refreshTimer = setInterval(function() { fetchWeather(true); }, REFRESH_MS);
         }
 
         function onDataUpdated() {
             var prevLoc = cfg.weatherLocation;
             var prevTemp = cfg.temperatureUnits;
             var prevWind = cfg.windSpeedUnits;
+            var prevPrecip = cfg.precipUnits;
             readSettings();
             applySettings();
             if (cfg.weatherLocation !== prevLoc || cfg.temperatureUnits !== prevTemp ||
-                cfg.windSpeedUnits !== prevWind) {
+                cfg.windSpeedUnits !== prevWind || cfg.precipUnits !== prevPrecip) {
                 fetchWeather();
             }
         }
@@ -893,6 +922,66 @@
             showWeather();
             renderForecast();
         });
+
+        // ResizeObserver recomputes squircles after layout fully settles
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(function() {
+                // Clear stale clip-paths on layout-volatile cards before recomputing
+                document.querySelectorAll('.current.shown, .forecast.shown').forEach(function(e) { e.style.clipPath = ''; e.style.padding = ''; });
+                requestAnimationFrame(updateSquircle);
+            }).observe(document.querySelector('.container'));
+        }
+
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function squirclePath(w, h, radiusFraction) {
+            if (!w || !h || isNaN(w) || isNaN(h)) return 'none';
+            var r = Math.min(w, h) * radiusFraction;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            return "path('" + d.join(' ') + "')";
+        }
+
+        function applySquircle(selector, radiusFraction) {
+            var el = document.querySelector(selector);
+            if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) return;
+            var cp = squirclePath(el.offsetWidth, el.offsetHeight, radiusFraction);
+            document.querySelectorAll(selector).forEach(function(e) { e.style.clipPath = cp; });
+        }
+
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var cw = el.offsetWidth, ch = el.offsetHeight;
+            if (cw === 0 || ch === 0) return;
+
+            var r = Math.min(cw, ch) * 0.125;
+            el.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+            el.style.clipPath = squirclePath(cw, ch, 0.125);
+
+            applySquircle('.retry-btn', 0.125);
+            applySquircle('.icon-wrap', 0.125);
+            applySquircle('.detail-card', 0.125);
+            applySquircle('.fday', 0.125);
+
+            ['.current.shown', '.forecast.shown'].forEach(function(sel) {
+                var card = document.querySelector(sel);
+                if (card && card.offsetWidth > 0) {
+                    var cr = Math.min(card.offsetWidth, card.offsetHeight) * 0.125;
+                    card.style.padding = (cr * 0.25).toFixed(1) + 'px';
+                    card.style.clipPath = squirclePath(card.offsetWidth, card.offsetHeight, 0.125);
+                }
+            });
+        }
 
         icueEvents = {
             "onICUEInitialized": onInit,

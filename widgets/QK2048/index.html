@@ -106,6 +106,7 @@
             justify-content: center;
             gap: 3vh;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            padding: var(--squircle-inset, 0px);
             padding: 2vh;
             position: relative;
             z-index: 1;
@@ -132,7 +133,6 @@
             aspect-ratio: 1;
             height: 80vh;
             background: var(--board-bg);
-            border-radius: 1.5vh;
             padding: 1.2vh;
             display: grid;
             grid-template-columns: repeat(var(--grid-size, 4), 1fr);
@@ -143,7 +143,6 @@
 
         .cell {
             background: var(--cell-bg);
-            border-radius: 0.8vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -186,10 +185,9 @@
 
         .score-box {
             background: var(--board-bg);
-            border-radius: 0.8vh;
             padding: 0.8vh 2vh;
             text-align: center;
-            min-width: 10vh;
+            box-sizing: border-box;
         }
 
         .score-box-label {
@@ -217,7 +215,6 @@
         .new-game-btn {
             padding: 1.5vh 3vh;
             border: none;
-            border-radius: 0.8vh;
             background: var(--btn-bg);
             color: #F9F6F2;
             font-family: 'Jost', sans-serif; font-weight: 700;
@@ -254,7 +251,6 @@
 
         .score-box {
             padding: 2vh 3vh;
-            min-width: 16vh;
         }
 
         .score-box-label { font-size: 4vh; }
@@ -277,7 +273,6 @@
             }
             .score-box {
                 padding: 2.5vh 5vh;
-                min-width: 20vh;
             }
             .score-box-label { font-size: 4.5vh; }
             .score-box-value { font-size: 11vh; }
@@ -308,7 +303,8 @@
             }
             .score-box {
                 padding: 1vh 2vh;
-                min-width: auto;
+                min-width: 0;
+                flex: 1;
             }
             .score-box-label { font-size: 2.5vmin; }
             .score-box-value { font-size: 4.5vmin; }
@@ -342,7 +338,8 @@
             }
             .score-box {
                 padding: 1.5vw 3vw;
-                min-width: auto;
+                min-width: 0;
+                flex: 1;
             }
             .score-box-label { font-size: 3.5vw; }
             .score-box-value { font-size: 6vw; }
@@ -743,6 +740,7 @@
             readSettings();
             N = cfg.gridSize;
             applySettings();
+            updateSquircle();
             newGame();
         }
 
@@ -751,7 +749,58 @@
             applySettings();
         }
 
-        icueEvents = {
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function squirclePath(w, h, radiusFraction) {
+            if (!w || !h || isNaN(w) || isNaN(h)) return 'none';
+            var r = Math.min(w, h) * radiusFraction;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            return "path('" + d.join(' ') + "')";
+        }
+
+        function applySquircle(selector, radiusFraction) {
+            var el = document.querySelector(selector);
+            if (!el || el.offsetWidth === 0) return;
+            var cp = squirclePath(el.offsetWidth, el.offsetHeight, radiusFraction);
+            document.querySelectorAll(selector).forEach(function(e) { e.style.clipPath = cp; });
+        }
+
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var cw = el.offsetWidth, ch = el.offsetHeight;
+            if (cw === 0 || ch === 0) return;
+
+            var r = Math.min(cw, ch) * 0.125;
+            el.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+            el.style.clipPath = squirclePath(cw, ch, 0.125);
+
+            applySquircle('.board-wrap', 0.125);
+            applySquircle('.cell', 0.125);
+            var btn = document.querySelector('.new-game-btn');
+            var btnW = btn.offsetWidth;
+            document.querySelectorAll('.score-box').forEach(function(box) {
+                box.style.width = btnW + 'px';
+                if (box.offsetWidth > 0) box.style.clipPath = squirclePath(box.offsetWidth, box.offsetHeight, 0.125);
+            });
+            applySquircle('.new-game-btn', 0.125);
+        }
+
+                window.addEventListener('resize', function() {
+            updateSquircle();
+        });
+
+icueEvents = {
             "onICUEInitialized": onInit,
             "onDataUpdated": onDataUpdated
         };
