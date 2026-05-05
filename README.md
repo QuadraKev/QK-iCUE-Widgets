@@ -10,6 +10,7 @@ Custom widgets for Corsair iCUE LCD displays (Xeneon Edge and pump LCD), built a
 |--------|-------------|
 | [2048](widgets/QK2048) | Classic 2048 sliding tile puzzle game |
 | [Calculator](widgets/QKCalculator) | Touchscreen calculator with clean, responsive button layout |
+| [Clock](widgets/QKClock) | Clean digital clock with timezone support and date display |
 | [Dice Roller](widgets/QKDiceRoller) | Interactive dice rolling with spinning 3D wireframe dice and roll history |
 | [Fidget Spinner](widgets/QKFidgetSpinner) | Swipe-to-spin fidget spinner with realistic deceleration physics |
 | [Magic 8 Ball](widgets/QKMagic8Ball) | Fortune-telling widget with the classic 20 Magic 8 Ball answers |
