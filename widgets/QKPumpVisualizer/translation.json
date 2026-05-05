@@ -1,6 +1,32 @@
 {
   "en": {
-    "translation": {}
+    "translation": {
+      "QK Pump Visualizer": "QK Pump Visualizer",
+      "Pump Visualizer": "Pump Visualizer",
+      "Appearance": "Appearance",
+      "Layout Mode": "Layout Mode",
+      "Mode 1": "Mode 1",
+      "Mode 2": "Mode 2",
+      "Entertainment": "Entertainment",
+      "Visualizer Style": "Visualizer Style",
+      "Bars": "Bars",
+      "Wave": "Wave",
+      "Rings": "Rings",
+      "Bar Count": "Bar Count",
+      "Sensitivity": "Sensitivity",
+      "Smoothing": "Smoothing",
+      "Cohesion": "Cohesion",
+      "Idle Animation": "Idle Animation",
+      "Show Album Art": "Show Album Art",
+      "Art Opacity": "Art Opacity",
+      "Visualizer Opacity": "Visualizer Opacity",
+      "Show Media Info": "Show Media Info",
+      "Server Port": "Server Port",
+      "Accent Color": "Accent Color",
+      "Background Color": "Background Color",
+      "Text Color": "Text Color",
+      "Custom Title": "Custom Title"
+    }
   },
   "de": {
     "translation": {

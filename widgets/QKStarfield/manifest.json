@@ -3,12 +3,15 @@
   "id": "com.quadrakev.starfield",
   "name": "Starfield",
   "description": "Animated starfield fly-through with optional warp speed effect.",
-  "version": "1.0.0",
-  "preview_icon": "resources/qk-starfield.svg",
+  "version": "1.1.0",
+  "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
+    },
+    {
+      "platform": "macos"
     }
   ],
   "supported_devices": [

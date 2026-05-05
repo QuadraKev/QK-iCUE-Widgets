@@ -95,6 +95,8 @@
             width: 100%; height: 100%;
             position: relative;
             z-index: 1;
+            overflow: hidden;
+            padding: var(--squircle-inset, 0px);
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
         }
 
@@ -113,6 +115,7 @@
             z-index: 10;
             pointer-events: none;
         }
+
 
         /* ══════════════ Toolbar — Landscape (default) ══════════════ */
         .toolbar {
@@ -134,20 +137,20 @@
 
         /* Draw / BG color pair */
         .color-pair {
-            display: flex; gap: 1vh;
+            display: flex; gap: 1vmin;
             flex-shrink: 0;
         }
         .draw-color, .bg-color {
             flex: 1; height: 9vh;
-            border: 0.4vh solid #555; border-radius: 1.2vh;
+            border: 0.4vmin solid #555;
             cursor: pointer;
             position: relative;
         }
         .draw-color::after, .bg-color::after {
             position: absolute;
-            bottom: 0.4vh; left: 0; right: 0;
+            bottom: 0.4vmin; left: 0; right: 0;
             text-align: center;
-            font-size: 2.2vh;
+            font-size: 2.2vmin;
             color: rgba(255,255,255,0.7);
             text-shadow: 0 1px 2px rgba(0,0,0,0.9);
             pointer-events: none;
@@ -168,7 +171,7 @@
         }
         .tool-btn {
             flex: 1; height: 12vh;
-            border: 0.4vh solid transparent; border-radius: 1.4vh;
+            border: 0.4vmin solid transparent;
             background: #2a2a2a;
             cursor: pointer;
             display: flex; flex-direction: column;
@@ -188,8 +191,8 @@
         }
         .size-btn {
             flex: 1; height: 9vh;
-            background: #2a2a2a; border-radius: 1.2vh;
-            border: 0.4vh solid transparent;
+            background: #2a2a2a;
+            border: 0.4vmin solid transparent;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
         }
@@ -202,12 +205,12 @@
         .color-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 1vh;
+            gap: 1vmin;
             flex-shrink: 0;
         }
         .color-swatch {
-            height: 8vh;
-            border: 0.4vh solid transparent; border-radius: 1.2vh;
+            height: 8vmin;
+            border: 0.4vmin solid transparent;
             cursor: pointer;
         }
         .color-swatch:active { opacity: 0.7; }
@@ -221,7 +224,6 @@
         }
         .action-btn {
             flex: 1; height: 9vh;
-            border-radius: 1.4vh;
             background: #2a2a2a;
             cursor: pointer;
             display: flex; flex-direction: column;
@@ -388,7 +390,6 @@
 
         .picker-panel {
             background: #222;
-            border-radius: 2vh;
             padding: 3vh;
             display: flex;
             flex-direction: column;
@@ -424,7 +425,7 @@
         .picker-preview {
             width: 9vh; height: 9vh;
             border-radius: 1.4vh;
-            border: 0.4vh solid #555;
+            border: 0.4vmin solid #555;
         }
         .picker-ok {
             flex: 1; height: 9vh;
@@ -478,7 +479,7 @@
     <div class="widget-background" id="widget-background">
         <div id="media-background"></div>
     </div>
-    <div class="paint-app">
+    <div class="container paint-app">
         <div class="widget-title" id="widget-title"></div>
         <!-- ── Toolbar ── -->
         <div class="toolbar">
@@ -683,6 +684,7 @@
             sizeCanvas();
             restoreCanvas();
             updateSwatches();
+            updateSquircle();
 
             if (typeof ResizeObserver !== 'undefined') {
                 new ResizeObserver(function() { sizeCanvas(true); }).observe(wrap);
@@ -1276,15 +1278,73 @@
         function onIcueInitialized() {
             mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
             readSettings();
+            updateSquircle();
         }
         function onDataUpdated() { readSettings(); }
 
-        icueEvents = {
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function squirclePath(w, h, radiusFraction) {
+            if (!w || !h || isNaN(w) || isNaN(h)) return 'none';
+            var r = Math.min(w, h) * radiusFraction;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            return "path('" + d.join(' ') + "')";
+        }
+
+        function applySquircle(selector, radiusFraction) {
+            var el = document.querySelector(selector);
+            if (!el || el.offsetWidth === 0) return;
+            var cp = squirclePath(el.offsetWidth, el.offsetHeight, radiusFraction);
+            document.querySelectorAll(selector).forEach(function(e) { e.style.clipPath = cp; });
+        }
+
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var cw = el.offsetWidth, ch = el.offsetHeight;
+            if (cw === 0 || ch === 0) return;
+
+            var r = Math.min(cw, ch) * 0.125;
+            el.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+            el.style.clipPath = squirclePath(cw, ch, 0.125);
+
+            applySquircle('.tool-btn', 0.125);
+            applySquircle('.size-btn', 0.125);
+            applySquircle('.action-btn', 0.125);
+            applySquircle('.draw-color', 0.125);
+            applySquircle('.bg-color', 0.125);
+            applySquircle('.color-swatch', 0.125);
+            applySquircle('.picker-panel', 0.125);
+        }
+
+                window.addEventListener('resize', function() {
+            updateSquircle();
+        });
+
+icueEvents = {
             "onICUEInitialized": onIcueInitialized,
             "onDataUpdated": onDataUpdated
         };
 
         init();
+
+        if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {
+            onIcueInitialized();
+        }
+
+        if (typeof iCUE_initialized === 'undefined') {
+            onIcueInitialized();
+        }
     </script>
 </body>
 </html>

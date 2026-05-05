@@ -3,12 +3,15 @@
   "id": "com.quadrakev.diceroller",
   "name": "Dice Roller",
   "description": "Polyhedral dice roller with 3D wireframe backdrop and roll history.",
-  "version": "1.0.0",
-  "preview_icon": "resources/qk-dice-roller.svg",
+  "version": "1.1.0",
+  "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
+    },
+    {
+      "platform": "macos"
     }
   ],
   "supported_devices": [

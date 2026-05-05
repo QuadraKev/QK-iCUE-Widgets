@@ -220,10 +220,98 @@ var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 When `reduceMotion` is true, either pause the animation loop, show a static frame, or significantly reduce the frame rate.
 
+## Squircle Corners
+
+All QK widgets use **superellipse (squircle) corners** on the outer container via `clip-path: path()`, replacing sharp rectangular viewports with smooth continuous-curvature corners. iCUE's Qt WebEngine correctly composites the clipped corners as transparent, allowing the device wallpaper to show through.
+
+### Parameters
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Superellipse exponent (n) | 5 | Approximates G2+ continuous curvature (Apple-style "continuous corners") |
+| Corner radius | 12.5% of shorter viewport dimension | `Math.min(w, h) * 0.125` |
+| Points per quarter-curve | 16 | Sufficient smoothness for all slot sizes |
+
+### Container clip-path
+
+The squircle path is computed in JS and applied to the `.container` element on init and on resize:
+
+```javascript
+function squirclePath(w, h, radiusFraction) {
+    if (!w || !h || isNaN(w) || isNaN(h)) return 'none';
+    var r = Math.min(w, h) * radiusFraction;
+    r = Math.min(r, w / 2, h / 2);
+    var n = 5, ppq = 16, d = [];
+    // Generate path: straight edges connected by superellipse corner arcs
+    // ... (see widget-skeleton/index.html for full implementation)
+    return "path('" + d.join(' ') + "')";
+}
+```
+
+**CRITICAL: The NaN guard on line 2 is required.** Without it, if `squirclePath` is called before layout settles (e.g., from a ResizeObserver firing during initialization), zero or undefined dimensions produce `NaN` values in the SVG path string. Qt WebEngine's SVG parser crashes on `NaN` tokens, taking down iCUE entirely.
+
+Call `updateSquircle()` in the init function. Use `ResizeObserver` on the container for resize handling (preferred over `window.addEventListener('resize')`) because it fires after layout settles, ensuring accurate dimensions after CSS breakpoint changes.
+
+### Safe area inset
+
+For widgets with **edge-to-edge content** (grids, button layouts), the squircle corners clip content near the viewport corners. Add padding to the container based on 25% of the corner radius:
+
+```javascript
+var r = Math.min(cw, ch) * 0.125;
+container.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+```
+
+```css
+.container {
+    padding: var(--squircle-inset, 0px);
+}
+```
+
+Widgets with **centered content** (clocks, progress bars, info displays) typically don't need the inset since their content naturally clears the corners.
+
+**Fullscreen canvas widgets** (Matrix Rain, Starfield) are an exception — they should have NO padding and NO container `background-color`. The canvas renders its own background, and the clip-path clips the canvas content directly. Add a CSS comment `/* No inset padding: canvas effects extend to edges */` for clarity.
+
+### Internal elements
+
+Rectangular UI elements (buttons, displays, panels) should also use squircle clip-paths with the same 12.5% radius fraction for visual consistency. Since element sizes are static (only changing on viewport resize), there is no per-frame performance cost.
+
+- Compute one shared path per distinct element size (e.g., all grid buttons share one path; a wider "zero" button gets its own)
+- Remove CSS `border-radius` from elements that receive squircle clip-paths (clip-path supersedes it)
+- Use `document.querySelectorAll()` to batch-apply shared paths
+- Keep CSS `border-radius: 50%` on circular elements (spinners, dots) — clip-path can't create circles and these don't need squircle treatment
+- CSS borders on squircled elements will have rectangular corners clipped by the path — use background color differences instead of borders to distinguish elements (e.g., "today" card highlight)
+
+```javascript
+var btn = document.querySelector('.btn:not(.btn-zero)');
+if (btn) {
+    var bp = squirclePath(btn.offsetWidth, btn.offsetHeight, 0.125);
+    document.querySelectorAll('.btn:not(.btn-zero)').forEach(function(b) { b.style.clipPath = bp; });
+}
+```
+
+### Layout-volatile elements
+
+Elements that change size dramatically between breakpoints (e.g., a weather card that switches from grid to column layout) need special handling:
+
+1. **Clear stale clip-paths before recomputing** — in the `ResizeObserver` callback, clear `clipPath` and `padding` on volatile elements before calling `updateSquircle()`:
+   ```javascript
+   new ResizeObserver(function() {
+       document.querySelectorAll('.card.shown').forEach(function(e) { e.style.clipPath = ''; e.style.padding = ''; });
+       requestAnimationFrame(updateSquircle);
+   }).observe(document.querySelector('.container'));
+   ```
+2. **Defer squircle to after data loads** — elements with conditional visibility (`.shown` class added after API response) won't have dimensions when `updateSquircle()` runs on init. Call `updateSquircle()` again after the elements become visible (e.g., at the end of `showWeather()` via `requestAnimationFrame`).
+
+### Container background requirement
+
+The squircle clip-path is only visible when the `.container` element has an opaque `background-color`. Without a background, the clip-path clips a transparent element — the shape exists but is invisible. Widgets that render their own background on a canvas are exempt (see fullscreen canvas exception above); all others must include the standard `background-color: color-mix(...)` on their container.
+
 ## Sizing and Units
 
 - Use viewport units (vh, vw, vmin) for all layout sizing; never px or rem for layout elements
 - S slot is half the height of M/L/XL (344 vs 696): vh values in S produce physically smaller elements
+- **`vh` breaks in portrait**: In VM/VL/VXL, `vh` tracks the tall dimension (841-2537px), making `vh`-based elements disproportionately large. Use `vmin` for values that should stay consistent across orientations (borders, gaps, small text). For elements sized to the constrained dimension, use `vw` in portrait breakpoints.
+- **Consistent sizing across V layouts**: VS/VM/VL/VXL share the same width (697px). If an element should look the same across all vertical layouts, use `vw` in their breakpoints — `vh` will vary dramatically (417px to 2537px).
 - Touch targets: minimum 44x44px (2.42mm at 183.40 PPI)
 - UI bars and labels: use `max(Npx, Xvmin)` pattern for consistent sizing across all slot sizes
 - Remove per-breakpoint size overrides when vmin+max() base styles handle all sizes

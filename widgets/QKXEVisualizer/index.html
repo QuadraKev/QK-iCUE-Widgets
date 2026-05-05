@@ -629,7 +629,7 @@
     <div class="widget-background" id="widget-background">
         <div id="media-background"></div>
     </div>
-    <div class="np-container" id="np-container">
+    <div class="container np-container" id="np-container">
         <div class="widget-title" id="widget-title"></div>
         <!-- Offline overlay -->
         <div class="np-offline">
@@ -1545,7 +1545,8 @@
         // ══════════════════════════════════════════════════════════════
         function onIcueInitialized() {
             mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
-            readSettings();
+            onDataUpdated();
+            updateSquircle();
             connectWS();
             if (!animFrameId) render();
         }
@@ -1592,10 +1593,44 @@
         }
 
         // Register with iCUE
-        icueEvents = {
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            if (!el) return;
+            var w = el.offsetWidth, h = el.offsetHeight;
+            if (w === 0 || h === 0) return;
+            var r = Math.min(w, h) * 0.125;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            el.style.padding = (r * 0.25).toFixed(1) + 'px';
+
+            el.style.clipPath = "path('" + d.join(' ') + "')";
+        }
+
+                window.addEventListener('resize', function() {
+            updateSquircle();
+        });
+
+icueEvents = {
             "onICUEInitialized": onIcueInitialized,
             "onDataUpdated": onDataUpdated
         };
+
+        // Re-apply styles when page becomes visible (e.g. XE page switch)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) onDataUpdated();
+        });
 
         // Handle iCUE already initialized, or standalone mode
         if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) {

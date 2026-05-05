@@ -106,6 +106,7 @@
             position: relative;
             z-index: 1;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            padding: var(--squircle-inset, 0px);
         }
 
         .widget-title {
@@ -182,7 +183,6 @@
             align-items: center;
             justify-content: center;
             border: none;
-            border-radius: 1.2vh;
             font-family: 'Jost', sans-serif;
             font-size: 4.5vh;
             cursor: pointer;
@@ -268,7 +268,6 @@
             }
             .btn {
                 font-size: 7vh;
-                border-radius: 1.5vh;
             }
             :root {
                 --btn-gap: 1vh;
@@ -310,7 +309,6 @@
             }
             .btn {
                 font-size: 5vw;
-                border-radius: 1.5vw;
             }
             .btn-grid {
                 gap: 0.8vw;
@@ -734,10 +732,62 @@
     function onInit() {
         mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
         readSettings();
+            updateSquircle();
         updateDisplay();
     }
 
-    icueEvents = {
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function squirclePath(w, h, radiusFraction) {
+            if (!w || !h || isNaN(w) || isNaN(h)) return 'none';
+            var r = Math.min(w, h) * radiusFraction;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            return "path('" + d.join(' ') + "')";
+        }
+
+        function updateSquircle() {
+            var container = document.querySelector('.container');
+            var cw = container.offsetWidth, ch = container.offsetHeight;
+            if (cw === 0 || ch === 0) return;
+
+            var r = Math.min(cw, ch) * 0.125;
+            container.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+            container.style.clipPath = squirclePath(cw, ch, 0.125);
+
+            // Buttons: compute one path per distinct size, apply to all
+            var btn = document.querySelector('.btn:not(.btn-zero)');
+            var btnZero = document.querySelector('.btn-zero');
+            if (btn) {
+                var bp = squirclePath(btn.offsetWidth, btn.offsetHeight, 0.125);
+                document.querySelectorAll('.btn:not(.btn-zero)').forEach(function(b) { b.style.clipPath = bp; });
+            }
+            if (btnZero) {
+                btnZero.style.clipPath = squirclePath(btnZero.offsetWidth, btnZero.offsetHeight, 0.125);
+            }
+
+            // Display
+            var display = document.querySelector('.display');
+            if (display) {
+                display.style.clipPath = squirclePath(display.offsetWidth, display.offsetHeight, 0.125);
+            }
+        }
+
+            window.addEventListener('resize', function() {
+            updateSquircle();
+        });
+
+icueEvents = {
         "onICUEInitialized": onInit,
         "onDataUpdated": readSettings
     };

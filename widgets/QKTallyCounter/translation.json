@@ -1,6 +1,22 @@
 {
   "en": {
-    "translation": {}
+    "translation": {
+      "QK Tally Counter": "QK Tally Counter",
+      "Counter Label": "Counter Label",
+      "e.g. Push-ups": "e.g. Push-ups",
+      "Step Size": "Step Size",
+      "Allow Negative": "Allow Negative",
+      "Appearance": "Appearance",
+      "Text Color": "Text Color",
+      "Accent Color": "Accent Color",
+      "Background Color": "Background Color",
+      "Transparency": "Transparency",
+      "Reset": "Reset",
+      "Custom Title": "Custom Title",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
   },
   "de": {
     "translation": {
