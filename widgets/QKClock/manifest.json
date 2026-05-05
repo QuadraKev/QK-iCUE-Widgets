@@ -1,0 +1,22 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.clock",
+  "name": "Clock",
+  "description": "Clean digital clock with timezone support and date display.",
+  "version": "1.1.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    },
+    {
+      "platform": "macos"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "dashboard_lcd"
+    }
+  ]
+}
