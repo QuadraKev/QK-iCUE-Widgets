@@ -102,6 +102,7 @@
             align-items: center;
             justify-content: center;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            padding: var(--squircle-inset, 0px);
             position: relative;
             z-index: 1;
         }
@@ -170,6 +171,7 @@
             align-items: center;
             justify-content: center;
             padding: 6%;
+            overflow: hidden;
             opacity: 0;
             transition: opacity 0.6s ease-in-out;
             z-index: 2;
@@ -208,7 +210,7 @@
         /* ---- Answer Text ---- */
         .answer-text {
             font-family: 'Jost', sans-serif; font-weight: 600;
-            font-size: 5.5vmin;
+            font-size: 4.5vmin;
             color: var(--text-color);
             text-align: center;
             text-transform: uppercase;
@@ -217,47 +219,6 @@
             word-wrap: break-word;
         }
 
-        /* ---- Answer History Panel (L/XL wide layouts) ---- */
-        .history-panel {
-            display: none;
-            flex-direction: column;
-            gap: 1.2vh;
-            padding: 2vh;
-            max-height: 80vh;
-            overflow: hidden;
-        }
-
-        .history-label {
-            font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 1.8vh;
-            color: var(--accent-color);
-            text-transform: uppercase;
-            letter-spacing: 0.15vh;
-            opacity: 0.7;
-            margin-bottom: 0.5vh;
-        }
-
-        .history-item {
-            font-family: 'Jost', sans-serif; font-weight: 500;
-            font-size: 2vh;
-            color: var(--text-color);
-            opacity: 0.45;
-            text-transform: uppercase;
-            letter-spacing: 0.05vh;
-            line-height: 1.3;
-            padding: 0.8vh 0;
-            border-bottom: 1px solid color-mix(in srgb, var(--text-color), transparent 85%);
-            transition: opacity 0.4s ease;
-        }
-
-        .history-item:first-of-type {
-            opacity: 0.7;
-        }
-
-        .history-item.cat-positive { border-left: 3px solid #4CAF50; padding-left: 1vh; }
-        .history-item.cat-neutral  { border-left: 3px solid #FFC107; padding-left: 1vh; }
-        .history-item.cat-negative { border-left: 3px solid #F44336; padding-left: 1vh; }
-
         /* ---- Wide horizontal layouts on XE ---- */
         @media (min-aspect-ratio: 200/100) {
             .ball-outer {
@@ -265,40 +226,17 @@
                 height: 70vh;
             }
             .ball-eight { font-size: 20vh; }
-            .answer-text { font-size: 5vh; }
+            .answer-text { font-size: 4.5vh; }
         }
 
-        /* L/XL wide layouts: show history panel, scale up ball */
+        /* L/XL wide layouts: scale up ball */
         @media (min-aspect-ratio: 200/100) and (min-width: 1400px) {
-            .container {
-                flex-direction: row;
-                justify-content: center;
-                align-items: center;
-                gap: 3vw;
-            }
             .ball-outer {
                 width: 85vh;
                 height: 85vh;
             }
             .ball-eight { font-size: 24vh; }
-            .answer-text { font-size: 5.5vh; }
-            .history-panel {
-                display: flex;
-                width: 18vw;
-                min-width: 180px;
-                flex-shrink: 0;
-            }
-            .tap-hint {
-                position: absolute;
-                bottom: 2vh;
-                left: 0;
-                right: 0;
-                text-align: center;
-            }
-            .widget-title {
-                position: absolute;
-                top: 1vh;
-            }
+            .answer-text { font-size: 4.5vh; }
         }
 
         /* Square-ish (HM, VS) */
@@ -315,7 +253,7 @@
                 width: 75vw;
                 height: 75vw;
             }
-            .answer-text { font-size: 5vw; }
+            .answer-text { font-size: 4.5vw; }
             .ball-eight { font-size: 22vw; }
         }
     
@@ -341,9 +279,6 @@
             <div class="ball-eight">8</div>
         </div>
         <div class="tap-hint" id="tap-hint">Tap to shake</div>
-        <div class="history-panel" id="history-panel">
-            <div class="history-label">Recent Answers</div>
-        </div>
     </div>
 
     <script>
@@ -466,13 +401,9 @@
         var mediaViewer = null;
         var shaking = false;
         var hideTimer = null;
-        var answerHistory = [];
-        var MAX_HISTORY = 5;
-
         var elBallOuter = document.getElementById('ball-outer');
         var elBallInner = document.getElementById('ball-inner');
         var elAnswerText = document.getElementById('answer-text');
-        var elHistoryPanel = document.getElementById('history-panel');
         var elTapHint = document.getElementById('tap-hint');
 
         // ======================================================================
@@ -542,11 +473,6 @@
                 elBallInner.classList.add('visible');
                 shaking = false;
 
-                // Add to history
-                answerHistory.unshift({ text: answer.text, cat: answer.cat });
-                if (answerHistory.length > MAX_HISTORY) answerHistory.pop();
-                renderHistory();
-
                 // Auto-hide answer after 5 seconds
                 hideTimer = setTimeout(function() {
                     elBallInner.classList.remove('visible');
@@ -564,31 +490,13 @@
         }, { passive: false });
 
         // ======================================================================
-        // Answer history panel
-        // ======================================================================
-        function renderHistory() {
-            // Remove old history items (keep the label)
-            var items = elHistoryPanel.querySelectorAll('.history-item');
-            for (var i = 0; i < items.length; i++) {
-                items[i].remove();
-            }
-            // Render current history
-            for (var j = 0; j < answerHistory.length; j++) {
-                var entry = answerHistory[j];
-                var div = document.createElement('div');
-                div.className = 'history-item cat-' + entry.cat;
-                div.textContent = entry.text;
-                elHistoryPanel.appendChild(div);
-            }
-        }
-
-        // ======================================================================
         // iCUE lifecycle
         // ======================================================================
         function onInit() {
             mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
             readSettings();
             applySettings();
+            updateSquircle();
         }
 
         function onDataUpdated() {
@@ -596,7 +504,35 @@
             applySettings();
         }
 
-        icueEvents = {
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var w = el.offsetWidth, h = el.offsetHeight;
+            if (w === 0 || h === 0) return;
+            var r = Math.min(w, h) * 0.125;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            el.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+
+            el.style.clipPath = "path('" + d.join(' ') + "')";
+        }
+
+                window.addEventListener('resize', function() {
+            updateSquircle();
+        });
+
+icueEvents = {
             "onICUEInitialized": onInit,
             "onDataUpdated": onDataUpdated
         };

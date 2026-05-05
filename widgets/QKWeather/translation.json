@@ -1,6 +1,27 @@
 {
   "en": {
-    "translation": {}
+    "translation": {
+      "QK Weather": "QK Weather",
+      "Appearance": "Appearance",
+      "Location": "Location",
+      "Select Location": "Select Location",
+      "Temperature": "Temperature",
+      "F": "F",
+      "C": "C",
+      "Wind Speed": "Wind Speed",
+      "mph": "mph",
+      "km/h": "km/h",
+      "Text Color": "Text Color",
+      "Accent Color": "Accent Color",
+      "Secondary Color": "Secondary Color",
+      "Warm Color": "Warm Color",
+      "Background Color": "Background Color",
+      "Transparency": "Transparency",
+      "Custom Title": "Custom Title",
+      "Precipitation": "Precipitation",
+      "mm": "mm",
+      "in": "in"
+    }
   },
   "de": {
     "translation": {
@@ -20,7 +41,10 @@
       "Warm Color": "Warmfarbe",
       "Background Color": "Hintergrundfarbe",
       "Transparency": "Transparenz",
-      "Custom Title": "Eigener Titel"
+      "Custom Title": "Eigener Titel",
+      "Precipitation": "Niederschlag",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "es": {
@@ -41,7 +65,10 @@
       "Warm Color": "Color Calido",
       "Background Color": "Color de Fondo",
       "Transparency": "Transparencia",
-      "Custom Title": "Titulo Personalizado"
+      "Custom Title": "Titulo Personalizado",
+      "Precipitation": "Precipitacion",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "fr": {
@@ -62,7 +89,10 @@
       "Warm Color": "Couleur Chaude",
       "Background Color": "Couleur de Fond",
       "Transparency": "Transparence",
-      "Custom Title": "Titre Personnalise"
+      "Custom Title": "Titre Personnalise",
+      "Precipitation": "Precipitation",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "it": {
@@ -83,7 +113,10 @@
       "Warm Color": "Colore Caldo",
       "Background Color": "Colore di Sfondo",
       "Transparency": "Trasparenza",
-      "Custom Title": "Titolo Personalizzato"
+      "Custom Title": "Titolo Personalizzato",
+      "Precipitation": "Precipitazioni",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "ja": {
@@ -104,7 +137,10 @@
       "Warm Color": "ウォームカラー",
       "Background Color": "背景色",
       "Transparency": "透明度",
-      "Custom Title": "カスタムタイトル"
+      "Custom Title": "カスタムタイトル",
+      "Precipitation": "降水量",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "ko": {
@@ -125,7 +161,10 @@
       "Warm Color": "따뜻한 색상",
       "Background Color": "배경 색상",
       "Transparency": "투명도",
-      "Custom Title": "사용자 정의 제목"
+      "Custom Title": "사용자 정의 제목",
+      "Precipitation": "강수량",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "pt": {
@@ -146,7 +185,10 @@
       "Warm Color": "Cor Quente",
       "Background Color": "Cor de Fundo",
       "Transparency": "Transparencia",
-      "Custom Title": "Titulo Personalizado"
+      "Custom Title": "Titulo Personalizado",
+      "Precipitation": "Precipitacao",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "ru": {
@@ -167,7 +209,10 @@
       "Warm Color": "Теплый цвет",
       "Background Color": "Цвет фона",
       "Transparency": "Прозрачность",
-      "Custom Title": "Пользовательский заголовок"
+      "Custom Title": "Пользовательский заголовок",
+      "Precipitation": "Осадки",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "zh_CN": {
@@ -188,7 +233,10 @@
       "Warm Color": "暖色",
       "Background Color": "背景颜色",
       "Transparency": "透明度",
-      "Custom Title": "自定义标题"
+      "Custom Title": "自定义标题",
+      "Precipitation": "降水量",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "zh_TW": {
@@ -209,7 +257,10 @@
       "Warm Color": "暖色",
       "Background Color": "背景顏色",
       "Transparency": "透明度",
-      "Custom Title": "自訂標題"
+      "Custom Title": "自訂標題",
+      "Precipitation": "降水量",
+      "mm": "mm",
+      "in": "in"
     }
   },
   "uk": {
@@ -230,7 +281,10 @@
       "Warm Color": "Теплий колір",
       "Background Color": "Колір фону",
       "Transparency": "Прозорість",
-      "Custom Title": "Користувацький заголовок"
+      "Custom Title": "Користувацький заголовок",
+      "Precipitation": "Опади",
+      "mm": "mm",
+      "in": "in"
     }
   }
 }

@@ -84,14 +84,22 @@
         .scale-container { transform-origin: top left; }
         .rotation-container { transform-origin: center center; }
         .rotation-container img, .rotation-container video { display: block; object-fit: contain; }
+        /* No inset padding: canvas effects are meant to extend to (and beyond) edges */
+        .container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
         canvas {
             display: block;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             position: relative;
             z-index: 1;
         }
-    
+
         .widget-title {
             display: none;
             font-family: 'Jost', sans-serif; font-weight: 700;
@@ -106,7 +114,6 @@
             right: 0;
             z-index: 10;
             pointer-events: none;
-            position: relative;
         }
 
 @media (prefers-reduced-motion: reduce) {
@@ -121,8 +128,10 @@
     <div class="widget-background" id="widget-background">
         <div id="media-background"></div>
     </div>
-    <div class="widget-title" id="widget-title"></div>
-    <canvas id="canvas"></canvas>
+    <div class="container">
+        <div class="widget-title" id="widget-title"></div>
+        <canvas id="canvas"></canvas>
+    </div>
 
     <script>
         /* MediaViewer - Corsair common tool for media-selector backgrounds */
@@ -284,8 +293,9 @@
         // ================================================================
         function resize() {
             var dpr = window.devicePixelRatio || 1;
-            W = window.innerWidth;
-            H = window.innerHeight;
+            var rect = canvas.getBoundingClientRect();
+            W = rect.width;
+            H = rect.height;
             canvas.width = W * dpr;
             canvas.height = H * dpr;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -405,8 +415,9 @@
             ctx.clearRect(0, 0, W, H);
             trailCtx.clearRect(0, 0, W, H);
 
-            // Background image
             var root = document.documentElement;
+
+            // Background image
             var bgImage = (typeof backgroundMedia !== 'undefined') ? backgroundMedia : null;
             var blur = (typeof glassBlur !== 'undefined') ? glassBlur : 0;
             root.style.setProperty('--bg-blur', blur + 'px');
@@ -428,6 +439,7 @@
             readSettings();
             resize();
             applySettings();
+            updateSquircle();
             initColumns();
             requestAnimationFrame(render);
         }
@@ -443,11 +455,35 @@
         }
 
         window.addEventListener('resize', function() {
+            updateSquircle();
             resize();
             computeCharSize();
             applySettings();
             initColumns();
         });
+
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var w = el.offsetWidth, h = el.offsetHeight;
+            if (w === 0 || h === 0) return;
+            var r = Math.min(w, h) * 0.125;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+
+            el.style.clipPath = "path('" + d.join(' ') + "')";
+        }
 
         icueEvents = {
             "onICUEInitialized": onInit,

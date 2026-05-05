@@ -8,7 +8,7 @@ const path = require('path');
 
 const AUTHOR = 'QuadraKev';
 const MIN_FRAMEWORK_VERSION = '1.0.0';
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const OS = [{ platform: 'windows' }, { platform: 'macos' }];
 
 const widgets = [
@@ -75,6 +75,14 @@ const widgets = [
     description: 'Simple tap counter for tracking anything on the fly.',
     devices: [{ type: 'dashboard_lcd' }],
     interactive: true,
+  },
+  {
+    folder: 'QKClock',
+    id: 'com.quadrakev.clock',
+    name: 'Clock',
+    description: 'Clean digital clock with timezone support and date display.',
+    devices: [{ type: 'dashboard_lcd' }],
+    interactive: false,
   },
   {
     folder: 'QKWorldClocks',
@@ -147,6 +155,7 @@ const widgets = [
     description: 'Live weather conditions and forecast with customizable location.',
     devices: [{ type: 'pump_lcd' }, { type: 'dashboard_lcd' }, { type: 'keyboard_lcd' }],
     interactive: false,
+    modules: ['modules/OpenMeteo.mjs'],
   },
 ];
 
@@ -169,6 +178,7 @@ for (const w of widgets) {
     }),
   };
   if (w.interactive) manifest.interactive = true;
+  if (w.modules) manifest.modules = w.modules;
 
   const outPath = path.join(widgetsDir, w.folder, 'manifest.json');
   try {

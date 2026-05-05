@@ -1,6 +1,22 @@
 {
   "en": {
-    "translation": {}
+    "translation": {
+      "QK Dice Roller": "QK Dice Roller",
+      "Dice Roller": "Dice Roller",
+      "Appearance": "Appearance",
+      "Show History": "Show History",
+      "Tap to Roll": "Tap to Roll",
+      "History": "History",
+      "No rolls yet": "No rolls yet",
+      "Text Color": "Text Color",
+      "Accent Color": "Accent Color",
+      "Background Color": "Background Color",
+      "Transparency": "Transparency",
+      "Custom Title": "Custom Title",
+      "Background Image": "Background Image",
+      "Background Brightness": "Background Brightness",
+      "Glass Blur": "Glass Blur"
+    }
   },
   "de": {
     "translation": {

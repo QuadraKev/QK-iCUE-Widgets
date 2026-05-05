@@ -3,12 +3,15 @@
   "id": "com.quadrakev.dayprogress",
   "name": "Day Progress",
   "description": "Visual day completion percentage bar — see how much of your day is left.",
-  "version": "1.0.0",
-  "preview_icon": "resources/qk-day-progress.svg",
+  "version": "1.1.0",
+  "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
+    },
+    {
+      "platform": "macos"
     }
   ],
   "supported_devices": [

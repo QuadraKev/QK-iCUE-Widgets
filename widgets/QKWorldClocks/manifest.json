@@ -3,12 +3,15 @@
   "id": "com.quadrakev.worldclocks",
   "name": "World Clocks",
   "description": "Live analog and digital clocks across multiple time zones.",
-  "version": "1.0.0",
-  "preview_icon": "resources/qk-world-clocks.svg",
+  "version": "1.1.0",
+  "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
+    },
+    {
+      "platform": "macos"
     }
   ],
   "supported_devices": [

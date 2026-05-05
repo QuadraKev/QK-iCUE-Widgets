@@ -116,6 +116,7 @@
             align-items: center;
             justify-content: center;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            padding: var(--squircle-inset, 0px);
             gap: 1.5vmin;
             position: relative;
             z-index: 1;
@@ -225,7 +226,6 @@
         .binary-bit {
             width: 6vmin;
             height: 6vmin;
-            border-radius: 1vmin;
             border: 0.3vmin solid color-mix(in srgb, var(--accent-color), var(--bg-color) 80%);
             transition: border-color 0.15s, background-color 0.15s;
         }
@@ -259,6 +259,26 @@
 
         /* ---- Wide (HS/HL/HXL) ---- */
         @media (min-aspect-ratio: 200/100) {
+            .bcd-dot {
+                width: 12vh;
+                height: 12vh;
+            }
+            .bcd-grid { gap: 2.5vh; }
+            .bcd-column { gap: 2vh; }
+            .bcd-dots { gap: 2vh; }
+            .bcd-label { font-size: 5vh; }
+            .sep-dot { width: 2.5vh; height: 2.5vh; }
+            .bcd-separator { gap: 4vh; }
+            .decimal-time { font-size: 12vh; }
+            .binary-bit { width: 10vh; height: 10vh; }
+            .binary-label { font-size: 5vh; width: 7vh; }
+            .binary-value { font-size: 7vh; width: 9vh; }
+            .binary-grid { gap: 3vh; }
+            .binary-row { gap: 2vh; }
+        }
+
+        /* ---- HM (1.21:1) — match wide sizing ---- */
+        @media (min-aspect-ratio: 110/100) and (max-aspect-ratio: 135/100) {
             .bcd-dot {
                 width: 12vh;
                 height: 12vh;
@@ -330,7 +350,7 @@
             .sep-dot { width: 2.5vmin; height: 2.5vmin; }
             .bcd-separator { gap: 3vmin; }
             .decimal-time { font-size: 10vmin; }
-            .binary-bit { width: 11vmin; height: 11vmin; border-radius: 2vmin; }
+            .binary-bit { width: 11vmin; height: 11vmin; }
             .binary-label { font-size: 6vmin; width: 8vmin; }
             .binary-value { font-size: 7vmin; width: 9vmin; }
             .binary-grid { gap: 3vmin; }
@@ -707,6 +727,7 @@
             mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
             readSettings();
             applySettings();
+            updateSquircle();
         }
 
         function onDataUpdated() {
@@ -714,7 +735,49 @@
             applySettings();
         }
 
-        icueEvents = {
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function squirclePath(w, h, radiusFraction) {
+            if (!w || !h || isNaN(w) || isNaN(h)) return 'none';
+            var r = Math.min(w, h) * radiusFraction;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            return "path('" + d.join(' ') + "')";
+        }
+
+        function applySquircle(selector, radiusFraction) {
+            var el = document.querySelector(selector);
+            if (!el || el.offsetWidth === 0) return;
+            var cp = squirclePath(el.offsetWidth, el.offsetHeight, radiusFraction);
+            document.querySelectorAll(selector).forEach(function(e) { e.style.clipPath = cp; });
+        }
+
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var cw = el.offsetWidth, ch = el.offsetHeight;
+            if (cw === 0 || ch === 0) return;
+            var r = Math.min(cw, ch) * 0.125;
+            el.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+            el.style.clipPath = squirclePath(cw, ch, 0.125);
+
+            applySquircle('.binary-bit', 0.125);
+        }
+
+                window.addEventListener('resize', function() {
+            updateSquircle();
+        });
+
+icueEvents = {
             "onICUEInitialized": onInit,
             "onDataUpdated": onDataUpdated
         };

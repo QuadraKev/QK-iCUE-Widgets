@@ -105,6 +105,7 @@
             display: flex;
             flex-direction: row;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            padding: var(--squircle-inset, 0px);
             position: relative;
             z-index: 1;
         }
@@ -178,7 +179,6 @@
             width: 10.4vh;
             height: 10.4vh;
             border: 2px solid var(--accent-color);
-            border-radius: 1.5vh;
             background: rgba(255, 255, 255, 0.06);
             color: var(--accent-color);
             font-family: 'Jost', sans-serif; font-weight: 700;
@@ -219,6 +219,7 @@
             inset: 0;
             display: grid;
             place-items: center;
+            place-content: center;
             pointer-events: none;
         }
 
@@ -231,12 +232,10 @@
 
         .dice-pair {
             display: flex;
-            gap: 0;
+            gap: 10%;
+            align-items: center;
+            justify-content: center;
             pointer-events: none;
-        }
-
-        .dice-pair .dice-shape {
-            margin: 0 -8%;
         }
 
         .dice-result {
@@ -363,7 +362,6 @@
                 width: 20.8vh;
                 height: 20.8vh;
                 font-size: 12vh;
-                border-radius: 3vh;
             }
             .ctrl-value {
                 font-size: 14vh;
@@ -392,7 +390,6 @@
                 width: 16vh;
                 height: 16vh;
                 font-size: 9vh;
-                border-radius: 2.5vh;
             }
             .ctrl-value {
                 font-size: 11vh;
@@ -425,7 +422,6 @@
                 width: 12vh;
                 height: 12vh;
                 font-size: 7vh;
-                border-radius: 2vh;
             }
             .ctrl-value {
                 font-size: 8vh;
@@ -553,7 +549,6 @@
                 width: 10.4vw;
                 height: 10.4vw;
                 font-size: 6vw;
-                border-radius: 1.5vw;
             }
             .ctrl-value {
                 font-size: 7vw;
@@ -1367,6 +1362,7 @@
 
             readSettings();
             applySettings();
+            updateSquircle();
             renderHistory();
         }
 
@@ -1375,7 +1371,50 @@
             applySettings();
         }
 
-        icueEvents = {
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function squirclePath(w, h, radiusFraction) {
+            if (!w || !h || isNaN(w) || isNaN(h)) return 'none';
+            var r = Math.min(w, h) * radiusFraction;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            return "path('" + d.join(' ') + "')";
+        }
+
+        function applySquircle(selector, radiusFraction) {
+            var el = document.querySelector(selector);
+            if (!el || el.offsetWidth === 0) return;
+            var cp = squirclePath(el.offsetWidth, el.offsetHeight, radiusFraction);
+            document.querySelectorAll(selector).forEach(function(e) { e.style.clipPath = cp; });
+        }
+
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var cw = el.offsetWidth, ch = el.offsetHeight;
+            if (cw === 0 || ch === 0) return;
+
+            var r = Math.min(cw, ch) * 0.125;
+            el.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+            el.style.clipPath = squirclePath(cw, ch, 0.125);
+
+            applySquircle('.ctrl-btn', 0.125);
+        }
+
+                window.addEventListener('resize', function() {
+            updateSquircle();
+        });
+
+icueEvents = {
             "onICUEInitialized": onInit,
             "onDataUpdated": onDataUpdated
         };

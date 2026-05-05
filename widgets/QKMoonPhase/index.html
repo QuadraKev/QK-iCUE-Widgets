@@ -108,6 +108,7 @@
             align-items: center;
             justify-content: center;
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            padding: var(--squircle-inset, 0px);
             gap: 2vmin;
             position: relative;
             z-index: 1;
@@ -511,17 +512,9 @@
                 // Build path: arc from top to bottom on the lit edge, ellipse back
                 var path;
                 if (isWaxing) {
-                    if (illumination < 0.5) {
-                        // Waxing crescent: thin sliver on the right
-                        path = 'M ' + cx + ' ' + (cy - r) +
-                            ' A ' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy + r) +
-                            ' A ' + terminatorX + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy - r);
-                    } else {
-                        // Waxing gibbous: more than half lit, from right
-                        path = 'M ' + cx + ' ' + (cy - r) +
-                            ' A ' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy + r) +
-                            ' A ' + terminatorX + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy - r);
-                    }
+                    path = 'M ' + cx + ' ' + (cy - r) +
+                        ' A ' + r + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy + r) +
+                        ' A ' + terminatorX + ' ' + r + ' 0 0 1 ' + cx + ' ' + (cy - r);
                 } else {
                     if (illumination < 0.5) {
                         // Waning crescent: thin sliver on the left
@@ -591,6 +584,7 @@
 
             readSettings();
             applySettings();
+            updateSquircle();
 
             // Update every hour (moon phase barely changes within an hour)
             setInterval(updateMoon, 3600000);
@@ -601,7 +595,35 @@
             applySettings();
         }
 
-        icueEvents = {
+
+        // Squircle clip-path (superellipse corners, n=5)
+        function updateSquircle() {
+            var el = document.querySelector('.container');
+            var w = el.offsetWidth, h = el.offsetHeight;
+            if (w === 0 || h === 0) return;
+            var r = Math.min(w, h) * 0.125;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5, ppq = 16, d = [];
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1)); }
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1)); }
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1)); }
+            d.push('L0 ' + r.toFixed(1));
+            for (var i = 1; i <= ppq; i++) { var a = (i / ppq) * Math.PI / 2; var sa = Math.pow(Math.sin(a), 2 / n); var ca = Math.pow(Math.cos(a), 2 / n); d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1)); }
+            d.push('Z');
+            el.style.setProperty('--squircle-inset', (r * 0.25).toFixed(1) + 'px');
+
+            el.style.clipPath = "path('" + d.join(' ') + "')";
+        }
+
+                window.addEventListener('resize', function() {
+            updateSquircle();
+        });
+
+icueEvents = {
             "onICUEInitialized": onInit,
             "onDataUpdated": onDataUpdated
         };

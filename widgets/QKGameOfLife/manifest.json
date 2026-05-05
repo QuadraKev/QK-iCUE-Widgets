@@ -3,12 +3,15 @@
   "id": "com.quadrakev.gameoflife",
   "name": "Game of Life",
   "description": "Conway's Game of Life cellular automaton, continuously evolving.",
-  "version": "1.0.0",
-  "preview_icon": "resources/qk-game-of-life.svg",
+  "version": "1.1.0",
+  "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
+    },
+    {
+      "platform": "macos"
     }
   ],
   "supported_devices": [
