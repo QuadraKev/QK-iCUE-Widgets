@@ -17,3 +17,6 @@ docs/iCUE-included-widgets/
 docs/widgets.csv
 install.bat
 widgets/QKTest/
+tools/.cache/
+tools/output/
+.superpowers/
