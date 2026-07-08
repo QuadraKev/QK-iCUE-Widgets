@@ -13,6 +13,7 @@ Custom widgets for Corsair iCUE LCD displays (Xeneon Edge and pump LCD), built a
 | [Clock](widgets/QKClock) | Clean digital clock with timezone support and date display |
 | [Dice Roller](widgets/QKDiceRoller) | Interactive dice rolling with spinning 3D wireframe dice and roll history |
 | [Fidget Spinner](widgets/QKFidgetSpinner) | Swipe-to-spin fidget spinner with realistic deceleration physics |
+| [ISS Tracker](widgets/QKISSTracker) | Live ISS position over a day/night world map with orbit track and next-pass countdown |
 | [Magic 8 Ball](widgets/QKMagic8Ball) | Fortune-telling widget with the classic 20 Magic 8 Ball answers |
 | [Paint](widgets/QKPaint) | Finger-painting app for the touchscreen |
 | [Simon](widgets/QKSimon) | Simon Says memory game |
