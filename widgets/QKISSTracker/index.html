@@ -124,6 +124,58 @@
             font-variant-numeric: tabular-nums; white-space: nowrap;
         }
         #status-row { font-size: var(--font-label); color: var(--text-secondary); }
+
+        /* Default = wide slots (HS/HL/HXL, aspect >= 2.0): map left + sidebar right */
+
+        /* HXL is much wider: slimmer sidebar, bigger unit */
+        @media (min-aspect-ratio: 300/100) {
+            #sidebar { flex: 0 0 14%; }
+        }
+
+        /* HM (~1.21): map on top, 2x2 stat grid below */
+        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
+            :root { --layout-unit: 1vmin; }
+            #root { flex-direction: column; }
+            #map-wrap { flex: 1 1 60%; }
+            #sidebar {
+                flex: 0 0 auto; flex-direction: row; flex-wrap: wrap;
+                border-left: none; border-top: 1px solid var(--panel-border);
+                justify-content: space-between; align-items: center;
+                row-gap: var(--space-gap);
+            }
+            #sidebar .stat { flex: 0 0 48%; }
+            #status-row { flex: 0 0 100%; }
+        }
+
+        /* VS band (1.5 < aspect < 2.0): map top, single row, secondary stats hidden */
+        @media (max-aspect-ratio: 199/100) and (min-aspect-ratio: 151/100) {
+            :root { --layout-unit: 1.4vmin; }
+            #root { flex-direction: column; }
+            #map-wrap { flex: 1 1 58%; }
+            #sidebar {
+                flex: 0 0 auto; flex-direction: row; align-items: center;
+                justify-content: space-evenly;
+                border-left: none; border-top: 1px solid var(--panel-border);
+            }
+            #status-row, #val-pos { display: none; }
+            #sidebar .stat:nth-of-type(4) { display: none; } /* Position stat block (4th div child of #sidebar: status-row, alt, spd, pos) */
+        }
+
+        /* All portrait slots (VM/VL/VXL, aspect <= 0.9): map band top, stats stacked */
+        @media (max-aspect-ratio: 90/100) {
+            :root { --layout-unit: 0.6vw; } /* S-vertical canonical baseline; stable across VM/VL/VXL */
+            #root { flex-direction: column; }
+            #map-wrap { flex: 0 0 auto; height: 50vw; } /* ~2:1 map band */
+            #sidebar {
+                flex: 1 1 auto; flex-direction: column; justify-content: space-evenly;
+                border-left: none; border-top: 1px solid var(--panel-border);
+            }
+        }
+
+        /* Very tall (VL/VXL): extra breathing room, centered stats */
+        @media (max-aspect-ratio: 50/100) {
+            #sidebar { justify-content: center; gap: calc(var(--layout-unit) * 8); align-items: center; text-align: center; }
+        }
     </style>
 </head>
 <body>
