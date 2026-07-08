@@ -105,5 +105,28 @@ if (W.slerpPoint) {
   check('slerpPoint implemented', false);
 }
 
+// --- Task 7 cases: pass detection over synthetic samples ---
+if (W.findPassInSamples) {
+  // Synthetic near-pass: ground point marches toward the user then away
+  const user = { lat: 40, lon: -100 };
+  const t0 = 1000000;
+  const samples = [];
+  for (let i = 0; i < 30; i++) {
+    // lon sweeps from -160 to -40 across the user's meridian; lat fixed near user
+    samples.push([t0 + i * 120, -160 + i * 4, 38]);
+  }
+  const hit = W.findPassInSamples(samples, user.lat, user.lon, 2250);
+  check('pass detected', hit !== null);
+  // closest approach is around lon=-100 -> i=15 -> ts=1801800... rise must be earlier
+  check('rise before closest approach', hit.riseTs < t0 + 15 * 120);
+  check('rise inside sample range', hit.riseTs >= t0);
+  const none = W.findPassInSamples(samples, -80, 100, 2250);
+  check('no pass when far away', none === null);
+  const inside = W.findPassInSamples([[t0, -100, 40]], user.lat, user.lon, 2250);
+  check('immediate overhead detected at first sample', inside !== null && inside.riseTs === t0);
+} else {
+  check('findPassInSamples implemented', false);
+}
+
 console.log(ran + ' checks, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
