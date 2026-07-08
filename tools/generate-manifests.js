@@ -52,6 +52,7 @@ const widgets = [
     devices: [{ type: 'dashboard_lcd' }],
     interactive: false,
     version: '1.0.0',
+    os: [{ platform: 'windows' }], // iCUE 5.x import + CLI both reject 'macos' (see memory: icuewidget-cli-os-bug)
     modules: ['modules/OpenMeteo.mjs'],
   },
   {
@@ -180,7 +181,7 @@ for (const w of widgets) {
     version: w.version || VERSION,
     preview_icon: 'icon.png',
     min_framework_version: MIN_FRAMEWORK_VERSION,
-    os: OS,
+    os: w.os || OS,
     supported_devices: w.devices.map(d => {
       const entry = { type: d.type };
       if (d.features) entry.features = d.features;
