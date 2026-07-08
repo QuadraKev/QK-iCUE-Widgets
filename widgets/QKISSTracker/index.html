@@ -375,6 +375,8 @@
         function __issMock(fix) {
             issState.mocked = true;
             clearTimeout(pollTimer);
+            issState.fix = null;
+            issState.prevFix = null;
             applyFix(fix);
         }
         function __issMockOffline(on) {
