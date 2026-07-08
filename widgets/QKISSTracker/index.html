@@ -297,6 +297,18 @@
             if (cur.length) segs.push(cur);
             return segs;
         }
+        function findPassInSamples(samples, userLat, userLon, radiusKm) {
+            for (var i = 0; i < samples.length; i++) {
+                var d = haversineKm(userLat, userLon, samples[i][2], samples[i][1]);
+                if (d < radiusKm) {
+                    return {
+                        riseTs: samples[i][0],
+                        brackets: i > 0 ? [samples[i - 1][0], samples[i][0]] : null
+                    };
+                }
+            }
+            return null;
+        }
         // @testable-end
 
         var COAST = decodeCoastline(COASTLINE_B64);
@@ -478,6 +490,100 @@
         }
         function __issMockTrack(points) { trackState.points = points; trackState.fetchedAt = Date.now(); drawFrame(); }
 
+        var userLoc = { lat: null, lon: null, resolved: '' };
+        var passState = { riseTs: null, noPass: false, overhead: false, scanning: false };
+        var SCAN_STEP_S = 120, SCAN_HORIZON_S = 21600; // 2 min steps, 6 h
+
+        function resolveLocation() {
+            var locId = String(cfg.issLocation || '').trim();
+            if (!locId || locId === userLoc.resolved) return;
+            fetch('https://geocoding-api.open-meteo.com/v1/get?id=' + encodeURIComponent(locId),
+                  { signal: AbortSignal.timeout(8000) })
+                .then(function(r) { return r.json(); })
+                .then(function(loc) {
+                    if (typeof loc.latitude !== 'number') return;
+                    userLoc.lat = loc.latitude; userLoc.lon = loc.longitude;
+                    userLoc.resolved = locId;
+                    passState.riseTs = null; passState.noPass = false;
+                    scanForPass();
+                    drawFrame();
+                })
+                .catch(function() { /* retried on next onDataUpdated */ });
+        }
+
+        function footprintRadiusKm() {
+            return ((issState.fix && issState.fix.footprint) || 4500) / 2;
+        }
+
+        function scanForPass() {
+            if (userLoc.lat === null || passState.scanning || issState.mocked) return;
+            passState.scanning = true;
+            var now = Math.floor(Date.now() / 1000);
+            var stamps = [];
+            for (var t = now; t <= now + SCAN_HORIZON_S; t += SCAN_STEP_S) stamps.push(t);
+            var chunks = [];
+            for (var i = 0; i < stamps.length; i += 10) chunks.push(stamps.slice(i, i + 10));
+            var samples = [];
+            function next(idx) {
+                if (idx >= chunks.length) return finish();
+                fetchJSON(API_BASE + '/positions?timestamps=' + chunks[idx].join(',') + '&units=kilometers')
+                    .then(function(list) {
+                        list.forEach(function(p) { samples.push([p.timestamp, p.longitude, p.latitude]); });
+                        // stop early once a pass is already found in fetched samples
+                        var hit = findPassInSamples(samples, userLoc.lat, userLoc.lon, footprintRadiusKm());
+                        if (hit) return finish();
+                        setTimeout(function() { next(idx + 1); }, 200);
+                    })
+                    .catch(function() { passState.scanning = false; setTimeout(scanForPass, 60000); });
+            }
+            function finish() {
+                samples.sort(function(a, b) { return a[0] - b[0]; });
+                var hit = findPassInSamples(samples, userLoc.lat, userLoc.lon, footprintRadiusKm());
+                if (!hit) { passState.riseTs = null; passState.noPass = true; passState.scanning = false; updateSidebar(); return; }
+                if (!hit.brackets) { passState.riseTs = hit.riseTs; passState.noPass = false; passState.scanning = false; updateSidebar(); return; }
+                // refine: 10 stamps across the 2-min bracket -> rise within ~13 s
+                var lo = hit.brackets[0], hi = hit.brackets[1];
+                var fine = [];
+                for (var k = 0; k < 10; k++) fine.push(Math.round(lo + (hi - lo) * k / 9));
+                fetchJSON(API_BASE + '/positions?timestamps=' + fine.join(',') + '&units=kilometers')
+                    .then(function(list) {
+                        var fs = list.map(function(p) { return [p.timestamp, p.longitude, p.latitude]; })
+                                     .sort(function(a, b) { return a[0] - b[0]; });
+                        var fhit = findPassInSamples(fs, userLoc.lat, userLoc.lon, footprintRadiusKm());
+                        passState.riseTs = fhit ? fhit.riseTs : hit.riseTs;
+                        passState.noPass = false; passState.scanning = false;
+                        updateSidebar();
+                    })
+                    .catch(function() { passState.riseTs = hit.riseTs; passState.noPass = false; passState.scanning = false; updateSidebar(); });
+            }
+            next(0);
+        }
+
+        function __issMockUser(lat, lon) { userLoc.lat = lat; userLoc.lon = lon; userLoc.resolved = 'mock'; drawFrame(); }
+        function __issMockPass(riseTs) { passState.riseTs = riseTs; passState.noPass = riseTs === null; updateSidebar(); }
+
+        function fmtCountdown(s) {
+            if (s < 0) s = 0;
+            var h2 = Math.floor(s / 3600), m2 = Math.floor((s % 3600) / 60), s2 = Math.floor(s % 60);
+            return (h2 < 10 ? '0' : '') + h2 + ':' + (m2 < 10 ? '0' : '') + m2 + ':' + (s2 < 10 ? '0' : '') + s2;
+        }
+
+        function updatePassDisplay() {
+            var el = document.getElementById('val-pass');
+            if (getComputedStyle(el).display === 'none') return;
+            var ll = currentIssLonLat();
+            passState.overhead = !!(ll && userLoc.lat !== null &&
+                haversineKm(userLoc.lat, userLoc.lon, ll[1], ll[0]) < footprintRadiusKm());
+            if (passState.overhead) { el.textContent = TRS['Overhead now']; return; }
+            if (passState.riseTs) {
+                var remain = passState.riseTs - Date.now() / 1000;
+                if (remain <= 0) { passState.riseTs = null; scanForPass(); el.textContent = '—'; return; }
+                el.textContent = fmtCountdown(remain);
+                return;
+            }
+            el.textContent = passState.noPass ? TRS['No pass in next 6 h'] : '—';
+        }
+
         var lastAnim = 0;
         function animLoop(t) {
             var fpsCap = (typeof iCUE !== 'undefined' && iCUE.fpsLimit) ? iCUE.fpsLimit : 30;
@@ -542,7 +648,15 @@
             ctx.clearRect(0, 0, w, h);
             if (landCanvas) ctx.drawImage(landCanvas, 0, 0);
             if (nightCanvas) ctx.drawImage(nightCanvas, 0, 0);
-            // later tasks append: user marker
+            if (userLoc.lat !== null) {
+                var ux = projX(userLoc.lon, w), uy = projY(userLoc.lat, h);
+                var ur = Math.max(3, h * 0.011);
+                ctx.strokeStyle = cfg.mapColor;
+                ctx.lineWidth = Math.max(1.5, ur * 0.45);
+                ctx.beginPath(); ctx.arc(ux, uy, ur, 0, 6.2832); ctx.stroke();
+                ctx.fillStyle = cfg.mapColor;
+                ctx.beginPath(); ctx.arc(ux, uy, ur * 0.4, 0, 6.2832); ctx.fill();
+            }
             if (trackState.points.length > 1) {
                 var nowS = Date.now() / 1000;
                 var past = [], future = [];
@@ -662,6 +776,9 @@
             fetchTrack();
             setInterval(fetchTrack, 300000);
             requestAnimationFrame(animLoop);
+            resolveLocation();
+            setInterval(scanForPass, 1800000);
+            setInterval(updatePassDisplay, 1000);
         }
 
         icueEvents = {
@@ -670,6 +787,7 @@
                 var prevStyle = cfg.mapStyle, prevMap = cfg.mapColor;
                 readSettings();
                 applySettings();
+                resolveLocation();
                 if (cfg.mapStyle !== prevStyle || cfg.mapColor !== prevMap) rebuildLandLayer();
                 drawFrame();
             }
