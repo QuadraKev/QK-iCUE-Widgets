@@ -412,7 +412,7 @@
 
         function fetchJSON(url) {
             if (issState.offline) return Promise.reject(new Error('mock offline'));
-            return fetch(url, { signal: AbortSignal.timeout(8000) }).then(function(r) {
+            return fetch(url, { signal: AbortSignal.timeout(12000) }).then(function(r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.json();
             });
