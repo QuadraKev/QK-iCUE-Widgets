@@ -271,6 +271,32 @@
             var H = (lon - sub.lon) * RAD;
             return Math.atan(-Math.cos(H) / declTan) / RAD;
         }
+        function slerpPoint(lon1, lat1, lon2, lat2, t) {
+            var RAD = Math.PI / 180;
+            function vec(lon, lat) {
+                var f = lat * RAD, l = lon * RAD;
+                return [Math.cos(f) * Math.cos(l), Math.cos(f) * Math.sin(l), Math.sin(f)];
+            }
+            var a = vec(lon1, lat1), b = vec(lon2, lat2);
+            var dot = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+            var ang = Math.acos(dot);
+            if (ang < 1e-9) return [lon1, lat1];
+            var s = Math.sin(ang);
+            var ka = Math.sin((1 - t) * ang) / s, kb = Math.sin(t * ang) / s;
+            var v = [ka * a[0] + kb * b[0], ka * a[1] + kb * b[1], ka * a[2] + kb * b[2]];
+            return [Math.atan2(v[1], v[0]) / RAD, Math.asin(Math.max(-1, Math.min(1, v[2]))) / RAD];
+        }
+        function splitAtAntimeridian(points) {
+            var segs = [], cur = [];
+            for (var i = 0; i < points.length; i++) {
+                if (cur.length && Math.abs(points[i][0] - cur[cur.length - 1][0]) > 180) {
+                    segs.push(cur); cur = [];
+                }
+                cur.push(points[i]);
+            }
+            if (cur.length) segs.push(cur);
+            return segs;
+        }
         // @testable-end
 
         var COAST = decodeCoastline(COASTLINE_B64);
@@ -429,6 +455,29 @@
             pollTimer = setTimeout(pollLoop, 5000);
         }
 
+        var trackState = { points: [], fetchedAt: 0 };
+
+        function fetchTrack() {
+            if (issState.mocked && trackState.points.length) return;
+            var now = Math.floor(Date.now() / 1000);
+            var stamps = [];
+            for (var i = 0; i < 30; i++) stamps.push(now - 2700 + Math.round(i * (2700 + 5520) / 29));
+            var chunks = [stamps.slice(0, 10), stamps.slice(10, 20), stamps.slice(20, 30)];
+            Promise.all(chunks.map(function(c) {
+                return fetchJSON(API_BASE + '/positions?timestamps=' + c.join(',') + '&units=kilometers');
+            })).then(function(results) {
+                var pts = [];
+                results.forEach(function(list) {
+                    list.forEach(function(p) { pts.push([p.timestamp, p.longitude, p.latitude]); });
+                });
+                pts.sort(function(a, b) { return a[0] - b[0]; });
+                trackState.points = pts;
+                trackState.fetchedAt = Date.now();
+                drawFrame();
+            }).catch(function() { /* keep previous track; next cycle retries */ });
+        }
+        function __issMockTrack(points) { trackState.points = points; trackState.fetchedAt = Date.now(); drawFrame(); }
+
         var lastAnim = 0;
         function animLoop(t) {
             var fpsCap = (typeof iCUE !== 'undefined' && iCUE.fpsLimit) ? iCUE.fpsLimit : 30;
@@ -493,7 +542,41 @@
             ctx.clearRect(0, 0, w, h);
             if (landCanvas) ctx.drawImage(landCanvas, 0, 0);
             if (nightCanvas) ctx.drawImage(nightCanvas, 0, 0);
-            // later tasks append: ground track, user marker
+            // later tasks append: user marker
+            if (trackState.points.length > 1) {
+                var nowS = Date.now() / 1000;
+                var past = [], future = [];
+                for (var i = 0; i < trackState.points.length - 1; i++) {
+                    var p1 = trackState.points[i], p2 = trackState.points[i + 1];
+                    for (var k = 0; k < 6; k++) {
+                        var sp = slerpPoint(p1[1], p1[2], p2[1], p2[2], k / 6);
+                        var ts = p1[0] + (p2[0] - p1[0]) * k / 6;
+                        (ts <= nowS ? past : future).push(sp);
+                    }
+                }
+                var lw = Math.max(1.5, h / 350);
+                ctx.strokeStyle = cfg.accentColor;
+                ctx.lineWidth = lw;
+                ctx.globalAlpha = 0.8;
+                splitAtAntimeridian(past).forEach(function(seg) {
+                    if (seg.length < 2) return;
+                    ctx.beginPath();
+                    ctx.moveTo(projX(seg[0][0], w), projY(seg[0][1], h));
+                    for (var j = 1; j < seg.length; j++) ctx.lineTo(projX(seg[j][0], w), projY(seg[j][1], h));
+                    ctx.stroke();
+                });
+                ctx.globalAlpha = 0.55;
+                ctx.setLineDash([lw * 3, lw * 3.5]);
+                splitAtAntimeridian(future).forEach(function(seg) {
+                    if (seg.length < 2) return;
+                    ctx.beginPath();
+                    ctx.moveTo(projX(seg[0][0], w), projY(seg[0][1], h));
+                    for (var j = 1; j < seg.length; j++) ctx.lineTo(projX(seg[j][0], w), projY(seg[j][1], h));
+                    ctx.stroke();
+                });
+                ctx.setLineDash([]);
+                ctx.globalAlpha = 1;
+            }
             var ll = currentIssLonLat();
             if (ll) {
                 var x = projX(ll[0], w), y = projY(ll[1], h);
@@ -576,6 +659,8 @@
             cacheTranslations();
             updateSidebar();
             pollLoop();
+            fetchTrack();
+            setInterval(fetchTrack, 300000);
             requestAnimationFrame(animLoop);
         }
 
