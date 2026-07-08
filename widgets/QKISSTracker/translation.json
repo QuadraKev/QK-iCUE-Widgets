@@ -1,0 +1,33 @@
+{
+  "en": {
+    "translation": {
+      "QK ISS Tracker": "QK ISS Tracker",
+      "Location": "Location",
+      "Select Location": "Select Location",
+      "Map Style": "Map Style",
+      "Dots": "Dots",
+      "Outline": "Outline",
+      "Filled": "Filled",
+      "Custom Title": "Custom Title",
+      "Widget Personalization": "Widget Personalization",
+      "Background Image": "Background Image",
+      "Glass Blur": "Glass Blur",
+      "Text Color": "Text Color",
+      "Accent Color": "Accent Color",
+      "Map Color": "Map Color",
+      "Background Color": "Background Color",
+      "Transparency": "Transparency",
+      "Altitude": "Altitude",
+      "Speed": "Speed",
+      "Position": "Position",
+      "Next Pass": "Next Pass",
+      "Live": "Live",
+      "Stale": "Stale",
+      "Acquiring": "Acquiring",
+      "Daylight": "Daylight",
+      "Eclipse": "Eclipse",
+      "Overhead now": "Overhead now",
+      "No pass in next 6 h": "No pass in next 6 h"
+    }
+  }
+}
