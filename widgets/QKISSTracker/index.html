@@ -369,7 +369,7 @@
         }
 
         var API_BASE = 'https://api.wheretheiss.at/v1/satellites/25544';
-        var issState = { fix: null, prevFix: null, lastFixAt: 0, failures: 0, acquiring: true, mocked: false, offline: false };
+        var issState = { fix: null, prevFix: null, lastFixAt: 0, failures: 0, acquiring: true, mocked: false, offline: false, inFlight: false };
         var pollTimer = null;
 
         function __issMock(fix) {
@@ -409,8 +409,13 @@
         }
 
         function pollPosition() {
-            if (issState.mocked) return;
-            fetchJSON(API_BASE).then(applyFix).catch(function() {
+            if (issState.mocked || issState.inFlight) return;  // single-flight: fetches may outlive the 5 s cadence
+            issState.inFlight = true;
+            fetchJSON(API_BASE).then(function(data) {
+                issState.inFlight = false;
+                if (!issState.mocked) applyFix(data);  // a mock installed mid-flight wins
+            }).catch(function() {
+                issState.inFlight = false;
                 issState.failures++;
                 updateSidebar();
                 var backoff = [5000, 15000, 30000, 60000][Math.min(issState.failures - 1, 3)];
