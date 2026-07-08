@@ -88,5 +88,22 @@ if (W.terminatorLat) {
   check('terminatorLat implemented', false);
 }
 
+// --- Task 6 cases: great-circle interpolation + antimeridian split ---
+if (W.slerpPoint) {
+  const mid = W.slerpPoint(0, 0, 90, 0, 0.5);
+  check('slerp equator midpoint', Math.abs(mid[0] - 45) < 0.01 && Math.abs(mid[1]) < 0.01);
+  const pole = W.slerpPoint(0, 45, 180, 45, 0.5);
+  check('slerp same-lat crosses near pole', pole[1] > 80);
+  const ends = W.slerpPoint(10, 20, 30, 40, 0);
+  check('slerp t=0 endpoint', Math.abs(ends[0] - 10) < 0.01 && Math.abs(ends[1] - 20) < 0.01);
+  const segs = W.splitAtAntimeridian([[170, 10], [175, 12], [-178, 14], [-170, 16]]);
+  check('antimeridian split count', segs.length === 2);
+  check('antimeridian seg sizes', segs[0].length === 2 && segs[1].length === 2);
+  const nosplit = W.splitAtAntimeridian([[10, 0], [20, 5], [30, 10]]);
+  check('no split when no crossing', nosplit.length === 1 && nosplit[0].length === 3);
+} else {
+  check('slerpPoint implemented', false);
+}
+
 console.log(ran + ' checks, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
