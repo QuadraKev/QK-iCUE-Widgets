@@ -245,6 +245,32 @@
             }
             return rings;
         }
+        function subsolarPoint(dateMs) {
+            var RAD = Math.PI / 180;
+            var d = dateMs / 86400000 - 10957.5;               // days since J2000.0
+            var g = (357.529 + 0.98560028 * d) * RAD;          // solar mean anomaly
+            var q = 280.459 + 0.98564736 * d;                  // solar mean longitude (deg)
+            var L = (q + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) * RAD; // ecliptic lon
+            var e = (23.439 - 0.00000036 * d) * RAD;           // obliquity
+            var decl = Math.asin(Math.sin(e) * Math.sin(L));
+            var ra = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L));
+            var gmstH = ((18.697374558 + 24.06570982441908 * d) % 24 + 24) % 24;
+            var lon = ra / RAD - gmstH * 15;
+            return { lat: decl / Math.PI * 180, lon: ((lon + 540) % 360) - 180 };
+        }
+        function isNight(lon, lat, sub) {
+            var RAD = Math.PI / 180;
+            return Math.sin(lat * RAD) * Math.sin(sub.lat * RAD) +
+                   Math.cos(lat * RAD) * Math.cos(sub.lat * RAD) *
+                   Math.cos((lon - sub.lon) * RAD) < 0;
+        }
+        function terminatorLat(lon, sub) {
+            var RAD = Math.PI / 180;
+            var declTan = Math.tan(sub.lat * RAD);
+            if (declTan === 0) declTan = 1e-9;
+            var H = (lon - sub.lon) * RAD;
+            return Math.atan(-Math.cos(H) / declTan) / RAD;
+        }
         // @testable-end
 
         var COAST = decodeCoastline(COASTLINE_B64);
@@ -302,12 +328,53 @@
             }
         }
 
+        var sunState = { lat: 0, lon: 0, fromApi: false };
+        var nightCanvas = null, nightKey = '';
+
+        function rebuildNightLayer() {
+            if (!canvas || canvas.width === 0) return;
+            var w = canvas.width, h = canvas.height;
+            // redraw only when the subsolar point moved >= 0.25 deg or canvas resized
+            var key = w + 'x' + h + ':' + sunState.lat.toFixed(1) + ',' + (Math.round(sunState.lon * 4) / 4).toFixed(2);
+            if (key === nightKey && nightCanvas) return;
+            nightKey = key;
+            nightCanvas = document.createElement('canvas');
+            nightCanvas.width = w; nightCanvas.height = h;
+            var c = nightCanvas.getContext('2d');
+            c.beginPath();
+            // terminator latitude per column: tan(phi) = -cos(H) / tan(decl)
+            for (var x = 0; x <= w; x += 2) {
+                var lon = x / w * 360 - 180;
+                var phi = terminatorLat(lon, sunState);
+                var y = projY(phi, h);
+                if (x === 0) c.moveTo(0, y); else c.lineTo(x, y);
+            }
+            // night is on the pole opposite the sun's declination
+            if (sunState.lat >= 0) { c.lineTo(w, h); c.lineTo(0, h); }  // fill to south
+            else { c.lineTo(w, 0); c.lineTo(0, 0); }                     // fill to north
+            c.closePath();
+            c.save();
+            c.filter = 'blur(' + Math.max(2, h * 0.015) + 'px)';
+            c.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            c.fill();
+            c.restore();
+        }
+
+        function updateSun() {
+            if (!sunState.fromApi) {
+                var s = subsolarPoint(Date.now());
+                sunState.lat = s.lat; sunState.lon = s.lon;
+            }
+            rebuildNightLayer();
+        }
+
         function drawFrame() {
             if (!ctx) return;
             var w = canvas.width, h = canvas.height;
             ctx.clearRect(0, 0, w, h);
             if (landCanvas) ctx.drawImage(landCanvas, 0, 0);
-            // later tasks append: night overlay, ground track, user marker, ISS marker
+            if (nightCanvas) ctx.drawImage(nightCanvas, 0, 0);
+            // later tasks append: ground track, user marker, ISS marker
         }
 
         function resizeCanvas() {
@@ -315,6 +382,7 @@
             if (wrap.clientWidth === 0) return;
             canvas.width = Math.round(wrap.clientWidth * dpr);
             canvas.height = Math.round(wrap.clientHeight * dpr);
+            nightKey = '';
             rebuildLandLayer();
             drawFrame();
         }
@@ -370,6 +438,9 @@
             readSettings();
             applySettings();
             translateLabels();
+            updateSun();
+            setInterval(function() { updateSun(); drawFrame(); }, 60000);
+            drawFrame();
         }
 
         icueEvents = {
