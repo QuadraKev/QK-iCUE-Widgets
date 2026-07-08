@@ -74,7 +74,7 @@ async function main() {
 
     const page = await browser.newPage();
     await page.setViewport({ width: slot.width, height: slot.height });
-    await page.goto('file://' + absPath, { waitUntil: 'networkidle0', timeout: 10000 });
+    await page.goto('file://' + absPath, { waitUntil: 'networkidle0', timeout: 30000 });
 
     // Inject JS to modify widget state before screenshot
     if (args.evalCode) {
