@@ -147,7 +147,7 @@
             align-items: center;
             justify-content: center;
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: calc(24vh / var(--grid-size, 4));
+            font-size: calc(52vh / var(--grid-size, 4));
             font-weight: bold;
             color: var(--text-color);
             transition: transform 0.1s ease-out;
@@ -161,13 +161,13 @@
         .cell[data-val="16"]   { background: #F59563; color: #F9F6F2; }
         .cell[data-val="32"]   { background: #F67C5F; color: #F9F6F2; }
         .cell[data-val="64"]   { background: #F65E3B; color: #F9F6F2; }
-        .cell[data-val="128"]  { background: #EDCF72; color: #F9F6F2; font-size: calc(20vh / var(--grid-size, 4)); }
-        .cell[data-val="256"]  { background: #EDCC61; color: #F9F6F2; font-size: calc(20vh / var(--grid-size, 4)); }
-        .cell[data-val="512"]  { background: #EDC850; color: #F9F6F2; font-size: calc(20vh / var(--grid-size, 4)); }
-        .cell[data-val="1024"] { background: #EDC53F; color: #F9F6F2; font-size: calc(16vh / var(--grid-size, 4)); }
-        .cell[data-val="2048"] { background: #EDC22E; color: #F9F6F2; font-size: calc(16vh / var(--grid-size, 4)); }
-        .cell[data-val="4096"] { background: #3C3A32; color: #F9F6F2; font-size: calc(16vh / var(--grid-size, 4)); }
-        .cell[data-val="8192"] { background: #3C3A32; color: #F9F6F2; font-size: calc(16vh / var(--grid-size, 4)); }
+        .cell[data-val="128"]  { background: #EDCF72; color: #F9F6F2; font-size: calc(40vh / var(--grid-size, 4)); }
+        .cell[data-val="256"]  { background: #EDCC61; color: #F9F6F2; font-size: calc(40vh / var(--grid-size, 4)); }
+        .cell[data-val="512"]  { background: #EDC850; color: #F9F6F2; font-size: calc(40vh / var(--grid-size, 4)); }
+        .cell[data-val="1024"] { background: #EDC53F; color: #F9F6F2; font-size: calc(32vh / var(--grid-size, 4)); }
+        .cell[data-val="2048"] { background: #EDC22E; color: #F9F6F2; font-size: calc(32vh / var(--grid-size, 4)); }
+        .cell[data-val="4096"] { background: #3C3A32; color: #F9F6F2; font-size: calc(32vh / var(--grid-size, 4)); }
+        .cell[data-val="8192"] { background: #3C3A32; color: #F9F6F2; font-size: calc(32vh / var(--grid-size, 4)); }
 
         .cell.pop {
             transform: scale(1.1);
@@ -253,11 +253,11 @@
             padding: 2vh 3vh;
         }
 
-        .score-box-label { font-size: 4vh; }
-        .score-box-value { font-size: 10vh; }
-        .game-msg { font-size: 7vh; }
+        .score-box-label { font-size: 7.5vh; }
+        .score-box-value { font-size: 14vh; }
+        .game-msg { font-size: 10.5vh; }
         .new-game-btn {
-            font-size: 7vh;
+            font-size: 10.5vh;
             padding: 2vh 4vh;
         }
 
@@ -281,6 +281,17 @@
             .new-game-btn br { display: none; }
         }
 
+        /* HS only: same aspect family as HL/HXL but half the pixels - double the unit
+           for side-panel text (score/msg/button are physical-readability targets, unlike
+           the tile numbers below which are already geometry-matched via the shared board-wrap
+           formula). Threshold 2427/1000 separates HS (2.4377) from HL (2.4232) per the typography standard. */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .score-box-label { font-size: 9vh; }
+            .score-box-value { font-size: 22vh; }
+            .game-msg { font-size: 16vh; }
+            .new-game-btn { font-size: 16vh; }
+        }
+
         /* ================================================================
            HM: Nearly square (aspect 1.0-1.5)
            Column layout, board top, info below
@@ -295,6 +306,9 @@
                 height: auto;
                 width: 60vmin;
             }
+            .cell { font-size: calc(34vmin / var(--grid-size, 4)); }
+            .cell[data-val="128"], .cell[data-val="256"], .cell[data-val="512"] { font-size: calc(27vmin / var(--grid-size, 4)); }
+            .cell[data-val="1024"], .cell[data-val="2048"], .cell[data-val="4096"], .cell[data-val="8192"] { font-size: calc(21vmin / var(--grid-size, 4)); }
             .panel {
                 flex-direction: row;
                 gap: 3vw;
@@ -306,10 +320,10 @@
                 min-width: 0;
                 flex: 1;
             }
-            .score-box-label { font-size: 2.5vmin; }
-            .score-box-value { font-size: 4.5vmin; }
-            .game-msg { font-size: 4.5vmin; min-height: auto; }
-            .new-game-btn { font-size: 4vmin; padding: 1.5vmin 3vmin; }
+            .score-box-label { font-size: 4.5vmin; }
+            .score-box-value { font-size: 7vmin; }
+            .game-msg { font-size: 6.5vmin; min-height: auto; }
+            .new-game-btn { font-size: 6.5vmin; padding: 1.5vmin 3vmin; }
             .new-game-btn br { display: none; }
         }
 
@@ -327,9 +341,9 @@
                 height: auto;
                 width: 85vw;
             }
-            .cell { font-size: calc(26vw / var(--grid-size, 4)); }
-            .cell[data-val="128"], .cell[data-val="256"], .cell[data-val="512"] { font-size: calc(22vw / var(--grid-size, 4)); }
-            .cell[data-val="1024"], .cell[data-val="2048"], .cell[data-val="4096"], .cell[data-val="8192"] { font-size: calc(18vw / var(--grid-size, 4)); }
+            .cell { font-size: calc(38vw / var(--grid-size, 4)); }
+            .cell[data-val="128"], .cell[data-val="256"], .cell[data-val="512"] { font-size: calc(30vw / var(--grid-size, 4)); }
+            .cell[data-val="1024"], .cell[data-val="2048"], .cell[data-val="4096"], .cell[data-val="8192"] { font-size: calc(24vw / var(--grid-size, 4)); }
             .panel {
                 flex-direction: row;
                 gap: 4vw;
@@ -341,10 +355,10 @@
                 min-width: 0;
                 flex: 1;
             }
-            .score-box-label { font-size: 3.5vw; }
-            .score-box-value { font-size: 6vw; }
+            .score-box-label { font-size: 4.5vw; }
+            .score-box-value { font-size: 8.5vw; }
             .game-msg { font-size: 6vw; min-height: auto; }
-            .new-game-btn { font-size: 5vw; padding: 2vw 4vw; }
+            .new-game-btn { font-size: 6vw; padding: 2vw 4vw; }
             .new-game-btn br { display: none; }
         }
 
