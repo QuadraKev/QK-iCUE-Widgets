@@ -3,7 +3,7 @@
   "id": "com.quadrakev.isstracker",
   "name": "ISS Tracker",
   "description": "Live ISS position over a day/night world map with orbit track and next-pass countdown.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
