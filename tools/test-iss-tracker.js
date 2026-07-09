@@ -9,7 +9,8 @@ const m = html.match(/\/\/ @testable-start([\s\S]*?)\/\/ @testable-end/);
 if (!m) { console.error('FAIL: @testable markers not found in index.html'); process.exit(1); }
 
 const exportNames = ['LAT_MAX', 'projX', 'projY', 'decodeCoastline', 'haversineKm', 'wrapLon',
-                     'subsolarPoint', 'isNight', 'terminatorLat', 'slerpPoint', 'splitAtAntimeridian', 'findPassInSamples'];
+                     'subsolarPoint', 'isNight', 'terminatorLat', 'slerpPoint', 'splitAtAntimeridian', 'findPassInSamples',
+                     'skipStrokeSegment'];
 const fn = new Function(m[1] + '\nreturn {' + exportNames.map(n => n + ': (typeof ' + n + ' !== "undefined" ? ' + n + ' : undefined)').join(',') + '};');
 const W = fn();
 
@@ -126,6 +127,18 @@ if (W.findPassInSamples) {
   check('immediate overhead detected at first sample', inside !== null && inside.riseTs === t0);
 } else {
   check('findPassInSamples implemented', false);
+}
+
+// --- map edge-line fix cases ---
+if (W.skipStrokeSegment) {
+  check('skip antimeridian jump', W.skipStrokeSegment(-180, 65, 180, 65.2));
+  check('skip top crop edge run', W.skipStrokeSegment(-27.1, 75, -20.7, 75));
+  check('skip bottom crop edge run', W.skipStrokeSegment(165, -75, 178, -75));
+  check('skip antimeridian closure edge', W.skipStrokeSegment(180, 65, 180, 69));
+  check('keep normal coast segment', !W.skipStrokeSegment(10, 50, 10.4, 50.2));
+  check('keep segment touching crop edge once', !W.skipStrokeSegment(-20, 75, -19, 74.2));
+} else {
+  check('skipStrokeSegment implemented', false);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');
