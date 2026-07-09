@@ -282,14 +282,44 @@
         }
 
         /* HS only: same aspect family as HL/HXL but half the pixels - double the unit
-           for side-panel text (score/msg/button are physical-readability targets, unlike
-           the tile numbers below which are already geometry-matched via the shared board-wrap
-           formula). Threshold 2427/1000 separates HS (2.4377) from HL (2.4232) per the typography standard. */
+           for side-panel text (score/msg/button are physical-readability targets).
+           Threshold 2427/1000 separates HS (2.4377) from HL (2.4232) per the typography standard. */
         @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
             .score-box-label { font-size: 9vh; }
             .score-box-value { font-size: 22vh; }
             .game-msg { font-size: 16vh; }
             .new-game-btn { font-size: 16vh; }
+
+            /* Tile numbers: the shared board-wrap formula keeps .cell's FILL RATIO
+               self-similar between HS and HL (same vh formula -> same % of the tile box),
+               but that is not the same as meeting the hero px target - HS's absolute tile
+               box (~73.6px) is half HL's (~149px), so the inherited base-rule size (13vh)
+               lands at only 44.85px/57% of the 79px hero target, not the 113% a prior pass
+               of this report mistakenly recorded (that figure reused HL's px-per-vh factor).
+               Ceiling-tested per digit-count tier via DOM text-width measurement against the
+               live tile box, using the widest real game value per tier: 1-2 digit ("64")
+               clips at 16vh (74.55px text vs a 73.61px box) and is clean at 15vh (51.6px
+               font, 70.55px text, 3.06px margin) - real headroom, used below. 3-digit
+               ("256") and 4-digit ("4096") are intentionally left on the inherited 10vh/8vh
+               base size: both are already within ~1px of clipping at that size, so the
+               same self-similar scaling that under-fills the 1-2 digit tier has already
+               saturated the width budget for longer strings - no headroom to give. */
+            .cell { font-size: 15vh; }
+        }
+
+        /* ================================================================
+           VS only: aspect ~1.67 (696x416) - the gap between HM's upper bound (1.5) and
+           the wide family's lower bound (2.0). Everything except tile numbers already comes
+           from the undecorated "Default" block above (board-wrap: 92vh, score/msg/button
+           sizes). Same fill-ratio-vs-hero-target gap as HS above, same fix and same fitting
+           method (DOM text-width vs. live tile box, widest real value per tier): 1-2 digit
+           ("64") clips at 16vh (91.00px text vs a 90.06px box) and is clean at 15vh (62.4px
+           font, 85.31px text, 4.75px margin). 3-digit/4-digit are left on the inherited
+           10vh/8vh base size for the same reason as HS - both already within ~1px of their
+           own ceiling, no headroom to give.
+           ================================================================ */
+        @media (min-aspect-ratio: 151/100) and (max-aspect-ratio: 199/100) {
+            .cell { font-size: 15vh; }
         }
 
         /* ================================================================
