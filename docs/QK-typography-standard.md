@@ -85,5 +85,7 @@ Chromium's ~10 px minimum font size distorts small previews (vertical zoom 3/4);
 
 1. Pick sizes from the role table — never smaller than the label row for anything that must be read.
 2. Use the family multipliers above; if a slot can't fit everything at target size, hide elements (hide-don't-shrink), never scale down.
+   - *Touch-control caption carve-out:* captions on touch targets (tool/action buttons) are read at touch distance, not ambient distance, and may stay visible below target when (a) the icon alone is ambiguous and (b) a documented geometric ceiling caps them — maximize within the control, don't hide.
+   - *Constrained containers:* where a circular or fixed-geometry container caps text (8-ball, moon disc, game tiles), the verified ratio-vs-container benchmark governs instead of the raw px margin; document the ceiling with rendered failing+passing candidates.
 3. Verify with `tools/screenshot.js` at 100% and check px sizes match the table (screenshot px = device px).
 4. On-device spot check: text should be comfortably readable from normal seating without leaning in.
