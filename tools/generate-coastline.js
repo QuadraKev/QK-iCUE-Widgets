@@ -54,6 +54,57 @@ function decodeTopo(topo) {
   return rings;
 }
 
+// Splits each ring at antimeridian crossings (consecutive points, including the
+// implicit closing edge, whose |Δlon| > 180) into open polylines. Each resulting
+// piece is emitted as its own ring; the renderer's implicit closePath() then
+// connects its two endpoints directly. In real coastline data both endpoints of
+// a piece lie on the same ±180 edge, so that closure is a short vertical segment
+// along the map edge rather than a spurious full-width chord.
+function splitAtAntimeridian(rings) {
+  const out = [];
+  for (let ri = 0; ri < rings.length; ri++) {
+    const ring = rings[ri];
+    const n = ring.length;
+    const jumps = [];
+    for (let i = 0; i < n; i++) {
+      const a = ring[i], b = ring[(i + 1) % n];
+      if (Math.abs(b[0] - a[0]) > 180) jumps.push(i);
+    }
+    if (jumps.length === 0) { out.push(ring); continue; }
+    // A ring that crosses the antimeridian an ODD number of times encircles a pole
+    // (only Antarctica does this in this dataset) — a closed 2D ring fundamentally
+    // cannot be split into simple pieces by connecting two cut endpoints directly in
+    // that case (the single "closing" edge IS the original crossing edge; there is no
+    // other way to close the loop without adding explicit pole-hugging border geometry,
+    // which is out of scope here). Pass it through unchanged, same as a no-jump ring.
+    // The widget's skipStrokeSegment has a defensive |Δlon|>180 check specifically for
+    // this residual case, so it never renders as a stray stroke; only fill-boundary
+    // shape for this one landmass is affected, unchanged from pre-existing behavior.
+    if (jumps.length % 2 === 1) {
+      console.warn('splitAtAntimeridian: ring ' + ri + ' has an odd antimeridian crossing count (' +
+        jumps.length + ') — pole-wrapping ring, cannot be split; passing through unchanged.');
+      out.push(ring);
+      continue;
+    }
+    for (let k = 0; k < jumps.length; k++) {
+      const start = (jumps[k] + 1) % n;
+      const end = jumps[(k + 1) % jumps.length];
+      const piece = [];
+      let idx = start;
+      while (true) {
+        piece.push(ring[idx]);
+        if (idx === end) break;
+        idx = (idx + 1) % n;
+      }
+      const p0 = piece[0], p1 = piece[piece.length - 1];
+      if (Math.abs(p0[0]) < 179.9 || Math.abs(p1[0]) < 179.9)
+        console.warn('splitAtAntimeridian: ring ' + ri + ' piece endpoints not both on antimeridian edge: [' + p0 + '] -> [' + p1 + ']');
+      out.push(piece);
+    }
+  }
+  return out;
+}
+
 function thin(ring) {
   const out = [ring[0]];
   for (const p of ring) {
@@ -118,7 +169,11 @@ function decodeCoastline(b64) {
     raw = await download(SRC_URL);
     fs.writeFileSync(CACHE, raw);
   }
-  const rings = decodeTopo(JSON.parse(raw)).map(thin).filter(r => r.length >= MIN_RING_POINTS);
+  const decoded = decodeTopo(JSON.parse(raw));
+  const split = splitAtAntimeridian(decoded);
+  // Drop rings that degenerate entirely into the crop-edge clamp line (e.g. islands above 75N / below -75S).
+  const cropped = split.filter(r => !r.every(p => Math.abs(p[1]) >= LAT_MAX));
+  const rings = cropped.map(thin).filter(r => r.length >= MIN_RING_POINTS);
   const b64 = pack(rings);
 
   // Round-trip verification
@@ -131,6 +186,21 @@ function decodeCoastline(b64) {
     for (let j = 0; j < ring.length; j += 2)
       if (ring[j] < -180.05 || ring[j] > 180.05 || Math.abs(ring[j + 1]) > LAT_MAX + 0.05)
         throw new Error('coordinate out of range after round-trip');
+  // No consecutive-point segment (closing segment included) should jump the antimeridian,
+  // EXCEPT the single documented pole-wrap ring (odd crossing count, see splitAtAntimeridian)
+  // which cannot be split and is intentionally passed through with its one residual jump.
+  let poleWrapRings = 0;
+  for (const ring of back) {
+    const m = ring.length / 2;
+    let jumpCount = 0;
+    for (let j = 0; j < m; j++) {
+      const k = (j + 1) % m;
+      if (Math.abs(ring[k * 2] - ring[j * 2]) > 180) jumpCount++;
+    }
+    if (jumpCount > 1) throw new Error('antimeridian jump remains after split (ring closing segment included)');
+    if (jumpCount === 1) poleWrapRings++;
+  }
+  if (poleWrapRings > 1) throw new Error('expected at most 1 pole-wrap ring, found ' + poleWrapRings);
 
   const pts = rings.reduce((s, r) => s + r.length, 0);
   console.log('rings=' + rings.length + ' points=' + pts + ' packed=' + b64.length + ' chars (budget ' + BUDGET + ')');
