@@ -184,13 +184,17 @@
             white-space: nowrap;
         }
 
-        /* Wide (HS/HL/HXL): aspect >= 2.0 */
+        /* Wide (HS/HL/HXL): aspect >= 2.0. hero/value/label are already comfortably
+           over target at both HS and HL with a single shared value (no split needed);
+           date-row (body role) is bumped to 12vh, which alone clears the 40px body
+           target at both HS (12*3.45=41.4px) and HL (12*6.97=83.6px) since it sits on
+           its own row with no inline siblings competing for width. */
         @media (min-aspect-ratio: 200/100) {
             .time-digits, .time-sep { font-size: 36vh; }
             .time-seconds { font-size: 18vh; }
             .time-period { font-size: 12vh; margin-left: 1.5vh; }
             .divider { width: 15vh; }
-            .date-row { font-size: 8vh; }
+            .date-row { font-size: 12vh; }
             .clock-face { gap: 2vh; }
         }
 
@@ -200,7 +204,7 @@
             .time-seconds { font-size: 14vh; }
             .time-period { font-size: 9vh; margin-left: 1vh; }
             .divider { width: 12vh; }
-            .date-row { font-size: 7vh; }
+            .date-row { font-size: 10vh; }
             .clock-face { gap: 2vh; }
         }
 
@@ -209,7 +213,7 @@
             .time-digits, .time-sep { font-size: 18vmin; }
             .time-seconds { font-size: 9vmin; }
             .time-period { font-size: 6vmin; }
-            .date-row { font-size: 4.5vmin; }
+            .date-row { font-size: 6vmin; }
         }
 
         /* Portrait (VM/VL/VXL): aspect < 0.9 */
@@ -218,7 +222,7 @@
             .time-seconds { font-size: 9vw; }
             .time-period { font-size: 6vw; }
             .divider { width: 15vw; }
-            .date-row { font-size: 4.5vw; }
+            .date-row { font-size: 6vw; }
             .clock-face { gap: 2.5vw; }
         }
 
@@ -227,7 +231,7 @@
             .time-digits, .time-sep { font-size: 20vw; }
             .time-seconds { font-size: 10vw; }
             .time-period { font-size: 7vw; }
-            .date-row { font-size: 5vw; }
+            .date-row { font-size: 6vw; }
         }
 
         @media (prefers-reduced-motion: reduce) {
