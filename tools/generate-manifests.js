@@ -51,7 +51,7 @@ const widgets = [
     description: 'Live ISS position over a day/night world map with orbit track and next-pass countdown.',
     devices: [{ type: 'dashboard_lcd' }],
     interactive: false,
-    version: '1.1.1',
+    version: '1.1.2',
     os: [{ platform: 'windows' }], // iCUE 5.x import + CLI both reject 'macos' (see memory: icuewidget-cli-os-bug)
     modules: ['modules/OpenMeteo.mjs'],
   },
