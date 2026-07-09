@@ -257,7 +257,7 @@
 
         .decimal-time.hidden { display: none; }
 
-        /* ---- Wide (HS/HL/HXL) ---- */
+        /* ---- Wide (HL/HXL/HM) ---- */
         @media (min-aspect-ratio: 200/100) {
             .bcd-dot {
                 width: 12vh;
@@ -272,9 +272,17 @@
             .decimal-time { font-size: 12vh; }
             .binary-bit { width: 10vh; height: 10vh; }
             .binary-label { font-size: 5vh; width: 7vh; }
-            .binary-value { font-size: 7vh; width: 9vh; }
+            .binary-value { font-size: 8.5vh; width: 10vh; }
             .binary-grid { gap: 3vh; }
             .binary-row { gap: 2vh; }
+        }
+
+        /* ---- HS (2.44:1): text roles only — dot/bit grid geometry stays at wide-bucket size ---- */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .bcd-label { font-size: 10vh; }
+            .decimal-time { font-size: 24vh; }
+            .binary-label { font-size: 10vh; width: 14vh; }
+            .binary-value { font-size: 16vh; width: 19vh; }
         }
 
         /* ---- HM (1.21:1) — match wide sizing ---- */
@@ -292,12 +300,12 @@
             .decimal-time { font-size: 12vh; }
             .binary-bit { width: 10vh; height: 10vh; }
             .binary-label { font-size: 5vh; width: 7vh; }
-            .binary-value { font-size: 7vh; width: 9vh; }
+            .binary-value { font-size: 8.5vh; width: 10vh; }
             .binary-grid { gap: 3vh; }
             .binary-row { gap: 2vh; }
         }
 
-        /* ---- Keyboard LCD (248x170, ~1.46:1) ---- */
+        /* ---- Keyboard LCD (248x170, ~1.46:1): decimal-time is the hero; letters hidden for room ---- */
         @media (min-aspect-ratio: 135/100) and (max-aspect-ratio: 155/100) {
             .bcd-dot {
                 width: 16vh;
@@ -306,13 +314,13 @@
             .bcd-grid { gap: 3vh; }
             .bcd-column { gap: 2vh; }
             .bcd-dots { gap: 2vh; }
-            .bcd-label { font-size: 8vh; }
+            .bcd-label { display: none; }
             .sep-dot { width: 3vh; height: 3vh; }
             .bcd-separator { gap: 4vh; }
             .decimal-time { font-size: 16vh; margin-top: 0; }
             .binary-bit { width: 14vh; height: 14vh; }
-            .binary-label { font-size: 8vh; width: 10vh; }
-            .binary-value { font-size: 9vh; width: 12vh; }
+            .binary-label { display: none; }
+            .binary-value { font-size: 18vh; width: 22vh; }
             .binary-grid { gap: 3vh; }
             .binary-row { gap: 2vh; }
         }
@@ -326,18 +334,18 @@
             .bcd-grid { gap: 2.5vh; }
             .bcd-column { gap: 2vh; }
             .bcd-dots { gap: 2vh; }
-            .bcd-label { font-size: 5vh; }
+            .bcd-label { font-size: 7.5vh; }
             .sep-dot { width: 2.5vh; height: 2.5vh; }
             .bcd-separator { gap: 4vh; }
             .decimal-time { font-size: 14vh; }
             .binary-bit { width: 11vh; height: 11vh; }
-            .binary-label { font-size: 5vh; width: 7vh; }
-            .binary-value { font-size: 8vh; width: 10vh; }
+            .binary-label { font-size: 7.5vh; width: 10vh; }
+            .binary-value { font-size: 14vh; width: 16vh; }
             .binary-grid { gap: 3vh; }
             .binary-row { gap: 2vh; }
         }
 
-        /* ---- Square / Pump (480x480) ---- */
+        /* ---- Square / Pump (480x480): letters hidden, grid + values take the room ---- */
         @media (max-aspect-ratio: 110/100) and (min-aspect-ratio: 90/100) {
             .bcd-dot {
                 width: 9vmin;
@@ -346,13 +354,13 @@
             .bcd-grid { gap: 2vmin; }
             .bcd-column { gap: 1.5vmin; }
             .bcd-dots { gap: 1.5vmin; }
-            .bcd-label { font-size: 4vmin; }
+            .bcd-label { display: none; }
             .sep-dot { width: 2.5vmin; height: 2.5vmin; }
             .bcd-separator { gap: 3vmin; }
-            .decimal-time { font-size: 10vmin; }
+            .decimal-time { font-size: 22vmin; }
             .binary-bit { width: 11vmin; height: 11vmin; }
-            .binary-label { font-size: 6vmin; width: 8vmin; }
-            .binary-value { font-size: 7vmin; width: 9vmin; }
+            .binary-label { display: none; }
+            .binary-value { font-size: 14vmin; width: 18vmin; }
             .binary-grid { gap: 3vmin; }
             .binary-row { gap: 2vmin; }
         }
@@ -374,11 +382,11 @@
                 width: 8vw;
                 height: 8vw;
             }
-            .bcd-label { font-size: 3.5vw; }
-            .decimal-time { font-size: 7vw; }
+            .bcd-label { font-size: 4.5vw; }
+            .decimal-time { font-size: 8.5vw; }
             .binary-bit { width: 7vw; height: 7vw; }
-            .binary-label { font-size: 3.5vw; width: 5vw; }
-            .binary-value { font-size: 5vw; width: 7vw; }
+            .binary-label { font-size: 4.5vw; width: 6vw; }
+            .binary-value { font-size: 8vw; width: 10vw; }
         }
     
 @media (prefers-reduced-motion: reduce) {
