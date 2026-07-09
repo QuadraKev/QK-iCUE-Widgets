@@ -278,7 +278,7 @@
            .btn are free-floating text (not width-bound), so they use the standard doubled unit.
            display-value shares HL's row with the button grid, so its width budget does NOT
            halve as cleanly - naive doubling (36vh) truncates a normal 8-digit result via
-           ellipsis (verified: 105px/36.2vh clips "876543...", 96px/33.1vh is the largest
+           ellipsis (verified: 105px/30.4vh clips "876543...", 96px/27.8vh is the largest
            passing candidate, 90px/26vh chosen with margin, incl. a leading "-" sign).
            Threshold 2427/1000 separates HS (2.4377) from HL (2.4232) per the typography standard. */
         @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
