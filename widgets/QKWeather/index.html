@@ -414,12 +414,21 @@
             .container { gap: calc(0.6 * var(--u)); }
             .current.shown { gap: calc(0.4 * var(--u)); padding: calc(0.6 * var(--u)); }
             .detail-card { padding: calc(0.5 * var(--u)); }
-            .icon-wrap { width: calc(8 * var(--u)); height: calc(8 * var(--u)); }
             .forecast.shown { gap: calc(0.3 * var(--u)); padding: calc(0.6 * var(--u)); }
             .forecast-grid { gap: calc(0.6 * var(--u)); }
             .fday { padding: calc(0.2 * var(--u)); justify-content: space-evenly; }
             .fday-date, .fday-lo, .fday-precip { display: none; }
             .fday-icon { width: calc(4 * var(--u)); height: calc(4 * var(--u)); margin: 0; }
+        }
+
+        /* Square-ish .icon-wrap: HM only. Split out of the block above and capped at
+           134/100 (not 200/100) to stay clear of the KB bucket's 135/100-155/100 range —
+           KB's real aspect (248/170=1.459) fell inside the old 90-200 range and, at equal
+           specificity with later source order, clobbered KB's own 35u icon-wrap down to 8u.
+           Pump (1.0) and VS (1.67) are unaffected either way since their own more-specific
+           buckets below re-declare icon-wrap after this one. */
+        @media (max-aspect-ratio: 134/100) and (min-aspect-ratio: 90/100) {
+            .icon-wrap { width: calc(8 * var(--u)); height: calc(8 * var(--u)); }
         }
 
         /* HS / VS: side-by-side current weather + 2x2 details */
