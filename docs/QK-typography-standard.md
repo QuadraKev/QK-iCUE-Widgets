@@ -77,6 +77,15 @@ HS and HL have nearly identical aspect ratios but differ at the hundredth (actua
 
 Margins are ~0.16%: **deterministic on device** (dimensions are fixed), but a ±1 px rounding change in a future iCUE preview size could flip which wide layout the *preview* shows — a cosmetic risk only. Re-verify with `tools/viewport-probe.html` after iCUE updates.
 
+### Tri-device breakpoint convention (KB exclusion)
+
+The keyboard LCD's aspect ratio (248/170 = **1.459**) falls inside naive square-ish ranges and — via source order — silently clobbers KB buckets (this bit three widgets during the 2026-07 rollout, via font sizes AND element dimensions). Convention for tri-device widgets:
+
+- HM/square-ish buckets cap at `max-aspect-ratio: 134/100`
+- KB bucket spans `135/100 – 155/100`
+- The unreachable 1.34–1.35 gap falls back to base rules (no real device or preview lands there)
+- When auditing: check EVERY property a shared-range bucket sets against the KB bucket's needs, not just font sizes.
+
 ### Preview caveats (unchanged from design guidelines)
 
 Chromium's ~10 px minimum font size distorts small previews (vertical zoom 3/4); px floors like `max(29px, 4.2vh)` are banned because they oversize text in previews. Where preview fidelity matters, use the cqmin compensation pattern (see `QK-widget-design-guidelines.md` → Preview Scale Compensation).

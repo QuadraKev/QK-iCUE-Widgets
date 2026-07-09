@@ -72,6 +72,16 @@ const widgets = [
     interactive: true,
   },
   {
+    folder: 'QKPumpVisualizer',
+    id: 'com.quadrakev.pumpvisualizer',
+    name: 'Pump Visualizer',
+    description: 'Audio visualizer for pump LCD with album art and now-playing info.',
+    devices: [{ type: 'pump_lcd' }],
+    interactive: false,
+    os: [{ platform: 'windows' }],
+    previewIcon: 'resources/qk-pump-visualizer.svg',
+  },
+  {
     folder: 'QKSimon',
     id: 'com.quadrakev.simon',
     name: 'Simon',
@@ -179,7 +189,7 @@ for (const w of widgets) {
     name: w.name,
     description: w.description,
     version: w.version || VERSION,
-    preview_icon: 'icon.png',
+    preview_icon: w.previewIcon || 'icon.png',
     min_framework_version: MIN_FRAMEWORK_VERSION,
     os: w.os || OS,
     supported_devices: w.devices.map(d => {
@@ -203,7 +213,7 @@ for (const w of widgets) {
 console.log(`\nDone. ${widgets.length} manifest.json files created.`);
 
 // After the main loop, check for uncovered widget folders
-const INTENTIONALLY_OMITTED = new Set(['QKPumpVisualizer']); // pump-only, not going to Marketplace
+const INTENTIONALLY_OMITTED = new Set([]); // (QKPumpVisualizer is version-managed here even though it isn't Marketplace-bound)
 const actualFolders = fs.readdirSync(widgetsDir).filter(f =>
   fs.statSync(path.join(widgetsDir, f)).isDirectory() && f.startsWith('QK')
 );
