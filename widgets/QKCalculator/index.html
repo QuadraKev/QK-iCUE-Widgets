@@ -274,8 +274,29 @@
             }
         }
 
-        /* ---- Responsive: Near-square (HM/VS) ---- */
-        @media (max-aspect-ratio: 180/100) and (min-aspect-ratio: 90/100) {
+        /* HS only: same aspect family as HL/HXL but half the pixels. display-expression and
+           .btn are free-floating text (not width-bound), so they use the standard doubled unit.
+           display-value shares HL's row with the button grid, so its width budget does NOT
+           halve as cleanly - naive doubling (36vh) truncates a normal 8-digit result via
+           ellipsis (verified: 105px/36.2vh clips "876543...", 96px/33.1vh is the largest
+           passing candidate, 90px/26vh chosen with margin, incl. a leading "-" sign).
+           Threshold 2427/1000 separates HS (2.4377) from HL (2.4232) per the typography standard. */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .display-value {
+                font-size: 26vh;
+            }
+            .display-value.small { font-size: 19vh; }
+            .display-value.xsmall { font-size: 13vh; }
+            .display-expression {
+                font-size: 10vh;
+            }
+            .btn {
+                font-size: 14vh;
+            }
+        }
+
+        /* ---- Responsive: HM (aspect 0.9-1.5) ---- */
+        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
             .display {
                 min-height: 20vh;
                 padding: 2vh 2.5vh;
@@ -286,10 +307,36 @@
             .display-value.small { font-size: 10vh; }
             .display-value.xsmall { font-size: 7vh; }
             .display-expression {
-                font-size: 4vh;
+                font-size: 4.5vh;
             }
             .btn {
-                font-size: 5.5vh;
+                font-size: 6vh;
+            }
+        }
+
+        /* ---- Responsive: VS (aspect 1.51-1.99) ---- */
+        /* VS's short viewport means display + 5 button rows compete for a hard vertical
+           budget (~390px of usable height after the squircle inset); button row min-content
+           height doesn't shrink below its own font metrics (flex min-height:auto), so an
+           over-eager bump here pushes the bottom button row off-screen. Verified via direct
+           offsetHeight measurement: value/expr/btn at 20/8/10vh summed to 410px against a
+           390px budget and clipped the "0 . =" row; 20/5/8vh sums to exactly 390px with a
+           53px row height (still well above the 44px touch minimum) and renders clean. */
+        @media (max-aspect-ratio: 199/100) and (min-aspect-ratio: 151/100) {
+            .display {
+                min-height: 20vh;
+                padding: 2vh 2.5vh;
+            }
+            .display-value {
+                font-size: 20vh;
+            }
+            .display-value.small { font-size: 15vh; }
+            .display-value.xsmall { font-size: 10vh; }
+            .display-expression {
+                font-size: 5vh;
+            }
+            .btn {
+                font-size: 8vh;
             }
         }
 
@@ -305,10 +352,10 @@
             .display-value.small { font-size: 10vw; }
             .display-value.xsmall { font-size: 7vw; }
             .display-expression {
-                font-size: 3.5vw;
+                font-size: 4.5vw;
             }
             .btn {
-                font-size: 5vw;
+                font-size: 6vw;
             }
             .btn-grid {
                 gap: 0.8vw;
@@ -317,6 +364,12 @@
         }
 
         /* ---- Responsive: Very tall portrait (L/XL vertical) ---- */
+        /* Pre-existing gap found during typography verification (not introduced by this pass):
+           at 18vw, a normal 8-digit result ("87654321", the un-shrunk case below the .small
+           threshold) truncates via ellipsis - the display's own horizontal padding leaves less
+           room than 18vw needs. Verified via offsetHeight-style testing: 18vw (125.3px) and
+           17vw both clip; 16vw (111.4px) is the largest candidate that renders the full string,
+           including a leading "-" sign, with margin. Still 141% of the 79px hero target. */
         @media (max-aspect-ratio: 50/100) {
             .container {
                 justify-content: center;
@@ -328,9 +381,9 @@
                 padding-bottom: 4vw;
             }
             .display-value {
-                font-size: 18vw;
+                font-size: 16vw;
             }
-            .display-value.small { font-size: 13vw; }
+            .display-value.small { font-size: 10vw; }
             .display-value.xsmall { font-size: 9vw; }
         }
     
