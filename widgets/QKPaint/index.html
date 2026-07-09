@@ -181,7 +181,10 @@
         .tool-btn:active { background: #555; }
         .tool-btn.active { border-color: #5af; background: #1a2a3a; }
         .tool-btn svg { width: 6vh; height: 6vh; pointer-events: none; }
-        .tool-label { font-size: 2vh; color: #999; pointer-events: none; }
+        /* 2.5vh is a verified ceiling, not the 29px label target: three buttons share the
+           fixed 28vh sidebar width (touch geometry, not to be resized), and "Eraser" is the
+           longest caption - 2.7vh already clips it against the button edge (tested). */
+        .tool-label { font-size: 2.5vh; color: #999; pointer-events: none; }
         .tool-btn.active .tool-label { color: #5af; }
 
         /* Brush size buttons */
@@ -233,7 +236,7 @@
         .action-btn:active { background: #555; }
         .action-btn.danger:active { background: #733; }
         .action-btn svg { width: 4vh; height: 4vh; pointer-events: none; }
-        .action-label { font-size: 1.8vh; color: #999; pointer-events: none; }
+        .action-label { font-size: 2.5vh; color: #999; pointer-events: none; }
         .action-btn:disabled { opacity: 0.4; pointer-events: none; }
 
         /* ══════════════ Canvas ══════════════ */
@@ -319,13 +322,15 @@
             .tool-row { gap: 1.6vh; }
             .tool-btn { height: 20vh; }
             .tool-btn svg { width: 10vh; height: 10vh; }
-            .tool-label { font-size: 3.2vh; }
+            /* 3.6vh verified ceiling for "Eraser"/"Undo"/"Clear" within this bucket's
+               auto-sized grid column (4vh clips "Eraser"; 3.6vh does not). */
+            .tool-label { font-size: 3.6vh; }
             .size-row { gap: 1.6vh; }
             .size-btn { height: 16vh; }
             .action-row { gap: 1.6vh; }
             .action-btn { height: 16vh; }
             .action-btn svg { width: 7vh; height: 7vh; }
-            .action-label { font-size: 3vh; }
+            .action-label { font-size: 3.6vh; }
             .color-swatch { height: 14vh; }
         }
 
@@ -355,13 +360,15 @@
             .tool-row { gap: 1.6vh; }
             .tool-btn { height: 20vh; }
             .tool-btn svg { width: 10vh; height: 10vh; }
-            .tool-label { font-size: 3.2vh; }
+            /* Same verified 3.6vh ceiling as the VS bucket above (identical grid structure,
+               "Eraser" is the binding constraint). */
+            .tool-label { font-size: 3.6vh; }
             .size-row { gap: 1.6vh; }
             .size-btn { height: 16vh; }
             .action-row { gap: 1.6vh; }
             .action-btn { height: 16vh; }
             .action-btn svg { width: 7vh; height: 7vh; }
-            .action-label { font-size: 3vh; }
+            .action-label { font-size: 3.6vh; }
             .color-swatch { height: 14vh; }
         }
 
@@ -400,7 +407,7 @@
         }
 
         .picker-label {
-            font-size: 3vh;
+            font-size: 4.5vh;
             color: #aaa;
             text-align: center;
         }
