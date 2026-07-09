@@ -1,6 +1,6 @@
 # QK Typography Standard
 
-Physical text-size targets for all QK widgets, derived from screen-readability standards and locked to each device's PPI. Status: **provisional pending on-device specimen validation** (2026-07-08). Full research notes: `docs/superpowers/research/2026-07-08-typography.md` (local-only).
+Physical text-size targets for all QK widgets, derived from screen-readability standards and locked to each device's PPI. Status: **validated on-device** (2026-07-08: 30 px row confirmed comfortably readable at desk distance). Full research notes: `docs/superpowers/research/2026-07-08-typography.md` (local-only).
 
 ## Evidence base
 

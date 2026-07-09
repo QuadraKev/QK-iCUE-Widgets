@@ -73,13 +73,14 @@
             --text-secondary: color-mix(in srgb, var(--text-color) 70%, var(--bg-color));
             --panel-border: color-mix(in srgb, var(--text-color) 12%, var(--bg-color));
 
-            --layout-unit: 1.2vh;   /* wide slots (default); overridden per aspect below */
-            --font-hero: calc(var(--layout-unit) * 7);
-            --font-value: calc(var(--layout-unit) * 4.6);
-            --font-label: calc(var(--layout-unit) * 2.4);
-            --font-title: calc(var(--layout-unit) * 3.4);
-            --space-gap: calc(var(--layout-unit) * 2);
-            --space-pad: calc(var(--layout-unit) * 3);
+            --u: 1vh;   /* wide slots (default); overridden per aspect below */
+            --font-label: calc(var(--u) * 4.2);
+            --font-body: calc(var(--u) * 5.7);
+            --font-value: calc(var(--u) * 7.8);
+            --font-hero: calc(var(--u) * 11.3);
+            --font-title: var(--font-body);
+            --space-gap: calc(var(--u) * 2);
+            --space-pad: calc(var(--u) * 3);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; }
@@ -132,9 +133,18 @@
             #sidebar { flex: 0 0 14%; }
         }
 
+        /* HS only: same aspect family as HL but half the pixels — double the unit.
+           Threshold 2427/1000 separates HS (2.4377, preview 2.4308) from HL (2.4232, preview 2.4198). */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            :root { --u: 2vh; }
+            #status-row { display: none; }
+            #sidebar .stat:nth-of-type(3), #sidebar .stat:nth-of-type(4) { display: none; } /* Speed, Position (status-row is div 1) */
+            #sidebar { flex: 0 0 30%; }
+        }
+
         /* HM (~1.21): map on top, 2x2 stat grid below */
         @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
-            :root { --layout-unit: 1vmin; }
+            :root { --u: 1vh; }
             #root { flex-direction: column; }
             #map-wrap { flex: 1 1 60%; }
             #sidebar {
@@ -149,7 +159,7 @@
 
         /* VS band (1.5 < aspect < 2.0): map top, single row, secondary stats hidden */
         @media (max-aspect-ratio: 199/100) and (min-aspect-ratio: 151/100) {
-            :root { --layout-unit: 1.4vmin; }
+            :root { --u: 1vw; }
             #root { flex-direction: column; }
             #map-wrap { flex: 1 1 58%; }
             #sidebar {
@@ -158,12 +168,12 @@
                 border-left: none; border-top: 1px solid var(--panel-border);
             }
             #status-row, #val-pos { display: none; }
-            #sidebar .stat:nth-of-type(4) { display: none; } /* Position stat block (4th div child of #sidebar: status-row, alt, spd, pos) */
+            #sidebar .stat:nth-of-type(3), #sidebar .stat:nth-of-type(4) { display: none; } /* Speed, Position (status-row is div 1) */
         }
 
         /* All portrait slots (VM/VL/VXL, aspect <= 0.9): map band top, stats stacked */
         @media (max-aspect-ratio: 90/100) {
-            :root { --layout-unit: 0.6vw; } /* S-vertical canonical baseline; stable across VM/VL/VXL */
+            :root { --u: 1vw; } /* S-vertical canonical baseline; stable across VM/VL/VXL */
             #root { flex-direction: column; }
             #map-wrap { flex: 0 0 auto; height: 50vw; } /* ~2:1 map band */
             #sidebar {
@@ -172,9 +182,16 @@
             }
         }
 
+        /* VM only: shares the portrait breakpoint with VL/VXL but is far shorter (840px vs 1688/2536) —
+           tighten the map band and hide status-row so all four stats fit at target size. */
+        @media (max-aspect-ratio: 90/100) and (min-aspect-ratio: 60/100) {
+            #map-wrap { height: 38vw; }
+            #status-row { display: none; }
+        }
+
         /* Very tall (VL/VXL): extra breathing room, centered stats */
         @media (max-aspect-ratio: 50/100) {
-            #sidebar { justify-content: center; gap: calc(var(--layout-unit) * 8); align-items: center; text-align: center; }
+            #sidebar { justify-content: center; gap: calc(var(--u) * 8); align-items: center; text-align: center; }
         }
     </style>
 </head>
