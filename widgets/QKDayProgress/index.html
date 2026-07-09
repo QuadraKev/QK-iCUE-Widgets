@@ -248,8 +248,10 @@
             .progress-detail { font-size: 4.5vh; }
         }
 
-        /* ---- Square-ish (HM): base vmin rule undersizes here — give it its own values ---- */
-        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
+        /* ---- Square-ish (HM): base vmin rule undersizes here — give it its own values.
+               Upper bound capped at 134/100 (not 150/100) to stay clear of the KB bucket's
+               135/100-155/100 range — KB's real aspect (248/170=1.459) must never fall in here. ---- */
+        @media (max-aspect-ratio: 134/100) and (min-aspect-ratio: 90/100) {
             .container {
                 gap: 2vmin;
             }
