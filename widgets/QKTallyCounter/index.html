@@ -206,7 +206,7 @@
             height: 10vh;
             padding: 0 3vw;
             font-family: 'Jost', sans-serif; font-weight: 600;
-            font-size: 5vh;
+            font-size: 6vh;
             cursor: pointer;
             border: none;
             background: rgba(255, 255, 255, 0.05);
@@ -221,9 +221,16 @@
         }
 
         /* ---- Responsive: HS only ---- */
-        @media (min-aspect-ratio: 200/100) and (max-width: 1000px) {
+        /* Same aspect family as HL but half the pixels — bump reset/label text so
+           they still clear target size. Threshold 2427/1000 separates HS (2.4377)
+           from HL (2.4232); replaces a max-width check that misfired in iCUE's
+           scaled-down preview (both HS and HL previews are under 1000px wide). */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .counter-label {
+                font-size: 14vh;
+            }
             .btn-reset {
-                font-size: 7.5vh;
+                font-size: 12vh;
                 height: 15vh;
             }
         }
@@ -237,7 +244,7 @@
                 font-size: 28vh;
             }
             .btn-reset {
-                font-size: 7vh;
+                font-size: 10vh;
                 height: 14vh;
             }
         }
@@ -281,8 +288,8 @@
             .counter-label { font-size: 6vw; }
             .btn-reset {
                 bottom: 2vw;
-                height: 9vw;
-                font-size: 4vw;
+                height: 11vw;
+                font-size: 6vw;
                 padding: 0 5vw;
             }
         }
