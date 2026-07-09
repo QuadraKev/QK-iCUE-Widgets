@@ -8,7 +8,7 @@ const path = require('path');
 
 const AUTHOR = 'QuadraKev';
 const MIN_FRAMEWORK_VERSION = '1.0.0';
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const OS = [{ platform: 'windows' }, { platform: 'macos' }];
 
 const widgets = [

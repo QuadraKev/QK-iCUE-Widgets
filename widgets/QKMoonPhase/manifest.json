@@ -3,7 +3,7 @@
   "id": "com.quadrakev.moonphase",
   "name": "Moon Phase",
   "description": "Current moon phase with illumination percentage and phase name.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
