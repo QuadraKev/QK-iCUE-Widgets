@@ -356,7 +356,7 @@
         function updateSquircle() {
             var el = document.getElementById('container');
             var w = el.offsetWidth, h = el.offsetHeight;
-            if (w === 0 || h === 0) return;
+            if (!w || !h || isNaN(w) || isNaN(h)) return;
 
             var r = Math.min(w, h) * 0.125;
             r = Math.min(r, w / 2, h / 2);
