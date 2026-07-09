@@ -182,12 +182,12 @@
                 flex-direction: column;
                 gap: 1vh;
             }
-            .phase-name { font-size: 9vh; }
-            .illumination { font-size: 15vh; }
-            .date-text { font-size: 7vh; }
+            .phase-name { font-size: 12vh; }
+            .illumination { font-size: 22vh; }
+            .date-text { font-size: 11vh; }
         }
 
-        /* ---- Wide dashboard layouts ---- */
+        /* ---- Wide dashboard layouts (HL/HXL/HM) ---- */
         @media (min-aspect-ratio: 200/100) {
             .container {
                 flex-direction: row;
@@ -199,13 +199,36 @@
             }
             .phase-name { font-size: 8vh; }
             .illumination { font-size: 14vh; }
-            .date-text { font-size: 5vh; }
+            .date-text { font-size: 6vh; }
 
             .text-group {
                 display: flex;
                 flex-direction: column;
                 gap: 1.5vh;
             }
+        }
+
+        /* ---- HS (2.44:1): text roles only — moon disc stays at wide-bucket size ---- */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .phase-name { font-size: 16vh; }
+            .illumination { font-size: 28vh; }
+            .date-text { font-size: 12vh; }
+        }
+
+        /* ---- HM (1.21:1): base vmin rule undersizes here — give it its own values.
+               date-text hidden: moon+phase-name+illumination already fill the stacked column. ---- */
+        @media (min-aspect-ratio: 90/100) and (max-aspect-ratio: 150/100) {
+            .phase-name { font-size: 8vh; }
+            .illumination { font-size: 14vh; }
+            .date-text { display: none; }
+        }
+
+        /* ---- VS (1.67:1): base vmin rule undersizes here — give it its own values.
+               date-text hidden: moon+phase-name+illumination already fill the stacked column. ---- */
+        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
+            .phase-name { font-size: 8vh; }
+            .illumination { font-size: 14vh; }
+            .date-text { display: none; }
         }
 
         /* ---- Pump 1:1 ---- */
@@ -236,9 +259,9 @@
                 background: var(--bg-color);
                 padding: 3vmin 2vmin;
             }
-            .phase-name { font-size: 6vmin; }
-            .illumination { font-size: 9vmin; }
-            .date-text { font-size: 4vmin; }
+            .phase-name { font-size: 10vmin; }
+            .illumination { font-size: 22vmin; }
+            .date-text { display: none; }
         }
 
         /* ---- Portrait ---- */
@@ -247,9 +270,9 @@
                 width: 55vw;
                 height: 55vw;
             }
-            .phase-name { font-size: 5vw; }
-            .illumination { font-size: 7vw; }
-            .date-text { font-size: 3.5vw; }
+            .phase-name { font-size: 8vw; }
+            .illumination { font-size: 14vw; }
+            .date-text { font-size: 6vw; }
         }
 
         /* ---- Very tall portrait (VL/VXL) ---- */
@@ -258,9 +281,9 @@
                 width: 80vw;
                 height: 80vw;
             }
-            .phase-name { font-size: 7vw; }
-            .illumination { font-size: 10vw; }
-            .date-text { font-size: 4.5vw; }
+            .phase-name { font-size: 10vw; }
+            .illumination { font-size: 18vw; }
+            .date-text { font-size: 7vw; }
             .container { gap: 5vw; }
         }
     
