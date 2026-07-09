@@ -140,12 +140,12 @@
             bottom: 2vh;
             right: 2vw;
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 4vh;
+            font-size: 4.5vh;
             color: var(--text-color);
         }
 
         .rpm-display .value {
-            font-size: 6vh;
+            font-size: 8.5vh;
             color: var(--accent-color);
         }
 
@@ -169,17 +169,25 @@
             .hint { font-size: 5vh; }
         }
 
+        /* ---- Responsive: HS only (same aspect family as HL, half the physical
+           height) - bump so the RPM readout still clears target size. ---- */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .rpm-display { font-size: 9vh; }
+            .rpm-display .value { font-size: 17vh; }
+            .hint { font-size: 9vh; }
+        }
+
         /* ---- Responsive: VS (1.67:1) ---- */
         @media (max-aspect-ratio: 180/100) and (min-aspect-ratio: 150/100) {
-            .rpm-display { font-size: 4vw; bottom: 2vw; right: 3vw; }
-            .rpm-display .value { font-size: 6vw; }
+            .rpm-display { font-size: 4.5vw; bottom: 2vw; right: 3vw; }
+            .rpm-display .value { font-size: 8.5vw; }
             .hint { font-size: 5vw; bottom: 2vw; }
         }
 
         /* ---- Responsive: Portrait ---- */
         @media (max-aspect-ratio: 90/100) {
-            .rpm-display { font-size: 4vw; bottom: 2vw; right: 3vw; }
-            .rpm-display .value { font-size: 6vw; }
+            .rpm-display { font-size: 4.5vw; bottom: 2vw; right: 3vw; }
+            .rpm-display .value { font-size: 8.5vw; }
             .hint { font-size: 5vw; bottom: 2vw; }
         }
     
