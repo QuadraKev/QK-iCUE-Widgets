@@ -257,7 +257,7 @@
 
         .decimal-time.hidden { display: none; }
 
-        /* ---- Wide (HL/HXL/HM) ---- */
+        /* ---- Wide (HS/HL/HXL base; HS refined further below) ---- */
         @media (min-aspect-ratio: 200/100) {
             .bcd-dot {
                 width: 12vh;
@@ -357,7 +357,7 @@
             .bcd-label { display: none; }
             .sep-dot { width: 2.5vmin; height: 2.5vmin; }
             .bcd-separator { gap: 3vmin; }
-            .decimal-time { font-size: 22vmin; }
+            .decimal-time { font-size: 12vmin; } /* chord-fit ceiling vs the 85% safe circle — see report addendum */
             .binary-bit { width: 11vmin; height: 11vmin; }
             .binary-label { display: none; }
             .binary-value { font-size: 14vmin; width: 18vmin; }
