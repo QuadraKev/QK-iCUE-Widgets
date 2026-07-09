@@ -753,24 +753,34 @@
             if (trackState.points.length > 1) {
                 var nowS = Date.now() / 1000;
                 var past = [], future = [];
+                var prevTs = null;
                 for (var i = 0; i < trackState.points.length - 1; i++) {
                     var p1 = trackState.points[i], p2 = trackState.points[i + 1];
                     for (var k = 0; k < 6; k++) {
                         var sp = slerpPoint(p1[1], p1[2], p2[1], p2[2], k / 6);
                         var ts = p1[0] + (p2[0] - p1[0]) * k / 6;
-                        (ts <= nowS ? past : future).push(sp);
+                        if (prevTs !== null && prevTs <= nowS && ts > nowS) {
+                            var tNow = Math.max(0, Math.min(1, (nowS - p1[0]) / (p2[0] - p1[0])));
+                            var bp = slerpPoint(p1[1], p1[2], p2[1], p2[2], tNow);
+                            past.push([bp[0], bp[1], nowS]);
+                            future.push([bp[0], bp[1], nowS]);
+                        }
+                        (ts <= nowS ? past : future).push([sp[0], sp[1], ts]);
+                        prevTs = ts;
                     }
                 }
                 var lw = Math.max(1.5, h / 350);
                 ctx.strokeStyle = cfg.accentColor;
                 ctx.lineWidth = lw;
-                ctx.globalAlpha = 0.8;
                 splitAtAntimeridian(past).forEach(function(seg) {
-                    if (seg.length < 2) return;
-                    ctx.beginPath();
-                    ctx.moveTo(projX(seg[0][0], w), projY(seg[0][1], h));
-                    for (var j = 1; j < seg.length; j++) ctx.lineTo(projX(seg[j][0], w), projY(seg[j][1], h));
-                    ctx.stroke();
+                    for (var j = 0; j < seg.length - 1; j++) {
+                        var segTs = seg[j][2];
+                        ctx.globalAlpha = 0.15 + 0.65 * Math.max(0, Math.min(1, (segTs - (nowS - 2700)) / 2700));
+                        ctx.beginPath();
+                        ctx.moveTo(projX(seg[j][0], w), projY(seg[j][1], h));
+                        ctx.lineTo(projX(seg[j + 1][0], w), projY(seg[j + 1][1], h));
+                        ctx.stroke();
+                    }
                 });
                 ctx.globalAlpha = 0.55;
                 ctx.setLineDash([lw * 3, lw * 3.5]);
