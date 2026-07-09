@@ -186,7 +186,7 @@
         }
         .loc-name {
             font-weight: 700;
-            font-size: calc(6 * var(--u));
+            font-size: calc(8.2 * var(--u));
             line-height: 1.1;
         }
         .loc-region {
@@ -239,12 +239,12 @@
             vertical-align: super;
         }
         .feels {
-            font-size: calc(3 * var(--u));
+            font-size: calc(4.4 * var(--u));
             color: var(--text-secondary);
             margin-top: calc(0.3 * var(--u));
         }
         .desc {
-            font-size: calc(3.5 * var(--u));
+            font-size: calc(6 * var(--u));
             font-weight: 700;
             text-transform: capitalize;
             margin-top: calc(0.3 * var(--u));
@@ -261,7 +261,7 @@
             border: 1px solid var(--border);
         }
         .detail-lbl {
-            font-size: calc(2.5 * var(--u));
+            font-size: calc(4.4 * var(--u));
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: calc(0.1 * var(--u));
@@ -269,7 +269,7 @@
             white-space: nowrap;
         }
         .detail-val {
-            font-size: calc(4 * var(--u));
+            font-size: calc(4.6 * var(--u));
             white-space: nowrap;
             font-weight: 700;
         }
@@ -290,7 +290,7 @@
         }
         .forecast-head {
             font-weight: 700;
-            font-size: calc(3 * var(--u));
+            font-size: calc(4.4 * var(--u));
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: calc(0.1 * var(--u));
@@ -317,7 +317,7 @@
             background: color-mix(in srgb, var(--accent-color) 8%, color-mix(in srgb, var(--text-color) 3%, var(--bg-color)));
         }
         .fday-name {
-            font-size: calc(2.2 * var(--u));
+            font-size: calc(4.4 * var(--u));
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: calc(0.1 * var(--u));
@@ -334,16 +334,16 @@
         }
         .fday-icon img { width: 100%; height: 100%; object-fit: contain; }
         .fday-hi {
-            font-size: calc(3.2 * var(--u));
+            font-size: calc(8.2 * var(--u));
             font-weight: 700;
         }
         .fday-lo {
-            font-size: calc(2.2 * var(--u));
+            font-size: calc(4.4 * var(--u));
             color: var(--text-muted);
         }
         .fday-precip {
             display: flex; align-items: center; gap: calc(0.3 * var(--u));
-            font-size: calc(1.8 * var(--u));
+            font-size: calc(4.4 * var(--u));
             color: var(--secondary-color);
             margin-top: calc(0.3 * var(--u));
         }
@@ -367,9 +367,9 @@
             .details { display: none; }
             .live-wrap { display: none; }
             .icon-wrap { width: calc(35 * var(--u)); height: calc(35 * var(--u)); background: none; border: none; flex-shrink: 0; }
-            .temp { font-size: calc(30 * var(--u)); }
-            .feels { font-size: calc(8 * var(--u)); }
-            .desc { font-size: calc(9 * var(--u)); }
+            .temp { font-size: calc(40 * var(--u)); }
+            .feels { font-size: calc(14 * var(--u)); }
+            .desc { font-size: calc(13 * var(--u)); }
         }
 
         /* Wide (HS/HL/HXL): aspect >= 2.0 */
@@ -381,17 +381,17 @@
             .details { grid-template-columns: repeat(2, 1fr); }
             .temp { font-size: calc(20 * var(--u)); }
             .icon-wrap { width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
-            .detail-val { font-size: calc(5 * var(--u)); }
-            .detail-lbl { font-size: calc(2.5 * var(--u)); }
+            .detail-val { font-size: calc(4.6 * var(--u)); }
+            .detail-lbl { font-size: calc(4.4 * var(--u)); }
             .detail-card { padding: calc(1.5 * var(--u)); }
-            .loc-name { font-size: calc(7 * var(--u)); }
-            .forecast-head { font-size: calc(3.5 * var(--u)); }
-            .fday-name { font-size: calc(3 * var(--u)); }
+            .loc-name { font-size: calc(8.2 * var(--u)); }
+            .forecast-head { font-size: calc(4.4 * var(--u)); }
+            .fday-name { font-size: calc(4.4 * var(--u)); }
             .fday-date { font-size: calc(2.2 * var(--u)); }
             .fday-icon { width: calc(12 * var(--u)); height: calc(12 * var(--u)); }
-            .fday-hi { font-size: calc(5 * var(--u)); }
-            .fday-lo { font-size: calc(3 * var(--u)); }
-            .fday-precip { font-size: calc(2.5 * var(--u)); }
+            .fday-hi { font-size: calc(8.2 * var(--u)); }
+            .fday-lo { font-size: calc(4.4 * var(--u)); }
+            .fday-precip { font-size: calc(4.4 * var(--u)); }
             .fday-precip svg { width: calc(2.2 * var(--u)); height: calc(2.2 * var(--u)); }
         }
 
@@ -411,6 +411,15 @@
         @media (max-aspect-ratio: 200/100) and (min-aspect-ratio: 90/100) {
             .forecast { flex: 1; }
             .current-body { gap: calc(2 * var(--u)); }
+            .container { gap: calc(0.6 * var(--u)); }
+            .current.shown { gap: calc(0.4 * var(--u)); padding: calc(0.6 * var(--u)); }
+            .detail-card { padding: calc(0.5 * var(--u)); }
+            .icon-wrap { width: calc(8 * var(--u)); height: calc(8 * var(--u)); }
+            .forecast.shown { gap: calc(0.3 * var(--u)); padding: calc(0.6 * var(--u)); }
+            .forecast-grid { gap: calc(0.6 * var(--u)); }
+            .fday { padding: calc(0.2 * var(--u)); justify-content: space-evenly; }
+            .fday-date, .fday-lo, .fday-precip { display: none; }
+            .fday-icon { width: calc(4 * var(--u)); height: calc(4 * var(--u)); margin: 0; }
         }
 
         /* HS / VS: side-by-side current weather + 2x2 details */
@@ -428,16 +437,17 @@
                 grid-template-columns: repeat(2, 1fr);
                 align-self: center;
             }
-            .loc-name { font-size: calc(13 * var(--u)); }
+            .loc-name { font-size: calc(16 * var(--u)); }
             .loc-region { font-size: calc(5 * var(--u)); }
-            .icon-wrap { width: calc(32 * var(--u)); height: calc(32 * var(--u)); }
+            .icon-wrap { width: calc(26 * var(--u)); height: calc(26 * var(--u)); }
             .temp { font-size: calc(30 * var(--u)); }
-            .feels { font-size: calc(5 * var(--u)); }
-            .desc { font-size: calc(6 * var(--u)); }
-            .detail-val { font-size: calc(8 * var(--u)); }
-            .detail-lbl { font-size: calc(4.5 * var(--u)); }
-            .detail-card { padding: calc(2 * var(--u)); }
-            .current-body { gap: calc(4 * var(--u)); }
+            .feels { font-size: calc(6 * var(--u)); }
+            .desc { font-size: calc(8 * var(--u)); }
+            .detail-val { font-size: calc(9.5 * var(--u)); }
+            .detail-lbl { font-size: calc(9 * var(--u)); }
+            .detail-card { padding: calc(1.2 * var(--u)); }
+            .current-body { gap: calc(2.5 * var(--u)); }
+            .current.shown { gap: calc(1 * var(--u)); padding: calc(1.4 * var(--u)); }
             .live-wrap { font-size: calc(4.2 * var(--u)); }
             .live-dot { width: calc(2.5 * var(--u)); height: calc(2.5 * var(--u)); }
         }
@@ -450,7 +460,7 @@
                 top: calc(3 * var(--u));
                 right: calc(2 * var(--u));
             }
-            .current.shown { position: relative; }
+            .current.shown { position: relative; grid-template-columns: 2fr 3fr; }
             .details {
                 grid-column: 2;
                 grid-row: 1 / -1;
@@ -458,10 +468,11 @@
                 gap: calc(0.5 * var(--u));
                 align-self: start;
                 margin-top: calc(7 * var(--u));
+                min-width: 0;
             }
-            .detail-card { padding: calc(0.8 * var(--u)) calc(1.5 * var(--u)); }
-            .detail-lbl { font-size: calc(4 * var(--u)); margin-bottom: calc(0.1 * var(--u)); }
-            .detail-val { font-size: calc(8 * var(--u)); }
+            .detail-card { padding: calc(0.8 * var(--u)) calc(1.5 * var(--u)); min-width: 0; }
+            .detail-lbl { font-size: calc(6.3 * var(--u)); margin-bottom: calc(0.1 * var(--u)); }
+            .detail-val { font-size: calc(6.6 * var(--u)); }
         }
 
         /* Pump (1:1): 0.95 to 1.05 */
@@ -472,14 +483,14 @@
 
             .current-body { flex-direction: column; gap: calc(3 * var(--u)); align-items: center; }
             .current-head { flex-direction: column; align-items: center; }
-            .loc-name { text-align: center; font-size: calc(7.5 * var(--u)); }
-            .loc-region { text-align: center; font-size: calc(3.5 * var(--u)); }
+            .loc-name { text-align: center; font-size: calc(10 * var(--u)); max-width: 100%; overflow-wrap: break-word; }
+            .loc-region { text-align: center; font-size: calc(3.5 * var(--u)); max-width: 100%; overflow-wrap: break-word; }
             .live-wrap { display: none; }
             .details { display: none; }
-            .temp { font-size: calc(22 * var(--u)); }
-            .icon-wrap { width: calc(22 * var(--u)); height: calc(22 * var(--u)); background: none; border: none; }
-            .feels { font-size: calc(4 * var(--u)); }
-            .desc { font-size: calc(5 * var(--u)); }
+            .temp { font-size: calc(26 * var(--u)); }
+            .icon-wrap { width: calc(10 * var(--u)); height: calc(10 * var(--u)); background: none; border: none; }
+            .feels { font-size: calc(10 * var(--u)); }
+            .desc { display: none; }
         }
 
         /* Portrait (VM/VL/VXL): aspect < 0.9 */
@@ -496,13 +507,13 @@
             .icon-wrap { width: calc(28 * var(--u)); height: calc(28 * var(--u)); }
             .loc-name { font-size: calc(8 * var(--u)); }
             .loc-region { font-size: calc(3.5 * var(--u)); }
-            .desc { font-size: calc(5 * var(--u)); }
-            .feels { font-size: calc(4 * var(--u)); }
-            .detail-val { font-size: calc(6 * var(--u)); }
-            .detail-lbl { font-size: calc(3.5 * var(--u)); }
+            .desc { font-size: calc(6 * var(--u)); }
+            .feels { font-size: calc(4.4 * var(--u)); }
+            .detail-val { font-size: calc(4.6 * var(--u)); }
+            .detail-lbl { font-size: calc(4.4 * var(--u)); }
             .detail-card { padding: calc(2.5 * var(--u)); }
             .forecast { flex: 1; }
-            .forecast-head { font-size: calc(4 * var(--u)); }
+            .forecast-head { font-size: calc(4.4 * var(--u)); }
             .forecast-grid {
                 grid-auto-flow: row;
                 grid-auto-columns: unset;
@@ -516,11 +527,11 @@
             }
             .fday > div:first-child { min-width: calc(22 * var(--u)); }
             .fday-icon { margin: 0; width: calc(10 * var(--u)); height: calc(10 * var(--u)); }
-            .fday-name { font-size: calc(4 * var(--u)); }
+            .fday-name { font-size: calc(4.4 * var(--u)); }
             .fday-date { font-size: calc(3 * var(--u)); }
-            .fday-hi { font-size: calc(6 * var(--u)); }
-            .fday-lo { font-size: calc(4 * var(--u)); }
-            .fday-precip { font-size: calc(3 * var(--u)); }
+            .fday-hi { font-size: calc(8.2 * var(--u)); }
+            .fday-lo { font-size: calc(4.4 * var(--u)); }
+            .fday-precip { font-size: calc(4.4 * var(--u)); }
             .fday-precip svg { width: calc(2.5 * var(--u)); height: calc(2.5 * var(--u)); }
             .fday > div:nth-child(3) { display: flex; gap: calc(2 * var(--u)); align-items: baseline; }
         }
