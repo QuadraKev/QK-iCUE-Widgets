@@ -216,8 +216,10 @@
         }
 
         /* ---- HM (1.21:1): base vmin rule undersizes here — give it its own values.
-               date-text hidden: moon+phase-name+illumination already fill the stacked column. ---- */
-        @media (min-aspect-ratio: 90/100) and (max-aspect-ratio: 150/100) {
+               date-text hidden: moon+phase-name+illumination already fill the stacked column.
+               Upper bound capped at 134/100 (not 150/100) to stay clear of the KB bucket's
+               135/100-155/100 range — KB's real aspect (248/170=1.459) must never fall in here. ---- */
+        @media (min-aspect-ratio: 90/100) and (max-aspect-ratio: 134/100) {
             .phase-name { font-size: 8vh; }
             .illumination { font-size: 14vh; }
             .date-text { display: none; }
@@ -260,7 +262,7 @@
                 padding: 3vmin 2vmin;
             }
             .phase-name { font-size: 10vmin; }
-            .illumination { font-size: 22vmin; }
+            .illumination { font-size: 14vmin; } /* chord-fit ceiling vs the 85% safe circle — see report addendum */
             .date-text { display: none; }
         }
 
