@@ -86,7 +86,6 @@
         html, body { width: 100%; height: 100%; overflow: hidden; }
         body {
             font-family: 'Jost', sans-serif;
-            background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
             color: var(--text-color);
             -webkit-tap-highlight-color: transparent;
             position: relative;
@@ -104,7 +103,11 @@
             text-align: center; z-index: 3; display: none;
             font-size: var(--font-title); font-weight: 600; color: var(--text-color);
         }
-        #root { position: relative; z-index: 1; width: 100%; height: 100%; display: flex; }
+        #root {
+            position: relative; z-index: 1; width: 100%; height: 100%; display: flex;
+            overflow: hidden;
+            background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+        }
         #map-wrap { flex: 1 1 auto; position: relative; min-width: 0; min-height: 0; }
         #map { position: absolute; inset: 0; width: 100%; height: 100%; }
         #sidebar {
@@ -827,6 +830,60 @@
             });
         }
 
+        // Squircle clip-path (superellipse corners, n=5)
+        function updateSquircle() {
+            var el = document.getElementById('root');
+            var w = el.offsetWidth, h = el.offsetHeight;
+            if (!w || !h || isNaN(w) || isNaN(h)) { el.style.clipPath = 'none'; return; }
+
+            var r = Math.min(w, h) * 0.125;
+            r = Math.min(r, w / 2, h / 2);
+            var n = 5;
+            var ppq = 16;
+            var d = [];
+
+            // Top edge start
+            d.push('M' + r.toFixed(1) + ' 0');
+            d.push('L' + (w - r).toFixed(1) + ' 0');
+            // Top-right: (w-r,0) → (w,r)
+            for (var i = 1; i <= ppq; i++) {
+                var a = (i / ppq) * Math.PI / 2;
+                var sa = Math.pow(Math.sin(a), 2 / n);
+                var ca = Math.pow(Math.cos(a), 2 / n);
+                d.push('L' + ((w - r) + r * sa).toFixed(1) + ' ' + (r - r * ca).toFixed(1));
+            }
+            // Right edge
+            d.push('L' + w.toFixed(1) + ' ' + (h - r).toFixed(1));
+            // Bottom-right: (w,h-r) → (w-r,h)
+            for (var i = 1; i <= ppq; i++) {
+                var a = (i / ppq) * Math.PI / 2;
+                var sa = Math.pow(Math.sin(a), 2 / n);
+                var ca = Math.pow(Math.cos(a), 2 / n);
+                d.push('L' + ((w - r) + r * ca).toFixed(1) + ' ' + ((h - r) + r * sa).toFixed(1));
+            }
+            // Bottom edge
+            d.push('L' + r.toFixed(1) + ' ' + h.toFixed(1));
+            // Bottom-left: (r,h) → (0,h-r)
+            for (var i = 1; i <= ppq; i++) {
+                var a = (i / ppq) * Math.PI / 2;
+                var sa = Math.pow(Math.sin(a), 2 / n);
+                var ca = Math.pow(Math.cos(a), 2 / n);
+                d.push('L' + (r - r * sa).toFixed(1) + ' ' + ((h - r) + r * ca).toFixed(1));
+            }
+            // Left edge
+            d.push('L0 ' + r.toFixed(1));
+            // Top-left: (0,r) → (r,0)
+            for (var i = 1; i <= ppq; i++) {
+                var a = (i / ppq) * Math.PI / 2;
+                var sa = Math.pow(Math.sin(a), 2 / n);
+                var ca = Math.pow(Math.cos(a), 2 / n);
+                d.push('L' + (r - r * ca).toFixed(1) + ' ' + (r - r * sa).toFixed(1));
+            }
+            d.push('Z');
+
+            el.style.clipPath = "path('" + d.join(' ') + "')";
+        }
+
         function onInit() {
             mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
             canvas = document.getElementById('map');
@@ -835,6 +892,7 @@
             resizeCanvas();
             readSettings();
             applySettings();
+            updateSquircle();
             translateLabels();
             updateSun();
             setInterval(function() { updateSun(); drawFrame(); }, 60000);
@@ -849,6 +907,10 @@
             setInterval(scanForPass, 1800000);
             setInterval(updatePassDisplay, 1000);
         }
+
+        window.addEventListener('resize', function() {
+            updateSquircle();
+        });
 
         icueEvents = {
             "onICUEInitialized": onInit,
