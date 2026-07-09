@@ -223,26 +223,26 @@
 
         .score-label {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 5vh;
+            font-size: 7.5vh;
             opacity: 0.5;
             text-transform: uppercase;
         }
 
         .score-value {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 14vh;
+            font-size: 21vh;
             line-height: 1;
         }
 
         .best-score {
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 4vh;
+            font-size: 7.5vh;
             opacity: 0.4;
         }
 
         .status {
             font-family: 'Jost', sans-serif; font-weight: 600;
-            font-size: 4.5vh;
+            font-size: 10.5vh;
             opacity: 0.6;
             text-align: center;
             min-height: 5vh;
@@ -255,7 +255,7 @@
             background: rgba(255, 255, 255, 0.06);
             color: var(--text-color);
             font-family: 'Jost', sans-serif; font-weight: 700;
-            font-size: 5vh;
+            font-size: 10.5vh;
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
             transition: background 0.15s, transform 0.1s;
@@ -282,8 +282,18 @@
             .score-value { font-size: 18vh; }
             .score-label { font-size: 6vh; }
             .best-score { font-size: 5vh; }
-            .status { font-size: 5.5vh; }
-            .start-btn { font-size: 6vh; padding: 2.5vh 5vh; }
+            .status { font-size: 6.5vh; }
+            .start-btn { font-size: 6.5vh; padding: 2.5vh 5vh; }
+        }
+
+        /* ---- Responsive: HS only (same aspect family as HL, half the physical
+           height) - bump so score/status text still clears target size. ---- */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .score-value { font-size: 25vh; }
+            .score-label { font-size: 9vh; }
+            .best-score { font-size: 9vh; }
+            .status { font-size: 12.5vh; }
+            .start-btn { font-size: 12.5vh; }
         }
 
         /* ---- Responsive: Square/portrait ---- */
@@ -301,11 +311,11 @@
                 gap: 3vw;
                 align-items: center;
             }
-            .score-value { font-size: 7vmin; }
-            .score-label { font-size: 3vmin; }
-            .best-score { font-size: 2.5vmin; }
-            .status { font-size: 3vmin; }
-            .start-btn { font-size: 3.5vmin; padding: 1.5vmin 3vmin; }
+            .score-value { font-size: 12.5vmin; }
+            .score-label { font-size: 4.5vmin; }
+            .best-score { font-size: 4.5vmin; }
+            .status { font-size: 6.5vmin; }
+            .start-btn { font-size: 6.5vmin; padding: 1.5vmin 3vmin; }
         }
 
         /* ---- Responsive: Portrait (tall) ---- */
@@ -313,11 +323,11 @@
             .board {
                 width: 65vw;
             }
-            .score-value { font-size: 7vw; }
-            .score-label { font-size: 3.5vw; }
-            .best-score { font-size: 3vw; }
-            .status { font-size: 3.5vw; }
-            .start-btn { font-size: 4vw; padding: 2vw 4vw; border-radius: 1.5vw; }
+            .score-value { font-size: 12.5vw; }
+            .score-label { font-size: 4.5vw; }
+            .best-score { font-size: 4.5vw; }
+            .status { font-size: 6.5vw; }
+            .start-btn { font-size: 6.5vw; padding: 2vw 4vw; border-radius: 1.5vw; }
         }
     
 @media (prefers-reduced-motion: reduce) {
