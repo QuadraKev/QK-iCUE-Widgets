@@ -210,6 +210,12 @@
             .progress-detail { font-size: 6vh; }
         }
 
+        /* ---- HS (2.44:1): 4 wrapped bars cap growth well below HL's doubled parity ---- */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .progress-percent { font-size: 22vh; }
+            .progress-detail { font-size: 7vh; }
+        }
+
         /* ---- Keyboard LCD (248x170, ~1.46:1) ---- */
         @media (min-aspect-ratio: 135/100) and (max-aspect-ratio: 155/100) {
             .container {
@@ -220,8 +226,8 @@
                 width: 92%;
                 gap: 0.5vh;
             }
-            .progress-label { font-size: 8vh; }
-            .progress-percent { font-size: 15vh; }
+            .progress-label { font-size: 15vh; }
+            .progress-percent { font-size: 38vh; }
             .progress-track { height: 5vh; }
             .progress-detail { display: none; }
         }
@@ -236,13 +242,13 @@
                 width: 90%;
                 gap: 0.4vh;
             }
-            .progress-label { font-size: 6vh; }
-            .progress-percent { font-size: 9vh; }
+            .progress-label { font-size: 6.5vh; }
+            .progress-percent { font-size: 10vh; }
             .progress-track { height: 3vh; }
-            .progress-detail { font-size: 4vh; }
+            .progress-detail { font-size: 4.5vh; }
         }
 
-        /* ---- Square-ish (HM) ---- */
+        /* ---- Square-ish (HM): base vmin rule undersizes here — give it its own values ---- */
         @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
             .container {
                 gap: 2vmin;
@@ -250,6 +256,10 @@
             .progress-row {
                 width: 80%;
             }
+            .progress-label { font-size: 6vh; }
+            .progress-percent { font-size: 9vh; }
+            .progress-track { height: 3vh; }
+            .progress-detail { font-size: 4vh; }
         }
 
         /* ---- Pump 1:1 circular: Use ring display ---- */
@@ -289,24 +299,24 @@
             }
 
             .ring-day-label {
-                font-size: 5vmin;
+                font-size: 9vmin;
                 color: color-mix(in srgb, var(--text-color), var(--bg-color) 50%);
                 text-transform: uppercase;
             }
 
             .ring-day-pct {
                 font-family: 'Jost', sans-serif; font-weight: 700;
-                font-size: 16vmin;
+                font-size: 30vmin;
                 color: var(--accent-color);
                 line-height: 1;
             }
 
             .ring-day-pct.time-mode {
-                font-size: 12vmin;
+                font-size: 18vmin;
             }
 
             .ring-day-detail {
-                font-size: 4vmin;
+                font-size: 6vmin;
                 color: color-mix(in srgb, var(--text-color), var(--bg-color) 60%);
             }
         }
@@ -320,10 +330,10 @@
             .progress-row {
                 width: 85%;
             }
-            .progress-label { font-size: 3.5vw; }
-            .progress-percent { font-size: 5vw; }
+            .progress-label { font-size: 6vw; }
+            .progress-percent { font-size: 12vw; }
             .progress-track { height: 2.5vw; }
-            .progress-detail { font-size: 2.5vw; }
+            .progress-detail { font-size: 4.5vw; }
         }
 
         /* ---- Very tall portrait (VL/VXL) ---- */
@@ -336,10 +346,10 @@
             .progress-row {
                 gap: 1.5vw;
             }
-            .progress-label { font-size: 5vw; }
-            .progress-percent { font-size: 7vw; }
+            .progress-label { font-size: 8vw; }
+            .progress-percent { font-size: 16vw; }
             .progress-track { height: 3.5vw; }
-            .progress-detail { font-size: 3.5vw; }
+            .progress-detail { font-size: 6vw; }
         }
     
 @media (prefers-reduced-motion: reduce) {
