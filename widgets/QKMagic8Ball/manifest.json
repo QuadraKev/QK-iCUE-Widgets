@@ -3,7 +3,7 @@
   "id": "com.quadrakev.magic8ball",
   "name": "Magic 8 Ball",
   "description": "Tap to shake the magic 8 ball and reveal your fortune.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [

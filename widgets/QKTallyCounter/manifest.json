@@ -3,7 +3,7 @@
   "id": "com.quadrakev.tallycounter",
   "name": "Tally Counter",
   "description": "Simple tap counter for tracking anything on the fly.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
