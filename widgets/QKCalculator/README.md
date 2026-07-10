@@ -16,6 +16,7 @@ Tap the number and operator buttons to perform calculations. The display shows t
 - Expression history shown above the result
 - Up to 15-digit precision with automatic scientific notation for large results
 - Operator highlighting shows the active operation
+- Keypad Side setting (Left/Right) chooses which side the keypad sits on in wide layouts (S, L, XL); square and portrait layouts stack vertically, so the setting has no effect there
 
 ---
 

@@ -13,6 +13,10 @@
     <meta name="x-icue-interactive">
 
     <!-- Properties: Group 1 - Calculator -->
+    <meta name="x-icue-property" content="keypadSide"
+        data-label="tr('Keypad Side')" data-type="tab-buttons"
+        data-values="[{'key':'left','value':tr('Left')},{'key':'right','value':tr('Right')}]"
+        data-default="'left'">
     <meta name="x-icue-property" content="customTitle"
         data-label="tr('Custom Title')" data-type="textfield" data-default="''">
 
@@ -40,7 +44,7 @@
     [
         {
             "title": "tr('Calculator')",
-            "properties": ["customTitle"]
+            "properties": ["keypadSide", "customTitle"]
         },
         {
             "title": "tr('Widget Personalization')",
@@ -258,6 +262,10 @@
                 min-height: auto;
                 padding: 3vh;
             }
+            /* keypadSide = right: natural DOM order (display first), digits
+               re-anchor to the right edge so they stay beside the keypad */
+            .container.keypad-right .btn-grid { order: 0; }
+            .container.keypad-right .display { align-items: flex-end; }
             .display-value {
                 font-size: 18vh;
             }
@@ -787,6 +795,9 @@
                 var wt = document.getElementById('widget-title');
                 wt.textContent = customTitle;
                 wt.style.display = customTitle ? 'block' : 'none';
+            }
+            if (typeof keypadSide !== 'undefined') {
+                document.querySelector('.container').classList.toggle('keypad-right', keypadSide === 'right');
             }
         } catch (e) {}
     }

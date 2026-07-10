@@ -33,6 +33,7 @@ const widgets = [
   },
   {
     folder: 'QKCalculator',
+    version: '1.3.0',
     id: 'com.quadrakev.calculator',
     name: 'Calculator',
     description: 'Full-featured touchscreen calculator for the Xeneon Edge.',
