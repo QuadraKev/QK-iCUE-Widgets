@@ -8,7 +8,7 @@ A finger-painting app for the Corsair Xeneon Edge dashboard touchscreen.
 - Fill (paint bucket) tool for flood-filling areas
 - Eraser tool
 - 3 brush sizes (small, medium, large)
-- 12-color palette with draw/background color selection
+- 24-color palette in a swipeable swatch strip, with draw/background color selection
 - Undo support (up to 15 steps)
 - Clear canvas button
 - Configurable canvas background color via iCUE settings
@@ -19,7 +19,7 @@ A finger-painting app for the Corsair Xeneon Edge dashboard touchscreen.
 - **Fill**: Tap to flood-fill a region with the current draw color
 - **Eraser**: Paint with the background color to erase
 - **Size buttons**: Switch between small (8px), medium (20px), and large (40px) brush
-- **Color swatches**: Tap to set draw color; tap the DRAW/BG buttons to swap which is being set
+- **Color swatches**: Swipe the strip to browse, tap to set draw color; tap the DRAW/BG buttons to swap which is being set
 - **Undo**: Revert the last stroke or fill (up to 15 steps)
 - **Clear**: Reset the canvas to the background color
 

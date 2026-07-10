@@ -91,6 +91,7 @@ const widgets = [
     description: 'Freehand drawing canvas for the Xeneon Edge touchscreen.',
     devices: [{ type: 'dashboard_lcd', features: ['sensor-screen'] }],
     interactive: true,
+    version: '1.3.0',
   },
   {
     folder: 'QKPumpVisualizer',
