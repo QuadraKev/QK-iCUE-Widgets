@@ -209,19 +209,31 @@
             opacity: 0.6;
         }
 
-        /* Per-shape optical centering: flex only centers the glyph's line
-           box, not its visible ink, so each symbol needs its own nudge (in
-           em, so it scales with .pad-icon's font-size across every slot).
-           Measured via a pixel scan of each glyph's rendered ink bounds
-           against the pad's true center: circle sits ~6.2% low and square
-           ~11.3% low - shifted up to compensate. Diamond's ink is already
-           centered (symmetric about its own widest point) - left alone.
-           Triangle's bounding box is centered and stays that way: an earlier
-           0.05em downward nudge read too low on-device (2026-07-09 QA) - the
-           original "floating high" impression came from comparing against the
-           then-miscentered circle/square, not from the triangle itself. */
-        .pad-red .pad-icon   { transform: translateY(-0.062em); } /* circle */
-        .pad-blue .pad-icon  { transform: translateY(-0.113em); } /* square */
+        /* Per-shape optical centering + ink-height equalization: flex only
+           centers the glyph's line box, not its visible ink, and at equal
+           font-size the four glyphs render at very different ink heights
+           (pixel-scanned at M against a 194.9px pad: triangle 133px, circle
+           83px, diamond 135px, square 90px). Circle's 83px is the smallest
+           and already well under the ~55% pad-height crowd limit, so it's
+           the equalization target rather than the group median (111.5px) -
+           growing circle/square up to the median would exceed that limit.
+           Triangle and diamond scale down to match (0.6241x, 0.6148x);
+           square scales 0.9222x; circle is untouched. All four measure
+           82-83px post-fix. translateY nudges (in em, so they scale with
+           .pad-icon's font-size across every slot) recenter each glyph's ink
+           after its own scale - order matters: translateY listed before
+           scale() is applied in the unscaled outer coordinate space, so its
+           em value is a literal shift unaffected by that shape's scale
+           factor. Circle sits ~6.2% of font-size low (unaffected by its own
+           scale(1)); square sits ~11.3% low pre-scale, re-derived post-scale
+           to -0.1055em. Diamond's ink is already centered (symmetric about
+           its own widest point) - no translateY needed even after scaling.
+           Triangle's bounding box is centered and stays that way (see commit
+           b59a67a) - scaled about its own center with no translateY added. */
+        .pad-green .pad-icon  { transform: scale(0.6241); } /* triangle */
+        .pad-red .pad-icon    { transform: translateY(-0.062em); } /* circle */
+        .pad-yellow .pad-icon { transform: scale(0.6148); } /* diamond */
+        .pad-blue .pad-icon   { transform: translateY(-0.1055em) scale(0.9222); } /* square */
 
         /* ---- Info panel ---- */
         .info {
