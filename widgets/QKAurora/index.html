@@ -181,9 +181,13 @@
             gap: var(--space-gap); padding: var(--space-pad);
             border-left: 1px solid var(--panel-border);
         }
-        /* Forecast bars: 3 day-groups x 8 bins, height proportional to Kp (0-9 scale).
-           Bar color tiers and day-grouping stay the same in every layout; only #bars'
-           own flex-direction flips (row of day-columns <-> column of day-rows) below. */
+        /* Forecast bars: 3 day-groups of up to 8 bins each, height proportional to Kp
+           (0-9 scale). A day-group can have fewer than 8 bins (a short first/last day of
+           real NOAA data); .bar below is sized to a fixed 1/8-of-row basis rather than an
+           equal flex share so a short day renders as narrower bars, not one bar stretched
+           to fill the row. Bar color tiers and day-grouping stay the same in every layout;
+           only #bars' own flex-direction flips (row of day-columns <-> column of day-rows)
+           below. */
         .bar-group {
             flex: 1 1 0; min-width: 0; display: flex; flex-direction: column;
             gap: calc(var(--space-gap) * 0.5);
@@ -193,7 +197,7 @@
             gap: calc(var(--u) * 0.6); position: relative;
         }
         .bar {
-            flex: 1 1 0; min-height: 2px;
+            flex: 0 1 calc((100% - var(--u) * 4.2) / 8); min-height: 2px;
             height: calc(var(--bar-frac, 0.03) * 100%);
             border-radius: 2px 2px 0 0;
         }
@@ -414,7 +418,12 @@
             return STORM_TIERS[tier] || '';
         }
 
-        // Parses NOAA's Kp-forecast product into day-buckets of 8 three-hour bins.
+        // Parses NOAA's Kp-forecast product into day-groups, one per CALENDAR DATE found
+        // in the payload (not index arithmetic -- the live payload is not reliably a
+        // multiple of 8 rows: it commonly ends with a stub day of a single 3-hour bin,
+        // and history/forecast day boundaries must line up with real dates for
+        // selectForecastDays() below to find "today"). Bins are grouped by the literal
+        // YYYY-MM-DD prefix of time_tag, which both payload shapes carry.
         // Handles both the documented array-of-arrays shape (row 0 = header, values
         // by index) and the array-of-objects shape NOAA actually serves live as of
         // 2026-07-10 (verified via curl: no header row, fields by name) -- see
@@ -423,20 +432,43 @@
             if (!rows || !rows.length) return [];
             var isLegacy = Array.isArray(rows[0]);
             var start = isLegacy ? 1 : 0;
-            var flat = [];
+            var byDate = {};
+            var order = [];
             for (var i = start; i < rows.length; i++) {
                 var row = rows[i];
                 var time, kp;
                 if (isLegacy) { time = row[0]; kp = parseFloat(row[1]); }
                 else { time = row.time_tag; kp = parseFloat(row.kp); }
                 if (isNaN(kp)) continue;
-                flat.push({ time: time, kp: kp });
+                var date = String(time).slice(0, 10);
+                if (!byDate[date]) { byDate[date] = []; order.push(date); }
+                byDate[date].push({ time: time, kp: kp });
             }
-            var groups = [];
-            for (var j = 0; j < flat.length; j += 8) {
-                groups.push(flat.slice(j, j + 8));
+            order.sort();
+            return order.map(function (date) { return { date: date, bins: byDate[date] }; });
+        }
+
+        function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+        // Selects the forecast window to render: today's calendar date plus the next two
+        // days, using each day-group's bins exactly as-is -- a short day (e.g. a trailing
+        // stub with only 1 bin) is neither dropped nor padded, it just renders with fewer
+        // bars (see the .bar flex-basis fix that keeps those bars correctly narrow instead
+        // of stretching to fill the row). `now` is injectable for deterministic tests;
+        // production calls default it to the real clock. Falls back to the last 3 available
+        // days if "today" isn't present in the payload at all (e.g. stale/offline data),
+        // and to the first 3 if the payload is entirely in the future, so the widget always
+        // renders something rather than going blank.
+        function selectForecastDays(dateGroups, now) {
+            if (!dateGroups || !dateGroups.length) return [];
+            var n = now || new Date();
+            var todayKey = n.getFullYear() + '-' + pad2(n.getMonth() + 1) + '-' + pad2(n.getDate());
+            var startIdx = -1;
+            for (var i = 0; i < dateGroups.length; i++) {
+                if (dateGroups[i].date >= todayKey) { startIdx = i; break; }
             }
-            return groups;
+            if (startIdx === -1) startIdx = Math.max(0, dateGroups.length - 3);
+            return dateGroups.slice(startIdx, startIdx + 3);
         }
         // @testable-end
 
@@ -710,11 +742,13 @@
             return isNaN(d.getTime()) ? '' : DAY_ABBR[d.getDay()];
         }
 
-        // Renders the 3 most recent day-groups (live NOAA payload has ~10 days of history +
-        // forecast; the last 3 groups are the actual 3-day-ahead forecast -- see task2 report).
+        // Renders today's forecast day plus the next two (see selectForecastDays() --
+        // the live NOAA payload has ~10 days of history ahead of today, and can end with a
+        // stub day of a single 3-hour bin; both are excluded by date-based selection, not
+        // index arithmetic -- see aurora-task3 review / task2 report).
         function renderBars() {
             var el = document.getElementById('bars');
-            var groups = (auroraState.forecastGroups || []).slice(-3);
+            var groups = selectForecastDays(auroraState.forecastGroups || [], new Date());
             el.innerHTML = '';
             if (!groups.length) return;
 
@@ -729,7 +763,7 @@
 
                 var rowEl = document.createElement('div');
                 rowEl.className = 'bin-row';
-                group.forEach(function (bin) {
+                group.bins.forEach(function (bin) {
                     var barEl = document.createElement('div');
                     barEl.className = 'bar';
                     var frac = Math.max(0.03, Math.min(1, bin.kp / 9));
@@ -746,7 +780,7 @@
 
                 var labelEl = document.createElement('div');
                 labelEl.className = 'day-label';
-                labelEl.textContent = dayLabel(group[0].time);
+                labelEl.textContent = dayLabel(group.bins[0].time);
 
                 gEl.appendChild(rowEl);
                 gEl.appendChild(labelEl);
