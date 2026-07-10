@@ -230,6 +230,32 @@
             .answer-text { font-size: 4.8vh; }
         }
 
+        /* HS only: same aspect family as HL/HXL but half the pixels, and the
+           tallest hint-below-ball stack wastes vertical room here in particular.
+           Move the hint beside the ball (existing DOM order: ball first, so the
+           hint lands to its right) and grow the ball into the freed height.
+           Ceiling-tested via getBoundingClientRect against the squircle-clipped
+           container box (322.4px inner height at 841x345): 88vh (302.7px) still
+           leaves ~10px of margin beyond the clip inset on both top and bottom -
+           92vh+ starts eating into that inset. .ball-eight/.answer-text scaled
+           proportionally to the new ball size, preserving the existing
+           25/70 and 4.8/70 (13.71%-of-ball-inner) ratios. */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            .container {
+                flex-direction: row;
+            }
+            .ball-outer {
+                width: 88vh;
+                height: 88vh;
+            }
+            .ball-eight { font-size: 31.4vh; }
+            .answer-text { font-size: 6vh; }
+            .tap-hint {
+                margin-top: 0;
+                margin-left: 3vh;
+            }
+        }
+
         /* L/XL wide layouts: scale up ball */
         @media (min-aspect-ratio: 200/100) and (min-width: 1400px) {
             .ball-outer {
