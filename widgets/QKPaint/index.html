@@ -204,15 +204,25 @@
         .size-btn.active .size-dot { background: #5af; }
         .size-dot { border-radius: 50%; background: #aaa; }
 
-        /* Color presets — 3-column grid */
-        .color-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 1vmin;
+        /* Color presets — single scrollable strip */
+        .color-strip {
+            display: flex;
+            gap: 0.8vh;
             flex-shrink: 0;
+            margin-top: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
+            touch-action: pan-x;
         }
+        .color-strip::-webkit-scrollbar { display: none; }
+        .color-strip { --fade-len: 3vh; }
+        .color-strip.fade-l { mask-image: linear-gradient(to right, transparent, #000 var(--fade-len)); }
+        .color-strip.fade-r { mask-image: linear-gradient(to left, transparent, #000 var(--fade-len)); }
+        .color-strip.fade-l.fade-r { mask-image: linear-gradient(to right, transparent, #000 var(--fade-len), #000 calc(100% - var(--fade-len)), transparent); }
         .color-swatch {
-            height: 8vmin;
+            flex: 0 0 7.4vh;
+            height: 7.4vh;
             border: 0.4vmin solid transparent;
             cursor: pointer;
         }
@@ -288,42 +298,29 @@
             .action-btn svg { width: 4vw; height: 4vw; }
             .action-label { display: none; }
 
-            .color-grid {
+            .color-strip {
                 flex: 0 0 100%;
-                grid-template-columns: repeat(auto-fill, minmax(7vw, 1fr));
+                gap: 0.6vw;
+                margin-top: 0;
+                --fade-len: 3.5vw;
             }
-            .color-swatch { height: 7vw; }
-            .color-swatch:last-child:nth-child(odd) { grid-column: auto; }
+            .color-swatch { flex-basis: 7vw; height: 7vw; }
         }
 
-        /* ══════════════ VS (1.67:1) — 2-column toolbar ══════════════ */
+        /* ══════════════ VS (1.67:1) — single-column toolbar ══════════════ */
         @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
             .toolbar {
-                display: grid;
-                grid-template-columns: auto auto;
-                align-content: start;
-                width: auto; min-width: auto;
+                width: 44vh; min-width: 44vh;
                 padding: 2vh;
                 gap: 1.6vh;
-                overflow: visible;
             }
-            .toolbar > * { grid-column: 1; }
             .tb-div { display: none; }
-            .color-grid {
-                grid-column: 2;
-                grid-row: 1 / span 10;
-                align-self: start;
-                grid-template-columns: 14vh 14vh;
-                gap: 1.6vh;
-            }
             .color-pair { gap: 1.6vh; }
             .draw-color, .bg-color { height: 16vh; }
             .draw-color::after, .bg-color::after { font-size: 4vh; }
             .tool-row { gap: 1.6vh; }
             .tool-btn { height: 20vh; }
             .tool-btn svg { width: 10vh; height: 10vh; }
-            /* 3.6vh verified ceiling for "Eraser"/"Undo"/"Clear" within this bucket's
-               auto-sized grid column (4vh clips "Eraser"; 3.6vh does not). */
             .tool-label { font-size: 3.6vh; }
             .size-row { gap: 1.6vh; }
             .size-btn { height: 16vh; }
@@ -331,37 +328,24 @@
             .action-btn { height: 16vh; }
             .action-btn svg { width: 7vh; height: 7vh; }
             .action-label { font-size: 3.6vh; }
-            .color-swatch { height: 14vh; }
+            .color-strip { gap: 1.6vh; --fade-len: 4vh; }
+            .color-swatch { flex-basis: 12vh; height: 12vh; }
         }
 
-        /* ══════════════ Wide-short (HS) — 2-column toolbar ══════════════ */
+        /* ══════════════ Wide-short (HS) — single-column toolbar ══════════════ */
         @media (min-aspect-ratio: 243/100) and (max-aspect-ratio: 300/100) {
             .toolbar {
-                display: grid;
-                grid-template-columns: auto auto;
-                align-content: start;
-                width: auto; min-width: auto;
+                width: 50vh; min-width: 50vh;
                 padding: 2vh;
                 gap: 1.6vh;
-                overflow: visible;
             }
-            .toolbar > * { grid-column: 1; }
             .tb-div { display: none; }
-            .color-grid {
-                grid-column: 2;
-                grid-row: 1 / span 10;
-                align-self: start;
-                grid-template-columns: 14vh 14vh;
-                gap: 1.6vh;
-            }
             .color-pair { gap: 1.6vh; }
             .draw-color, .bg-color { height: 16vh; }
             .draw-color::after, .bg-color::after { font-size: 4vh; }
             .tool-row { gap: 1.6vh; }
             .tool-btn { height: 20vh; }
             .tool-btn svg { width: 10vh; height: 10vh; }
-            /* Same verified 3.6vh ceiling as the VS bucket above (identical grid structure,
-               "Eraser" is the binding constraint). */
             .tool-label { font-size: 3.6vh; }
             .size-row { gap: 1.6vh; }
             .size-btn { height: 16vh; }
@@ -369,7 +353,8 @@
             .action-btn { height: 16vh; }
             .action-btn svg { width: 7vh; height: 7vh; }
             .action-label { font-size: 3.6vh; }
-            .color-swatch { height: 14vh; }
+            .color-strip { gap: 1.6vh; --fade-len: 5vh; }
+            .color-swatch { flex-basis: 14vh; height: 14vh; }
         }
 
         /* ══════════════ Extra-wide (HXL) — picker sizing ══════════════ */
@@ -535,7 +520,7 @@
 
             <div class="tb-div"></div>
 
-            <div class="color-grid" id="colorGrid"></div>
+            <div class="color-strip" id="colorGrid"></div>
         </div>
 
         <!-- ── Canvas ── -->
@@ -650,10 +635,11 @@
         var MAX_UNDO = 15;
 
         var PRESETS = [
-            '#000000', '#FFFFFF', '#888888',
-            '#EE3333', '#FF8800', '#FFDD00',
-            '#22BB22', '#0088FF', '#FF44AA',
-            '#8844DD', '#00CCCC', '#884400'
+            '#000000', '#444444', '#888888', '#CCCCCC', '#FFFFFF',
+            '#AA1111', '#EE3333', '#FF8800', '#FFDD00', '#AADD22',
+            '#116622', '#22BB22', '#88EE88', '#00CCCC', '#223399',
+            '#0088FF', '#66CCFF', '#8844DD', '#BB88FF', '#FF44AA',
+            '#FFAACC', '#884400', '#C68C53', '#FFCC99'
         ];
 
         // ══════════════════════════════════════════════════════════════
@@ -780,7 +766,7 @@
         }
 
         // ══════════════════════════════════════════════════════════════
-        // Color grid
+        // Color strip
         // ══════════════════════════════════════════════════════════════
         function buildColorGrid() {
             colorGrid.innerHTML = '';
@@ -796,7 +782,23 @@
                 })(c));
                 colorGrid.appendChild(btn);
             }
+            scrollActiveIntoView();
+            updateStripFade();
         }
+
+        function scrollActiveIntoView() {
+            var act = colorGrid.querySelector('.color-swatch.active');
+            if (!act) return;
+            var offset = act.getBoundingClientRect().left - colorGrid.getBoundingClientRect().left + colorGrid.scrollLeft;
+            colorGrid.scrollLeft = Math.max(0, offset - (colorGrid.clientWidth - act.offsetWidth) / 2);
+        }
+
+        function updateStripFade() {
+            var max = colorGrid.scrollWidth - colorGrid.clientWidth;
+            colorGrid.classList.toggle('fade-l', colorGrid.scrollLeft > 4);
+            colorGrid.classList.toggle('fade-r', colorGrid.scrollLeft < max - 4);
+        }
+        colorGrid.addEventListener('scroll', updateStripFade, { passive: true });
 
         function selectPresetColor(c) {
             drawColor = c;
@@ -1336,6 +1338,7 @@
 
                 window.addEventListener('resize', function() {
             updateSquircle();
+            updateStripFade();
         });
 
 icueEvents = {
