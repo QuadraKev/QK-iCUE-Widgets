@@ -122,10 +122,66 @@
             gap: var(--space-gap); padding: var(--space-pad);
             border-left: 1px solid var(--panel-border);
         }
+        .timeline-row {
+            display: flex; align-items: center; gap: calc(var(--u) * 1.2);
+            font-size: var(--font-label); font-weight: 600; white-space: nowrap;
+        }
+        .tl-dot { flex: 0 0 auto; width: 0.5em; height: 0.5em; border-radius: 50%; }
+        .tl-name {
+            flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+            color: var(--text-color);
+        }
+        .tl-time {
+            flex: 0 0 auto; color: var(--text-secondary); font-weight: 400;
+            font-variant-numeric: tabular-nums;
+        }
         #stale-marker {
             margin-left: 0.5em; color: var(--text-muted); display: none;
         }
         #stale-marker::before { content: '\00B7\0020'; }
+
+        /* Default (no query) = HL (aspect ~2.42): hero left, timeline right — set above */
+
+        /* HXL is much wider: the hero block would otherwise hug the left edge with a large dead
+           gap before the timeline divider — center each hero line within the extra width instead. */
+        @media (min-aspect-ratio: 300/100) {
+            #hero { align-items: center; text-align: center; }
+        }
+
+        /* HS only: same aspect family as HL but half the pixels — double the unit; timeline/detail
+           don't fit, force-hidden regardless of toggle. Threshold 2427/1000 separates HS (2.4377,
+           preview 2.4308) from HL (2.4232, preview 2.4198). */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            :root { --u: 2vh; }
+            #timeline, #detail { display: none; }
+        }
+
+        /* HM (~1.21): hero on top, timeline strip below */
+        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
+            :root { --u: 1vh; }
+            #root { flex-direction: column; }
+            #hero { flex: 1 1 auto; }
+            #timeline {
+                flex: 0 0 auto; border-left: none; border-top: 1px solid var(--panel-border);
+            }
+        }
+
+        /* VS band (1.5 < aspect < 2.0): badge + T-minus + mission only — timeline/detail don't fit */
+        @media (max-aspect-ratio: 199/100) and (min-aspect-ratio: 151/100) {
+            :root { --u: 1vw; }
+            #timeline, #detail { display: none; }
+        }
+
+        /* All portrait slots (VM/VL/VXL, aspect <= 0.9): stacked hero + timeline;
+           extra height becomes spacing via the height-relative gap below. */
+        @media (max-aspect-ratio: 90/100) {
+            :root { --u: 1vw; }
+            #root { flex-direction: column; justify-content: center; gap: 6vh; }
+            #hero { flex: 0 0 auto; }
+            #timeline {
+                flex: 0 0 auto; border-left: none; border-top: 1px solid var(--panel-border);
+            }
+        }
     </style>
 </head>
 <body>
@@ -133,7 +189,7 @@
     <div id="widget-title"></div>
     <div id="root">
         <div id="hero">
-            <div id="badge"><span id="badge-label">&mdash;</span><span id="stale-marker">STALE</span></div>
+            <div id="badge"><span id="badge-label">&mdash;</span><span id="stale-marker" data-tr="Stale"></span></div>
             <div id="countdown">T-00:00:00</div>
             <div id="mission" data-tr="Acquiring"></div>
             <div id="detail">&mdash;</div>
@@ -272,6 +328,8 @@
             if (typeof showTimeline !== 'undefined') cfg.showTimeline = !!showTimeline;
             if (typeof showDetail !== 'undefined') cfg.showDetail = !!showDetail;
             if (typeof tPlusMode !== 'undefined') cfg.tPlusMode = !!tPlusMode;
+            document.getElementById('timeline').style.display = cfg.showTimeline ? '' : 'none';
+            document.getElementById('detail').style.display = cfg.showDetail ? '' : 'none';
             if (typeof textColor !== 'undefined') cfg.textColor = textColor;
             if (typeof accentColor !== 'undefined') cfg.accentColor = accentColor;
             if (typeof backgroundColor !== 'undefined') cfg.bgColor = backgroundColor;
@@ -394,10 +452,11 @@
             lcState.acquiring = false;
             lcState.stale = false;
             updateHero();
+            renderTimeline();
         }
         function __lcMockOffline(on) {
             lcState.offline = on;
-            if (on) { lcState.lastPollAt = Date.now() - 40 * 60000; updateHero(); }
+            if (on) { lcState.lastPollAt = Date.now() - 40 * 60000; updateHero(); renderTimeline(); }
         }
 
         function fetchJSON(url) {
@@ -414,6 +473,7 @@
             lcState.failures = 0;
             lcState.acquiring = false;
             updateHero();
+            renderTimeline();
         }
 
         function pollLaunches() {
@@ -487,9 +547,53 @@
             detailEl.textContent = detailParts.length ? detailParts.join(' · ') : '—';
         }
 
+        // Rows shown per slot family: 5 on HL/HXL, 3 on HM/portrait, 0 on HS/VS (hidden regardless).
+        function timelineRowCount() {
+            var aspect = window.innerWidth / window.innerHeight;
+            if (aspect >= 2.427 && aspect <= 2.99) return 0;  // HS
+            if (aspect >= 1.51 && aspect <= 1.99) return 0;   // VS
+            if (aspect <= 0.90) return 3;                     // VM/VL/VXL
+            if (aspect <= 1.50) return 3;                     // HM
+            return 5;                                         // HL/HXL
+        }
+
+        function renderTimeline() {
+            var el = document.getElementById('timeline');
+            var n = cfg.showTimeline ? timelineRowCount() : 0;
+            if (!n) { el.innerHTML = ''; return; }
+
+            var now = Date.now();
+            var current = pickCurrent(lcState.launches || [], now, cfg.tPlusMode);
+            var upcoming = (lcState.launches || []).filter(function (L) {
+                if (L === current) return false;
+                if (isTerminalStatus(L.status && L.status.abbrev)) return false;
+                return new Date(L.net).getTime() - now >= 0;
+            }).sort(function (a, b) { return new Date(a.net).getTime() - new Date(b.net).getTime(); });
+
+            el.innerHTML = '';
+            upcoming.slice(0, n).forEach(function (L) {
+                var status = L.status && L.status.abbrev;
+                var netMs = new Date(L.net).getTime();
+                var row = document.createElement('div');
+                row.className = 'timeline-row';
+                var dot = document.createElement('span');
+                dot.className = 'tl-dot';
+                dot.style.background = badgeColor(status);
+                var name = document.createElement('span');
+                name.className = 'tl-name';
+                name.textContent = shortName(L.name || '');
+                var time = document.createElement('span');
+                time.className = 'tl-time';
+                time.textContent = fmtRelative(netMs - now);
+                row.appendChild(dot); row.appendChild(name); row.appendChild(time);
+                el.appendChild(row);
+            });
+        }
+
         function tick() {
             lcState.stale = !lcState.acquiring && lcState.lastPollAt > 0 && (Date.now() - lcState.lastPollAt) > 30 * 60000;
             updateHero();
+            renderTimeline();
         }
 
         function onInit() {
@@ -498,6 +602,7 @@
             applySettings();
             updateSquircle();
             translateLabels();
+            renderTimeline();
             pollLoop();
             setInterval(tick, 1000);
         }
@@ -511,6 +616,7 @@
             "onDataUpdated": function() {
                 readSettings();
                 applySettings();
+                renderTimeline();
             }
         };
         if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) { onInit(); }
