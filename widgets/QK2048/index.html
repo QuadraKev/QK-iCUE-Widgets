@@ -345,6 +345,11 @@
                 flex: 0;
                 justify-content: center;
             }
+            /* Score row shares the board's own width basis (60vmin) so the two
+               boxes together align with the board edges instead of the button. */
+            .panel-left {
+                width: 60vmin;
+            }
             .score-box {
                 padding: 1vh 2vh;
                 min-width: 0;
@@ -352,6 +357,9 @@
             }
             .score-box-label { font-size: 4.5vmin; }
             .score-box-value { font-size: 7vmin; }
+            /* Empty (idle) game-msg must not reserve row-gap space, or the button
+               gets shoved off-center next to it. */
+            .game-msg:empty { display: none; }
             .game-msg { font-size: 6.5vmin; min-height: auto; }
             .new-game-btn { font-size: 6.5vmin; padding: 1.5vmin 3vmin; }
             .new-game-btn br { display: none; }
@@ -833,8 +841,12 @@
             applySquircle('.cell', 0.125);
             var btn = document.querySelector('.new-game-btn');
             var btnW = btn.offsetWidth;
+            // HM lays the two score boxes out side-by-side against the board's own
+            // width (panel-left: 60vmin, CSS flex), not the button's column width -
+            // skip the button-width sync there so the boxes stay board-aligned.
+            var isHM = window.matchMedia('(max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100)').matches;
             document.querySelectorAll('.score-box').forEach(function(box) {
-                box.style.width = btnW + 'px';
+                box.style.width = isHM ? '' : (btnW + 'px');
                 if (box.offsetWidth > 0) box.style.clipPath = squirclePath(box.offsetWidth, box.offsetHeight, 0.125);
             });
             applySquircle('.new-game-btn', 0.125);
