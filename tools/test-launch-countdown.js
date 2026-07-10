@@ -25,6 +25,10 @@ if (W.fmtCountdown) {
   check('fmtCountdown <24h no day', W.fmtCountdown(3661000) === 'T-01:01:01');
   check('fmtCountdown negative is T+', W.fmtCountdown(-61000) === 'T+00:01:01');
   check('fmtCountdown zero is T-00:00:00', W.fmtCountdown(0) === 'T-00:00:00');
+  // Day-collapse boundary is inclusive on the >=24h side: at exactly 86400000ms,
+  // totalSec=86400 -> days=Math.floor(86400/86400)=1, so the day component shows
+  // (T-1d 00:00:00), not T-24:00:00. Anything below 86400000ms omits the day.
+  check('fmtCountdown exactly 24h shows day (inclusive boundary)', W.fmtCountdown(86400000) === 'T-1d 00:00:00');
 } else {
   check('fmtCountdown implemented', false);
 }
@@ -70,6 +74,18 @@ if (W.pickCurrent) {
   check('pickCurrent skips terminal generally', generalSkip && generalSkip.id === 'upcoming-tbd');
 
   check('pickCurrent empty array returns null', W.pickCurrent([], NOW, true) === null);
+
+  // Boundary: T+ window is `-deltaMs <= 30 * 60000`, i.e. inclusive at exactly 30:00 ago.
+  var boundary30 = W.pickCurrent([
+    { id: 'boundary-30', name: 'Rocket F | Boundary 30', net: iso(-30 * 60000), status: { abbrev: 'Go' } }
+  ], NOW, true);
+  check('pickCurrent keeps entry exactly at 30-min T+ edge (inclusive)', boundary30 && boundary30.id === 'boundary-30');
+
+  // Boundary: terminal-display window is `-deltaMs <= 5 * 60000`, i.e. inclusive at exactly 5:00 ago.
+  var boundary5 = W.pickCurrent([
+    { id: 'boundary-5', name: 'Rocket G | Boundary 5', net: iso(-5 * 60000), status: { abbrev: 'Failure' } }
+  ], NOW, true);
+  check('pickCurrent keeps terminal entry exactly at 5-min display edge (inclusive)', boundary5 && boundary5.id === 'boundary-5');
 } else {
   check('pickCurrent implemented', false);
 }
