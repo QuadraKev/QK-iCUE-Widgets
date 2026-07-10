@@ -270,7 +270,7 @@ Compress-Archive -Path "widgets\QK{Name}\*" -DestinationPath "dist\QK{Name}.icue
 - SVG icons: `qk-{kebab-case}.svg` (in `resources/`)
 
 ## Installation
-Widgets are installed by importing `.icuewidget` files through iCUE's **+** button, or by copying widget folders to iCUE's widgets directory:
+Widgets are installed by importing `.icuewidget` files through iCUE's **+** button (or by double-clicking the file in Explorer — the file type is associated with iCUE), or by copying widget folders to iCUE's widgets directory:
 `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets`
 - Each widget folder (e.g., `QKWeather/`) goes directly under `widgets/`
 - Widgets imported via the **+** button take effect immediately — no iCUE restart needed (as of mid-2026 iCUE versions). Directly copied widget folders may still require a restart.
