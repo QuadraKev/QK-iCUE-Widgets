@@ -115,6 +115,10 @@
             font-size: var(--font-label); font-weight: 600; letter-spacing: 0.12em;
             text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
         }
+        #stale-marker {
+            margin-left: 0.5em; color: var(--text-muted); display: none;
+        }
+        #stale-marker::before { content: '\00B7\0020'; }
         #storm-label {
             font-size: var(--font-label); font-weight: 600; color: var(--accent-color);
             white-space: nowrap; display: none;
@@ -136,6 +140,7 @@
             font-size: var(--font-body); font-weight: 600; color: var(--text-color);
             font-variant-numeric: tabular-nums; white-space: nowrap;
         }
+        .chip-value.favorable { color: #39D98A; }
         #bars {
             flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center;
             gap: var(--space-gap); padding: var(--space-pad);
@@ -150,7 +155,7 @@
         <div id="hero">
             <div id="gauge">
                 <div id="kp-value">&mdash;</div>
-                <div id="kp-label" data-tr="Current Kp"></div>
+                <div id="kp-label"><span data-tr="Current Kp"></span><span id="stale-marker" data-tr="Stale"></span></div>
                 <div id="storm-label"></div>
             </div>
             <div id="verdict">
@@ -158,7 +163,7 @@
             </div>
             <div id="chips">
                 <div class="chip"><span class="chip-label" data-tr="Speed"></span><span class="chip-value" id="chip-speed">&mdash;</span></div>
-                <div class="chip"><span class="chip-label" data-tr="Density"></span><span class="chip-value" id="chip-density">&mdash;</span></div>
+                <div class="chip"><span class="chip-label" data-tr="Bt"></span><span class="chip-value" id="chip-bt">&mdash;</span></div>
                 <div class="chip"><span class="chip-label" data-tr="Bz"></span><span class="chip-value" id="chip-bz">&mdash;</span></div>
             </div>
         </div>
@@ -228,6 +233,82 @@
             transparency: 100
         };
 
+        // @testable-start
+        // Centered-dipole geomagnetic pole (IGRF-13, epoch ~2025): 80.8N, 72.7W.
+        var GEOMAG_POLE_LAT = 80.8;
+        var GEOMAG_POLE_LON = -72.7;
+
+        function geomagLat(lat, lon) {
+            var toRad = function (d) { return d * Math.PI / 180; };
+            var phi = toRad(lat), lam = toRad(lon);
+            var phi0 = toRad(GEOMAG_POLE_LAT), lam0 = toRad(GEOMAG_POLE_LON);
+            var s = Math.sin(phi) * Math.sin(phi0) + Math.cos(phi) * Math.cos(phi0) * Math.cos(lam - lam0);
+            s = Math.max(-1, Math.min(1, s));
+            return Math.asin(s) * 180 / Math.PI;
+        }
+
+        // Equatorward visible-aurora boundary (geomagnetic, absolute) for a given Kp.
+        function boundaryLat(kp) {
+            return 66.5 - 2.05 * kp;
+        }
+        // Inverse: minimum Kp needed for the boundary to reach a given |geomagnetic latitude|.
+        function requiredKp(absGeomagLat) {
+            var v = (66.5 - absGeomagLat) / 2.05;
+            return Math.max(0, Math.min(9, v));
+        }
+        // Display text for a requiredKp() value (edge cases per plan: <=0 -> "any", >=9 -> capped).
+        function formatRequiredKp(reqKp) {
+            if (reqKp <= 0) return 'any';
+            if (reqKp >= 9) return '≥ 9 (extremely rare)';
+            return '≥ ' + reqKp.toFixed(1);
+        }
+
+        // Visibility verdict vs CURRENT Kp. Returns one of the three pinned tier strings
+        // (used directly as translation keys).
+        var VERDICT_OVERHEAD = 'Aurora possible overhead';
+        var VERDICT_HORIZON = 'Possible low on the horizon';
+        var VERDICT_NOT_VISIBLE = 'Not visible at your latitude';
+        function verdict(geomagLatVal, kp) {
+            var abs = Math.abs(geomagLatVal);
+            var boundary = boundaryLat(kp);
+            if (abs >= boundary) return VERDICT_OVERHEAD;
+            if (boundary - abs <= 5) return VERDICT_HORIZON;
+            return VERDICT_NOT_VISIBLE;
+        }
+
+        // NOAA storm-scale label for Kp >= 5 (Kp5->G1 ... Kp9->G5).
+        var STORM_TIERS = { 5: 'G1', 6: 'G2', 7: 'G3', 8: 'G4', 9: 'G5' };
+        function stormLabel(kp) {
+            var tier = Math.min(9, Math.floor(kp));
+            return STORM_TIERS[tier] || '';
+        }
+
+        // Parses NOAA's Kp-forecast product into day-buckets of 8 three-hour bins.
+        // Handles both the documented array-of-arrays shape (row 0 = header, values
+        // by index) and the array-of-objects shape NOAA actually serves live as of
+        // 2026-07-10 (verified via curl: no header row, fields by name) -- see
+        // aurora-task2-report.md for the discrepancy and evidence.
+        function parseKpForecast(rows) {
+            if (!rows || !rows.length) return [];
+            var isLegacy = Array.isArray(rows[0]);
+            var start = isLegacy ? 1 : 0;
+            var flat = [];
+            for (var i = start; i < rows.length; i++) {
+                var row = rows[i];
+                var time, kp;
+                if (isLegacy) { time = row[0]; kp = parseFloat(row[1]); }
+                else { time = row.time_tag; kp = parseFloat(row.kp); }
+                if (isNaN(kp)) continue;
+                flat.push({ time: time, kp: kp });
+            }
+            var groups = [];
+            for (var j = 0; j < flat.length; j += 8) {
+                groups.push(flat.slice(j, j + 8));
+            }
+            return groups;
+        }
+        // @testable-end
+
         function readSettings() {
             if (typeof auroraLocation !== 'undefined') cfg.auroraLocation = auroraLocation;
             if (typeof textColor !== 'undefined') cfg.textColor = textColor;
@@ -267,6 +348,212 @@
             });
         }
 
+        // tr() is only defined inside iCUE; fall back to the raw key standalone (matches translateLabels()).
+        function trText(key, cb) {
+            if (typeof tr === 'function') { tr(key).then(cb); } else { cb(key); }
+        }
+
+        var KP_URL = 'https://services.swpc.noaa.gov/json/planetary_k_index_1m.json';
+        var FORECAST_URL = 'https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json';
+        var WIND_SPEED_URL = 'https://services.swpc.noaa.gov/products/summary/solar-wind-speed.json';
+        var WIND_MAG_URL = 'https://services.swpc.noaa.gov/products/summary/solar-wind-mag-field.json';
+
+        var KP_POLL_INTERVAL = 300000;        // 5 min
+        var FORECAST_POLL_INTERVAL = 1800000; // 30 min
+        var WIND_POLL_INTERVAL = 300000;      // 5 min
+        var BACKOFF_STEPS = [30000, 60000, 300000];
+        var STALE_MS = 15 * 60000;
+
+        var auroraState = {
+            kpNow: null, kpAt: 0, kpFailures: 0, kpInFlight: false,
+            forecastGroups: null, forecastAt: 0, forecastFailures: 0, forecastInFlight: false,
+            wind: null, windAt: 0, windFailures: 0, windInFlight: false,
+            mocked: false, offline: false
+        };
+        var kpTimer = null, forecastTimer = null, windTimer = null, staleTimer = null;
+
+        function fetchJSON(url) {
+            if (auroraState.offline) return Promise.reject(new Error('mock offline'));
+            return fetch(url, { signal: AbortSignal.timeout(12000) }).then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            });
+        }
+
+        function pollKp() {
+            if (auroraState.mocked || auroraState.kpInFlight) return;
+            auroraState.kpInFlight = true;
+            fetchJSON(KP_URL).then(function (data) {
+                auroraState.kpInFlight = false;
+                if (auroraState.mocked) return;
+                var last = (data && data.length) ? data[data.length - 1] : null;
+                if (last) {
+                    auroraState.kpNow = (typeof last.estimated_kp === 'number') ? last.estimated_kp : last.kp_index;
+                    auroraState.kpAt = Date.now();
+                    auroraState.kpFailures = 0;
+                }
+                updateGauge();
+                updateVerdict();
+            }).catch(function () {
+                auroraState.kpInFlight = false;
+                auroraState.kpFailures++;
+                var backoff = BACKOFF_STEPS[Math.min(auroraState.kpFailures - 1, BACKOFF_STEPS.length - 1)];
+                clearTimeout(kpTimer);
+                kpTimer = setTimeout(kpLoop, backoff);
+            });
+        }
+        function kpLoop() {
+            pollKp();
+            clearTimeout(kpTimer);
+            kpTimer = setTimeout(kpLoop, KP_POLL_INTERVAL);
+        }
+
+        function pollForecast() {
+            if (auroraState.mocked || auroraState.forecastInFlight) return;
+            auroraState.forecastInFlight = true;
+            fetchJSON(FORECAST_URL).then(function (data) {
+                auroraState.forecastInFlight = false;
+                if (auroraState.mocked) return;
+                auroraState.forecastGroups = parseKpForecast(data || []);
+                auroraState.forecastAt = Date.now();
+                auroraState.forecastFailures = 0;
+            }).catch(function () {
+                auroraState.forecastInFlight = false;
+                auroraState.forecastFailures++;
+                var backoff = BACKOFF_STEPS[Math.min(auroraState.forecastFailures - 1, BACKOFF_STEPS.length - 1)];
+                clearTimeout(forecastTimer);
+                forecastTimer = setTimeout(forecastLoop, backoff);
+            });
+        }
+        function forecastLoop() {
+            pollForecast();
+            clearTimeout(forecastTimer);
+            forecastTimer = setTimeout(forecastLoop, FORECAST_POLL_INTERVAL);
+        }
+
+        function pollWind() {
+            if (auroraState.mocked || auroraState.windInFlight) return;
+            auroraState.windInFlight = true;
+            Promise.all([fetchJSON(WIND_SPEED_URL), fetchJSON(WIND_MAG_URL)]).then(function (results) {
+                auroraState.windInFlight = false;
+                if (auroraState.mocked) return;
+                var speedArr = results[0], magArr = results[1];
+                var speedRow = (speedArr && speedArr.length) ? speedArr[speedArr.length - 1] : null;
+                var magRow = (magArr && magArr.length) ? magArr[magArr.length - 1] : null;
+                auroraState.wind = {
+                    speed: speedRow ? speedRow.proton_speed : null,
+                    bt: magRow ? magRow.bt : null,
+                    bz: magRow ? magRow.bz_gsm : null
+                };
+                auroraState.windAt = Date.now();
+                auroraState.windFailures = 0;
+                updateChips();
+            }).catch(function () {
+                auroraState.windInFlight = false;
+                auroraState.windFailures++;
+                var backoff = BACKOFF_STEPS[Math.min(auroraState.windFailures - 1, BACKOFF_STEPS.length - 1)];
+                clearTimeout(windTimer);
+                windTimer = setTimeout(windLoop, backoff);
+            });
+        }
+        function windLoop() {
+            pollWind();
+            clearTimeout(windTimer);
+            windTimer = setTimeout(windLoop, WIND_POLL_INTERVAL);
+        }
+
+        // Test/demo hooks: inject fixed data, bypassing the network entirely (single-flight
+        // guards above already stop live pollers once mocked=true).
+        function __auroraMock(kpNow, forecastRows, wind) {
+            auroraState.mocked = true;
+            clearTimeout(kpTimer); clearTimeout(forecastTimer); clearTimeout(windTimer);
+            auroraState.kpNow = kpNow;
+            auroraState.kpAt = Date.now();
+            auroraState.kpFailures = 0;
+            auroraState.forecastGroups = parseKpForecast(forecastRows || []);
+            auroraState.forecastAt = Date.now();
+            auroraState.forecastFailures = 0;
+            auroraState.wind = wind || null;
+            auroraState.windAt = Date.now();
+            auroraState.windFailures = 0;
+            updateGauge();
+            updateVerdict();
+            updateChips();
+        }
+        function __auroraMockOffline(on) {
+            auroraState.offline = on;
+            if (on) {
+                auroraState.kpAt = Date.now() - 20 * 60000;
+                auroraState.forecastAt = Date.now() - 20 * 60000;
+                auroraState.windAt = Date.now() - 20 * 60000;
+                updateGauge();
+                updateVerdict();
+                updateChips();
+                tick();
+            }
+        }
+        function __auroraMockUser(lat, lon) {
+            userLoc.lat = lat; userLoc.lon = lon; userLoc.resolved = 'mock';
+            updateVerdict();
+        }
+
+        function updateGauge() {
+            var kpEl = document.getElementById('kp-value');
+            var stormEl = document.getElementById('storm-label');
+            if (auroraState.kpNow === null) {
+                kpEl.textContent = '—';
+                stormEl.style.display = 'none';
+                return;
+            }
+            kpEl.textContent = auroraState.kpNow.toFixed(1);
+            if (auroraState.kpNow >= 5) {
+                stormEl.textContent = stormLabel(auroraState.kpNow) + ' STORM';
+                stormEl.style.display = 'block';
+            } else {
+                stormEl.style.display = 'none';
+            }
+        }
+
+        function updateVerdict() {
+            var el = document.getElementById('verdict-text');
+            if (userLoc.lat === null) {
+                trText('Set a location for visibility', function (s) { el.textContent = s; });
+                return;
+            }
+            if (auroraState.kpNow === null) {
+                trText('Acquiring', function (s) { el.textContent = s; });
+                return;
+            }
+            var gLat = geomagLat(userLoc.lat, userLoc.lon);
+            var tier = verdict(gLat, auroraState.kpNow);
+            trText(tier, function (s) {
+                if (tier === VERDICT_OVERHEAD) { el.textContent = s; return; }
+                var reqKp = requiredKp(Math.abs(gLat));
+                el.textContent = s + ' — needs Kp ' + formatRequiredKp(reqKp);
+            });
+        }
+
+        function updateChips() {
+            var speedEl = document.getElementById('chip-speed');
+            var btEl = document.getElementById('chip-bt');
+            var bzEl = document.getElementById('chip-bz');
+            var w = auroraState.wind;
+            speedEl.textContent = (w && typeof w.speed === 'number') ? Math.round(w.speed) + ' km/s' : '—';
+            btEl.textContent = (w && typeof w.bt === 'number') ? Math.round(w.bt) + ' nT' : '—';
+            if (w && typeof w.bz === 'number') {
+                bzEl.textContent = (w.bz > 0 ? '+' : '') + w.bz + ' nT';
+                bzEl.classList.toggle('favorable', w.bz < 0);
+            } else {
+                bzEl.textContent = '—';
+                bzEl.classList.remove('favorable');
+            }
+        }
+
+        function tick() {
+            var stale = auroraState.kpAt > 0 && (Date.now() - auroraState.kpAt) > STALE_MS;
+            document.getElementById('stale-marker').style.display = stale ? 'inline' : 'none';
+        }
+
         var userLoc = { lat: null, lon: null, resolved: '' };
 
         function resolveLocation() {
@@ -279,6 +566,7 @@
                     if (typeof loc.latitude !== 'number') return;
                     userLoc.lat = loc.latitude; userLoc.lon = loc.longitude;
                     userLoc.resolved = locId;
+                    updateVerdict();
                 })
                 .catch(function() { /* retried on next onDataUpdated */ });
         }
@@ -355,6 +643,14 @@
             updateSquircle();
             translateLabels();
             resolveLocation();
+            updateGauge();
+            updateVerdict();
+            updateChips();
+            tick();
+            kpLoop();
+            forecastLoop();
+            windLoop();
+            setInterval(tick, 30000);
         }
 
         window.addEventListener('resize', function() {
@@ -367,6 +663,7 @@
                 readSettings();
                 applySettings();
                 resolveLocation();
+                updateVerdict();
             }
         };
         if (typeof iCUE_initialized !== 'undefined' && iCUE_initialized) { onInit(); }

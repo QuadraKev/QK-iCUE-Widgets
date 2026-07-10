@@ -13,10 +13,15 @@
       "Background Color": "Background Color",
       "Transparency": "Transparency",
       "Current Kp": "Current Kp",
+      "Stale": "Stale",
       "Acquiring": "Acquiring",
       "Speed": "Speed",
-      "Density": "Density",
-      "Bz": "Bz"
+      "Bt": "Bt",
+      "Bz": "Bz",
+      "Set a location for visibility": "Set a location for visibility",
+      "Aurora possible overhead": "Aurora possible overhead",
+      "Possible low on the horizon": "Possible low on the horizon",
+      "Not visible at your latitude": "Not visible at your latitude"
     }
   }
 }
