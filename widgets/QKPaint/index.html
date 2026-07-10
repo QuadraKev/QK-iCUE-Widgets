@@ -489,24 +489,24 @@
     <div class="container paint-app">
         <div class="widget-title" id="widget-title"></div>
         <!-- ── Toolbar ── -->
+        <!-- Toolbar icons: Phosphor Icons (phosphoricons.com), MIT License -->
         <div class="toolbar">
             <div class="color-pair">
                 <button class="draw-color" id="drawColor" title="Draw Color">
-                    <svg viewBox="0 0 20 20"><path d="M10 3c3 4 5 6.3 5 8.7a5 5 0 1 1-10 0C5 9.3 7 7 10 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+                    <svg viewBox="0 0 256 256"><path d="M208,144c0-72-80-128-80-128S48,72,48,144a80,80,0,0,0,160,0Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M136,192c20-3.37,36.61-20,40-40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
                 <button class="bg-color" id="bgColor" title="Background Color">
-                    <svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 13l4-4 3 3 3-3 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+                    <svg viewBox="0 0 256 256"><rect x="32" y="48" width="192" height="160" rx="8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><circle cx="156" cy="100" r="8" fill="currentColor"/><path d="M147.31,164,173,138.34a8,8,0,0,1,11.31,0L224,178.06" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M32,168.69l54.34-54.35a8,8,0,0,1,11.32,0L191.31,208" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
             </div>
 
             <div class="tool-row">
                 <button class="tool-btn active" data-tool="brush" title="Brush">
-                    <svg viewBox="0 0 20 20"><path d="M14 3l3 3-10 10H4v-3L14 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+                    <svg viewBox="0 0 256 256"><path d="M92.69,216H48a8,8,0,0,1-8-8V163.31a8,8,0,0,1,2.34-5.65L165.66,34.34a8,8,0,0,1,11.31,0L221.66,79a8,8,0,0,1,0,11.31L98.34,213.66A8,8,0,0,1,92.69,216Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><line x1="136" y1="64" x2="192" y2="120" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
                 <button class="tool-btn" data-tool="fill" title="Fill">
-                    <svg viewBox="0 0 20 20"><path d="M5 5h10l-2 11H7L5 5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 8q2 3 0 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 256 256"><path d="M248,208a16,16,0,0,1-32,0c0-16,16-40,16-40S248,192,248,208Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M208,139.48l-79.83,79.83a16,16,0,0,1-22.63,0L20.69,134.46a16,16,0,0,1,0-22.63L116.52,16,232,131.48Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><circle cx="124" cy="116" r="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><line x1="109.86" y1="101.86" x2="39.99" y2="32" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
-                <!-- Eraser & Undo icons: Phosphor Icons (phosphoricons.com), MIT License -->
                 <button class="tool-btn" data-tool="eraser" title="Eraser">
                     <svg viewBox="0 0 256 256"><line x1="96" y1="104" x2="160" y2="168" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M112,216,219.31,108.69a16,16,0,0,0,0-22.63L177.94,44.69a16,16,0,0,0-22.63,0L36.69,163.31a16,16,0,0,0,0,22.63L66.75,216H216" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
@@ -523,7 +523,7 @@
                     <svg viewBox="0 0 256 256"><polyline points="88 152 24 152 24 88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M224,184A96,96,0,0,0,60.12,116.12L24,152" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
                 <button class="action-btn danger" id="clearBtn" title="Clear">
-                    <svg viewBox="0 0 20 20"><path d="M6 5l1 11h6l1-11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="4" y1="5" x2="16" y2="5" stroke="currentColor" stroke-width="1.6"/><path d="M8 3h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 256 256"><line x1="216" y1="56" x2="40" y2="56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><line x1="88" y1="24" x2="168" y2="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
             </div>
 
