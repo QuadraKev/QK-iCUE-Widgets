@@ -243,6 +243,7 @@
         @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
             .container {
                 flex-direction: row;
+                position: relative;
             }
             .ball-outer {
                 width: 88vh;
@@ -250,9 +251,15 @@
             }
             .ball-eight { font-size: 31.4vh; }
             .answer-text { font-size: 6vh; }
+            /* Hint out of the flex flow so the ball centers in the full slot
+               width (2026-07-09 QA); pinned right of the ball: 44vh half-ball
+               + 4vh gap from slot center, vertically centered. */
             .tap-hint {
-                margin-top: 0;
-                margin-left: 3vh;
+                position: absolute;
+                left: calc(50% + 48vh);
+                top: 50%;
+                transform: translateY(-50%);
+                margin: 0;
             }
         }
 
