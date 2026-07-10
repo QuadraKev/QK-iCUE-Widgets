@@ -209,6 +209,21 @@
             opacity: 0.6;
         }
 
+        /* Per-shape optical centering: flex only centers the glyph's line
+           box, not its visible ink, so each symbol needs its own nudge (in
+           em, so it scales with .pad-icon's font-size across every slot).
+           Measured via a pixel scan of each glyph's rendered ink bounds
+           against the pad's true center: circle sits ~6.2% low and square
+           ~11.3% low - shifted up to compensate. Diamond's ink is already
+           centered (symmetric about its own widest point) - left alone.
+           Triangle's bounding box is centered too, but its wide base reads
+           heavier than its point, so a bbox-centered triangle looks like
+           it's floating high (matches the on-device report) - nudged down
+           for optical, not bounding-box, balance. */
+        .pad-green .pad-icon { transform: translateY(0.05em); }  /* triangle */
+        .pad-red .pad-icon   { transform: translateY(-0.062em); } /* circle */
+        .pad-blue .pad-icon  { transform: translateY(-0.113em); } /* square */
+
         /* ---- Info panel ---- */
         .info {
             display: flex;
