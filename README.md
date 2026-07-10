@@ -9,6 +9,7 @@ Custom widgets for Corsair iCUE LCD displays (Xeneon Edge and pump LCD), built a
 | Widget | Description |
 |--------|-------------|
 | [2048](widgets/QK2048) | Classic 2048 sliding tile puzzle game |
+| [Aurora Forecast](widgets/QKAurora) | Kp-index aurora forecast with a location-based visibility verdict, 3-day outlook, and solar wind conditions |
 | [Calculator](widgets/QKCalculator) | Touchscreen calculator with clean, responsive button layout |
 | [Clock](widgets/QKClock) | Clean digital clock with timezone support and date display |
 | [Dice Roller](widgets/QKDiceRoller) | Interactive dice rolling with spinning 3D wireframe dice and roll history |
