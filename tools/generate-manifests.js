@@ -21,6 +21,17 @@ const widgets = [
     interactive: true,
   },
   {
+    folder: 'QKAurora',
+    id: 'com.quadrakev.aurora',
+    name: 'Aurora Forecast',
+    description: 'Kp-index aurora forecast with a location-based visibility verdict, 3-day outlook, and solar wind conditions.',
+    devices: [{ type: 'dashboard_lcd' }],
+    interactive: false,
+    version: '1.0.0',
+    os: [{ platform: 'windows' }], // iCUE 5.x import + CLI both reject 'macos' (see memory: icuewidget-cli-os-bug)
+    modules: ['modules/OpenMeteo.mjs'],
+  },
+  {
     folder: 'QKCalculator',
     id: 'com.quadrakev.calculator',
     name: 'Calculator',
