@@ -216,11 +216,10 @@
            against the pad's true center: circle sits ~6.2% low and square
            ~11.3% low - shifted up to compensate. Diamond's ink is already
            centered (symmetric about its own widest point) - left alone.
-           Triangle's bounding box is centered too, but its wide base reads
-           heavier than its point, so a bbox-centered triangle looks like
-           it's floating high (matches the on-device report) - nudged down
-           for optical, not bounding-box, balance. */
-        .pad-green .pad-icon { transform: translateY(0.05em); }  /* triangle */
+           Triangle's bounding box is centered and stays that way: an earlier
+           0.05em downward nudge read too low on-device (2026-07-09 QA) - the
+           original "floating high" impression came from comparing against the
+           then-miscentered circle/square, not from the triangle itself. */
         .pad-red .pad-icon   { transform: translateY(-0.062em); } /* circle */
         .pad-blue .pad-icon  { transform: translateY(-0.113em); } /* square */
 
