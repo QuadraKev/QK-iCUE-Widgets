@@ -290,8 +290,17 @@
             .display-expression {
                 font-size: 10vh;
             }
+            /* .btn (keypad captions) shares this row with the button-grid's fixed
+               vertical budget: 5 rows + 4 gaps + grid padding must fit HS's 345px
+               height alongside the row layout. Naive doubling (14vh/48.16px)
+               overflowed the grid by ~45px, pushing the bottom row off-screen
+               (verified via getBoundingClientRect: last row bottom at 378px vs a
+               322px available box). 12vh/41.28px is the largest size that keeps
+               all 5 rows inside the grid's own box with margin to spare (still
+               103% of the 40px body target); row height stays 60px+, well above
+               the 44px touch floor. */
             .btn {
-                font-size: 14vh;
+                font-size: 12vh;
             }
         }
 
