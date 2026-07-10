@@ -1,0 +1,19 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.launchcountdown",
+  "name": "Launch Countdown",
+  "description": "Live T-minus countdown to the next rocket launch with status badge and upcoming timeline.",
+  "version": "1.0.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "dashboard_lcd"
+    }
+  ]
+}

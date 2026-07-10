@@ -56,6 +56,16 @@ const widgets = [
     modules: ['modules/OpenMeteo.mjs'],
   },
   {
+    folder: 'QKLaunchCountdown',
+    id: 'com.quadrakev.launchcountdown',
+    name: 'Launch Countdown',
+    description: 'Live T-minus countdown to the next rocket launch with status badge and upcoming timeline.',
+    devices: [{ type: 'dashboard_lcd' }],
+    interactive: false,
+    version: '1.0.0',
+    os: [{ platform: 'windows' }], // iCUE 5.x import + CLI both reject 'macos' (see memory: icuewidget-cli-os-bug)
+  },
+  {
     folder: 'QKMagic8Ball',
     id: 'com.quadrakev.magic8ball',
     name: 'Magic 8 Ball',
