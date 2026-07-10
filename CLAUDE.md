@@ -7,7 +7,7 @@ This repo contains custom iCUE widgets for Corsair LCD displays, built for iCUE'
 Key documentation:
 - `docs/QK-widget-design-guidelines.md`: visual style guide and Marketplace compliance checklist (tracked)
 - `docs/QK-typography-standard.md`: physical text-size targets per device/role, slot token multipliers, HS/HL breakpoint (tracked)
-- `docs/iCUE-Widget-System-Documentation.md`: widget API reference — meta tags, properties, events, translation, fonts (local-only, gitignored)
+- `../.QK-iCUE-Widgets/docs/iCUE-Widget-System-Documentation.md`: widget API reference — meta tags, properties, events, translation, fonts (local-only; kept in the `.QK-iCUE-Widgets` sibling directory, outside the repo)
 - `docs/Touchscreen_Design_Guidelines.md`: touch target sizing and UI design principles (local-only, gitignored)
 - `docs/WidgetBuilder-kit/`: official Corsair WidgetBuilder NDA materials — local-only (gitignored). See memory `project_nda_docs.md`
 
