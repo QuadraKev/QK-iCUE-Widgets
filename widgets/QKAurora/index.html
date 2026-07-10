@@ -64,6 +64,7 @@
             --text-muted: color-mix(in srgb, var(--text-color) 45%, var(--bg-color));
             --text-secondary: color-mix(in srgb, var(--text-color) 70%, var(--bg-color));
             --panel-border: color-mix(in srgb, var(--text-color) 12%, var(--bg-color));
+            --aurora-opacity: 0.08;   /* Kp-driven; set by updateAmbient() */
 
             --u: 1vh;   /* wide slots (default); overridden per aspect below */
             --font-label: calc(var(--u) * 4.2);
@@ -96,13 +97,47 @@
             font-size: var(--font-title); font-weight: 600; color: var(--text-color);
         }
         #root {
-            position: relative; z-index: 1; width: 100%; height: 100%; display: flex;
+            position: relative; z-index: 1; width: 100%; height: 100%;
             overflow: hidden; padding: var(--squircle-inset, 0px);
             background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+            /* Default (no query) = HL/HXL: left column (hero+chips), bars column spanning full height */
+            display: grid;
+            grid-template-columns: 38% 1fr;
+            grid-template-areas: "left bars";
+        }
+        /* Ambient aurora gradient: slow CSS-only drift (no JS rAF), full period >= 20s.
+           Opacity is Kp-driven (0.08 quiet -> 0.62 cap at storm) via updateAmbient().
+           Absolutely-positioned grid children ignore grid-area placement and simply
+           overlay the whole #root box (spec behavior for abspos grid items). */
+        #aurora-gradient {
+            position: absolute; inset: 0; z-index: 0; pointer-events: none;
+            background: linear-gradient(115deg, #1FE3A0 0%, #3E7BFA 35%, #9B3DFF 65%, #1FE3A0 100%);
+            background-size: 300% 300%;
+            opacity: var(--aurora-opacity, 0.08);
+            animation: aurora-drift 26s ease-in-out infinite;
+        }
+        @keyframes aurora-drift {
+            0% { background-position: 0% 20%; }
+            50% { background-position: 100% 80%; }
+            100% { background-position: 0% 20%; }
+        }
+        /* Content scrim: protects text contrast against the gradient at any hue/intensity. */
+        #content-scrim {
+            position: absolute; inset: 0; z-index: 1; pointer-events: none;
+            background: rgba(0, 0, 0, 0.34);
+        }
+        #left-col, #hero, #chips, #bars { position: relative; z-index: 2; }
+        /* #left-col groups hero+chips as one centered block by default (matches "wind chips
+           along the bottom of the left block" without a big dead gap between verdict and
+           chips). HM/portrait switch it to display:contents so #hero/#chips become direct
+           grid children of #root again -- letting #bars sit between them per those layouts. */
+        #left-col {
+            grid-area: left; display: flex; flex-direction: column; justify-content: center;
+            gap: var(--space-gap); padding: var(--space-pad); min-width: 0; min-height: 0;
         }
         #hero {
-            flex: 0 0 38%; display: flex; flex-direction: column; justify-content: center;
-            gap: var(--space-gap); padding: var(--space-pad); min-width: 0;
+            grid-area: hero; display: flex; flex-direction: column; justify-content: center;
+            gap: var(--space-gap); min-width: 0;
         }
         #gauge {
             display: flex; flex-direction: column; gap: calc(var(--space-gap) * 0.5);
@@ -127,7 +162,7 @@
             font-size: var(--font-body); font-weight: 600; color: var(--text-color);
         }
         #chips {
-            display: flex; gap: var(--space-gap);
+            grid-area: chips; display: flex; gap: var(--space-gap); min-width: 0;
         }
         .chip {
             display: flex; flex-direction: column; gap: calc(var(--space-gap) * 0.25);
@@ -142,9 +177,101 @@
         }
         .chip-value.favorable { color: #39D98A; }
         #bars {
-            flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center;
+            grid-area: bars; display: flex; flex-direction: row;
             gap: var(--space-gap); padding: var(--space-pad);
             border-left: 1px solid var(--panel-border);
+        }
+        /* Forecast bars: 3 day-groups x 8 bins, height proportional to Kp (0-9 scale).
+           Bar color tiers and day-grouping stay the same in every layout; only #bars'
+           own flex-direction flips (row of day-columns <-> column of day-rows) below. */
+        .bar-group {
+            flex: 1 1 0; min-width: 0; display: flex; flex-direction: column;
+            gap: calc(var(--space-gap) * 0.5);
+        }
+        .bin-row {
+            flex: 1 1 auto; min-height: 0; display: flex; align-items: flex-end;
+            gap: calc(var(--u) * 0.6); position: relative;
+        }
+        .bar {
+            flex: 1 1 0; min-height: 2px;
+            height: calc(var(--bar-frac, 0.03) * 100%);
+            border-radius: 2px 2px 0 0;
+        }
+        .day-label {
+            flex: 0 0 auto; text-align: center; font-size: var(--font-label); font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
+            white-space: nowrap;
+        }
+        /* Required-Kp threshold line: only rendered when a location is set (renderBars()
+           omits it otherwise). Positioned per bin-row so it reads as one continuous line
+           across all three day-groups in the row layout, and per-day in the stacked layout. */
+        .threshold-line {
+            position: absolute; left: 0; right: 0; height: 2px;
+            bottom: calc(var(--threshold-frac, 0) * 100%);
+            background: var(--text-color); opacity: 0.5; pointer-events: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* HXL/HL share the default grid above. HS only: same aspect family as HL but half
+           the pixels -- double the unit; chips/bars don't fit, force-hidden (left-col stays
+           a normal flex box -- with chips hidden it just centers hero on its own). Threshold
+           2427/1000 separates HS (2.4377, preview 2.4308) from HL (2.4232, preview 2.4198). */
+        @media (min-aspect-ratio: 2427/1000) and (max-aspect-ratio: 299/100) {
+            :root { --u: 2vh; }
+            #root { grid-template-columns: 1fr; grid-template-areas: "left"; }
+            #chips, #bars { display: none; }
+        }
+
+        /* HM (~1.21): gauge+verdict top, bars below, chips bottom. left-col unwraps
+           (display:contents) so #hero/#chips become direct grid children again, letting
+           #bars sit between them; each then needs its own padding left-col was providing. */
+        @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) {
+            :root { --u: 1vh; }
+            #left-col { display: contents; }
+            #root {
+                grid-template-columns: 1fr; grid-template-rows: auto 1fr auto;
+                grid-template-areas: "hero" "bars" "chips";
+            }
+            #hero { padding: var(--space-pad); }
+            #bars { border-left: none; border-top: 1px solid var(--panel-border); border-bottom: 1px solid var(--panel-border); }
+            #chips { justify-content: space-evenly; padding: var(--space-pad); }
+        }
+
+        /* VS band (1.5 < aspect < 2.0): gauge + verdict only, chips/bars don't fit */
+        @media (max-aspect-ratio: 199/100) and (min-aspect-ratio: 151/100) {
+            :root { --u: 1vw; }
+            #root { grid-template-columns: 1fr; grid-template-areas: "left"; }
+            #chips, #bars { display: none; }
+        }
+
+        /* All portrait slots (VM/VL/VXL, aspect <= 0.9): stacked gauge, verdict, chips, bars.
+           Bars stay day-grouped but the groups stack as rows; each row's 8 bins still run
+           left-to-right with height (not width) carrying the Kp value. left-col unwraps here
+           too, same reasoning as HM. */
+        @media (max-aspect-ratio: 90/100) {
+            :root { --u: 1vw; }
+            #left-col { display: contents; }
+            #root {
+                grid-template-columns: 1fr; grid-template-rows: auto auto 1fr;
+                grid-template-areas: "hero" "chips" "bars";
+                row-gap: calc(var(--u) * 2);
+            }
+            #hero { padding: var(--space-pad); }
+            #chips { justify-content: space-evenly; padding: var(--space-pad); }
+            #bars { flex-direction: column; border-left: none; border-top: 1px solid var(--panel-border); }
+            .bar-group { flex-direction: row; align-items: stretch; gap: var(--space-gap); }
+            /* align-self:flex-end (not center) anchors the label to the bar baseline --
+               with a tall bin-row (VL/VXL especially), a centered label floats disconnected
+               from its own bars, stranding empty space between one group's bars and the
+               next group's label instead of collecting it above each group as a whole. */
+            .day-label { flex: 0 0 auto; order: -1; align-self: flex-end; width: 3.4em; text-align: left; }
+            .bin-row { flex: 1 1 auto; }
         }
     </style>
 </head>
@@ -152,14 +279,18 @@
     <div id="media-background"></div>
     <div id="widget-title"></div>
     <div id="root">
-        <div id="hero">
-            <div id="gauge">
-                <div id="kp-value">&mdash;</div>
-                <div id="kp-label"><span data-tr="Current Kp"></span><span id="stale-marker" data-tr="Stale"></span></div>
-                <div id="storm-label"></div>
-            </div>
-            <div id="verdict">
-                <div id="verdict-text" data-tr="Acquiring"></div>
+        <div id="aurora-gradient"></div>
+        <div id="content-scrim"></div>
+        <div id="left-col">
+            <div id="hero">
+                <div id="gauge">
+                    <div id="kp-value">&mdash;</div>
+                    <div id="kp-label"><span data-tr="Current Kp"></span><span id="stale-marker" data-tr="Stale"></span></div>
+                    <div id="storm-label"></div>
+                </div>
+                <div id="verdict">
+                    <div id="verdict-text" data-tr="Acquiring"></div>
+                </div>
             </div>
             <div id="chips">
                 <div class="chip"><span class="chip-label" data-tr="Speed"></span><span class="chip-value" id="chip-speed">&mdash;</span></div>
@@ -417,6 +548,7 @@
                 auroraState.forecastGroups = parseKpForecast(data || []);
                 auroraState.forecastAt = Date.now();
                 auroraState.forecastFailures = 0;
+                renderBars();
             }).catch(function () {
                 auroraState.forecastInFlight = false;
                 auroraState.forecastFailures++;
@@ -479,6 +611,7 @@
             updateGauge();
             updateVerdict();
             updateChips();
+            renderBars();
         }
         function __auroraMockOffline(on) {
             auroraState.offline = on;
@@ -495,11 +628,13 @@
         function __auroraMockUser(lat, lon) {
             userLoc.lat = lat; userLoc.lon = lon; userLoc.resolved = 'mock';
             updateVerdict();
+            renderBars();
         }
 
         function updateGauge() {
             var kpEl = document.getElementById('kp-value');
             var stormEl = document.getElementById('storm-label');
+            updateAmbient(auroraState.kpNow);
             if (auroraState.kpNow === null) {
                 kpEl.textContent = '—';
                 stormEl.style.display = 'none';
@@ -512,6 +647,15 @@
             } else {
                 stormEl.style.display = 'none';
             }
+        }
+
+        // Ambient gradient opacity, driven by current Kp (pinned formula, cap 0.62).
+        function updateAmbient(kp) {
+            var op = 0.08;
+            if (typeof kp === 'number' && !isNaN(kp)) {
+                op = Math.min(0.62, 0.08 + 0.06 * kp);
+            }
+            document.documentElement.style.setProperty('--aurora-opacity', op.toFixed(3));
         }
 
         function updateVerdict() {
@@ -549,6 +693,67 @@
             }
         }
 
+        // Pinned bar-color tiers (fixed semantic, not personalization-driven): <=3 green,
+        // 4 yellow, 5-6 orange, >=7 red.
+        function barColor(kp) {
+            if (kp >= 7) return '#FF5A5A';
+            if (kp >= 5) return '#FF9B3D';
+            if (kp >= 4) return '#FFD24A';
+            return '#39D98A';
+        }
+
+        // Day-of-week label for a bin's time string. Untranslated per QKWeather precedent
+        // (forecast day abbreviations are not run through tr() elsewhere in this repo).
+        var DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        function dayLabel(timeStr) {
+            var d = new Date(String(timeStr).replace(' ', 'T'));
+            return isNaN(d.getTime()) ? '' : DAY_ABBR[d.getDay()];
+        }
+
+        // Renders the 3 most recent day-groups (live NOAA payload has ~10 days of history +
+        // forecast; the last 3 groups are the actual 3-day-ahead forecast -- see task2 report).
+        function renderBars() {
+            var el = document.getElementById('bars');
+            var groups = (auroraState.forecastGroups || []).slice(-3);
+            el.innerHTML = '';
+            if (!groups.length) return;
+
+            var reqKp = null;
+            if (userLoc.lat !== null) {
+                reqKp = requiredKp(Math.abs(geomagLat(userLoc.lat, userLoc.lon)));
+            }
+
+            groups.forEach(function (group) {
+                var gEl = document.createElement('div');
+                gEl.className = 'bar-group';
+
+                var rowEl = document.createElement('div');
+                rowEl.className = 'bin-row';
+                group.forEach(function (bin) {
+                    var barEl = document.createElement('div');
+                    barEl.className = 'bar';
+                    var frac = Math.max(0.03, Math.min(1, bin.kp / 9));
+                    barEl.style.setProperty('--bar-frac', frac.toFixed(3));
+                    barEl.style.background = barColor(bin.kp);
+                    rowEl.appendChild(barEl);
+                });
+                if (reqKp !== null) {
+                    var line = document.createElement('div');
+                    line.className = 'threshold-line';
+                    line.style.setProperty('--threshold-frac', Math.max(0, Math.min(1, reqKp / 9)).toFixed(3));
+                    rowEl.appendChild(line);
+                }
+
+                var labelEl = document.createElement('div');
+                labelEl.className = 'day-label';
+                labelEl.textContent = dayLabel(group[0].time);
+
+                gEl.appendChild(rowEl);
+                gEl.appendChild(labelEl);
+                el.appendChild(gEl);
+            });
+        }
+
         function tick() {
             var stale = auroraState.kpAt > 0 && (Date.now() - auroraState.kpAt) > STALE_MS;
             document.getElementById('stale-marker').style.display = stale ? 'inline' : 'none';
@@ -567,6 +772,7 @@
                     userLoc.lat = loc.latitude; userLoc.lon = loc.longitude;
                     userLoc.resolved = locId;
                     updateVerdict();
+                    renderBars();
                 })
                 .catch(function() { /* retried on next onDataUpdated */ });
         }
@@ -646,6 +852,7 @@
             updateGauge();
             updateVerdict();
             updateChips();
+            renderBars();
             tick();
             kpLoop();
             forecastLoop();
