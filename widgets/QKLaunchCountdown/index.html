@@ -61,6 +61,7 @@
             --bg-color: #0A0A0A;
             --widget-opacity: 1.0;
             --text-muted: color-mix(in srgb, var(--text-color) 45%, var(--bg-color));
+            --badge-muted: color-mix(in srgb, var(--text-color) 65%, var(--bg-color));
             --text-secondary: color-mix(in srgb, var(--text-color) 70%, var(--bg-color));
             --panel-border: color-mix(in srgb, var(--text-color) 12%, var(--bg-color));
 
@@ -105,7 +106,7 @@
         }
         #badge {
             font-size: var(--font-label); font-weight: 600; letter-spacing: 0.12em;
-            text-transform: uppercase; color: var(--text-muted); white-space: nowrap;
+            text-transform: uppercase; color: var(--badge-muted); white-space: nowrap;
         }
         #countdown {
             font-size: var(--font-hero); font-weight: 700; color: var(--accent-color);
@@ -500,7 +501,7 @@
         function badgeColor(status) {
             if (status === 'Go') return '#39D98A';
             if (status === 'Hold') return '#FFB100';
-            return 'var(--text-muted)';
+            return 'var(--badge-muted)';
         }
 
         function updateHero() {
@@ -520,7 +521,7 @@
             if (!current) {
                 if (!lcState.wasEmpty) {
                     badgeLabel.textContent = '—';
-                    badgeLabel.style.color = 'var(--text-muted)';
+                    badgeLabel.style.color = 'var(--badge-muted)';
                     countdownEl.textContent = '—';
                     detailEl.textContent = '—';
                     missionEl.setAttribute('data-tr', 'No upcoming launches');
