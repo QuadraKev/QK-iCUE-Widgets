@@ -273,7 +273,8 @@ Compress-Archive -Path "widgets\QK{Name}\*" -DestinationPath "dist\QK{Name}.icue
 Widgets are installed by importing `.icuewidget` files through iCUE's **+** button, or by copying widget folders to iCUE's widgets directory:
 `C:\Program Files\Corsair\Corsair iCUE5 Software\widgets`
 - Each widget folder (e.g., `QKWeather/`) goes directly under `widgets/`
-- **iCUE must be restarted** for new/updated widgets to appear in the widget picker
+- Widgets imported via the **+** button take effect immediately — no iCUE restart needed (as of mid-2026 iCUE versions). Directly copied widget folders may still require a restart.
+- For local testing, build straight to `dist/` (`tools/build-release.sh`) and import from there — no need to copy artifacts elsewhere.
 
 ### Releases
 - Triggered by pushing a tag matching `v*` (see `.github/workflows/release.yml`)
