@@ -1,0 +1,22 @@
+{
+  "en": {
+    "translation": {
+      "QK Aurora Forecast": "QK Aurora Forecast",
+      "Location": "Location",
+      "Select Location": "Select Location",
+      "Custom Title": "Custom Title",
+      "Widget Personalization": "Widget Personalization",
+      "Background Image": "Background Image",
+      "Glass Blur": "Glass Blur",
+      "Text Color": "Text Color",
+      "Accent Color": "Accent Color",
+      "Background Color": "Background Color",
+      "Transparency": "Transparency",
+      "Current Kp": "Current Kp",
+      "Acquiring": "Acquiring",
+      "Speed": "Speed",
+      "Density": "Density",
+      "Bz": "Bz"
+    }
+  }
+}

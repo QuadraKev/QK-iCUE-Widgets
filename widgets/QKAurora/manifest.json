@@ -1,0 +1,22 @@
+{
+  "author": "QuadraKev",
+  "id": "com.quadrakev.aurora",
+  "name": "Aurora Forecast",
+  "description": "Kp-index aurora forecast with a location-based visibility verdict, 3-day outlook, and solar wind conditions.",
+  "version": "1.0.0",
+  "preview_icon": "icon.png",
+  "min_framework_version": "1.0.0",
+  "os": [
+    {
+      "platform": "windows"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "dashboard_lcd"
+    }
+  ],
+  "modules": [
+    "modules/OpenMeteo.mjs"
+  ]
+}

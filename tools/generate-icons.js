@@ -26,7 +26,7 @@ const TERTIARY    = '#ffae30'; // amber
 const ICON_COLOR = PRIMARY;
 
 const folders = [
-  'QK2048', 'QKCalculator', 'QKClock', 'QKDiceRoller', 'QKFidgetSpinner', 'QKISSTracker', 'QKLaunchCountdown', 'QKMagic8Ball',
+  'QK2048', 'QKAurora', 'QKCalculator', 'QKClock', 'QKDiceRoller', 'QKFidgetSpinner', 'QKISSTracker', 'QKLaunchCountdown', 'QKMagic8Ball',
   'QKPaint', 'QKSimon', 'QKTallyCounter', 'QKWorldClocks', 'QKXEVisualizer',
   'QKBinaryClock', 'QKDayProgress', 'QKGameOfLife', 'QKMatrixRain', 'QKMoonPhase',
   'QKStarfield',
