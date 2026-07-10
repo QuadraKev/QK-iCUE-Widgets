@@ -204,25 +204,28 @@
         .size-btn.active .size-dot { background: #5af; }
         .size-dot { border-radius: 50%; background: #aaa; }
 
-        /* Color presets — single scrollable strip */
+        /* Color presets — single scrollable strip (column in landscape, row in portrait) */
         .color-strip {
             display: flex;
+            flex-direction: column;
             gap: 0.8vh;
-            flex-shrink: 0;
-            margin-top: auto;
-            overflow-x: auto;
-            overflow-y: hidden;
+            flex: 1 1 0;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
             scrollbar-width: none;
-            touch-action: pan-x;
+            touch-action: pan-y;
         }
         .color-strip::-webkit-scrollbar { display: none; }
         .color-strip { --fade-len: 3vh; }
+        .color-strip.fade-t { mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-len)); }
+        .color-strip.fade-b { mask-image: linear-gradient(to top, transparent, #000 var(--fade-len)); }
+        .color-strip.fade-t.fade-b { mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-len), #000 calc(100% - var(--fade-len)), transparent); }
         .color-strip.fade-l { mask-image: linear-gradient(to right, transparent, #000 var(--fade-len)); }
         .color-strip.fade-r { mask-image: linear-gradient(to left, transparent, #000 var(--fade-len)); }
         .color-strip.fade-l.fade-r { mask-image: linear-gradient(to right, transparent, #000 var(--fade-len), #000 calc(100% - var(--fade-len)), transparent); }
         .color-swatch {
-            flex: 0 0 7.4vh;
-            height: 7.4vh;
+            flex: 0 0 6.5vh;
             border: 0.4vmin solid transparent;
             cursor: pointer;
         }
@@ -300,21 +303,38 @@
 
             .color-strip {
                 flex: 0 0 100%;
+                flex-direction: row;
                 gap: 0.6vw;
-                margin-top: 0;
+                overflow-x: auto;
+                overflow-y: hidden;
+                touch-action: pan-x;
                 --fade-len: 3.5vw;
             }
             .color-swatch { flex-basis: 7vw; height: 7vw; }
         }
 
-        /* ══════════════ VS (1.67:1) — single-column toolbar ══════════════ */
+        /* ══════════════ VS (1.67:1) — controls + swatch column ══════════════ */
         @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
             .toolbar {
-                width: 44vh; min-width: 44vh;
+                display: grid;
+                grid-template-columns: auto auto;
+                align-content: start;
+                width: auto; min-width: auto;
                 padding: 2vh;
                 gap: 1.6vh;
             }
+            .toolbar > * { grid-column: 1; }
             .tb-div { display: none; }
+            .color-strip {
+                grid-column: 2;
+                grid-row: 1 / span 4;
+                align-self: start;
+                /* rows are 16+20+16+16vh + three 1.6vh gaps; explicit height keeps the
+                   24-swatch content from inflating the auto rows */
+                height: 72.8vh;
+                gap: 1.6vh;
+                --fade-len: 4vh;
+            }
             .color-pair { gap: 1.6vh; }
             .draw-color, .bg-color { height: 16vh; }
             .draw-color::after, .bg-color::after { font-size: 4vh; }
@@ -328,18 +348,29 @@
             .action-btn { height: 16vh; }
             .action-btn svg { width: 7vh; height: 7vh; }
             .action-label { font-size: 3.6vh; }
-            .color-strip { gap: 1.6vh; --fade-len: 4vh; }
-            .color-swatch { flex-basis: 12vh; height: 12vh; }
+            .color-swatch { flex-basis: 12vh; width: 12vh; }
         }
 
-        /* ══════════════ Wide-short (HS) — single-column toolbar ══════════════ */
+        /* ══════════════ Wide-short (HS) — controls + swatch column ══════════════ */
         @media (min-aspect-ratio: 243/100) and (max-aspect-ratio: 300/100) {
             .toolbar {
-                width: 50vh; min-width: 50vh;
+                display: grid;
+                grid-template-columns: auto auto;
+                align-content: start;
+                width: auto; min-width: auto;
                 padding: 2vh;
                 gap: 1.6vh;
             }
+            .toolbar > * { grid-column: 1; }
             .tb-div { display: none; }
+            .color-strip {
+                grid-column: 2;
+                grid-row: 1 / span 4;
+                align-self: start;
+                height: 72.8vh;
+                gap: 1.6vh;
+                --fade-len: 5vh;
+            }
             .color-pair { gap: 1.6vh; }
             .draw-color, .bg-color { height: 16vh; }
             .draw-color::after, .bg-color::after { font-size: 4vh; }
@@ -353,8 +384,7 @@
             .action-btn { height: 16vh; }
             .action-btn svg { width: 7vh; height: 7vh; }
             .action-label { font-size: 3.6vh; }
-            .color-strip { gap: 1.6vh; --fade-len: 5vh; }
-            .color-swatch { flex-basis: 14vh; height: 14vh; }
+            .color-swatch { flex-basis: 14vh; width: 14vh; }
         }
 
         /* ══════════════ Extra-wide (HXL) — picker sizing ══════════════ */
@@ -789,14 +819,22 @@
         function scrollActiveIntoView() {
             var act = colorGrid.querySelector('.color-swatch.active');
             if (!act) return;
-            var offset = act.getBoundingClientRect().left - colorGrid.getBoundingClientRect().left + colorGrid.scrollLeft;
-            colorGrid.scrollLeft = Math.max(0, offset - (colorGrid.clientWidth - act.offsetWidth) / 2);
+            if (colorGrid.scrollHeight - colorGrid.clientHeight > 1) {
+                var offY = act.getBoundingClientRect().top - colorGrid.getBoundingClientRect().top + colorGrid.scrollTop;
+                colorGrid.scrollTop = Math.max(0, offY - (colorGrid.clientHeight - act.offsetHeight) / 2);
+            } else {
+                var offX = act.getBoundingClientRect().left - colorGrid.getBoundingClientRect().left + colorGrid.scrollLeft;
+                colorGrid.scrollLeft = Math.max(0, offX - (colorGrid.clientWidth - act.offsetWidth) / 2);
+            }
         }
 
         function updateStripFade() {
-            var max = colorGrid.scrollWidth - colorGrid.clientWidth;
-            colorGrid.classList.toggle('fade-l', colorGrid.scrollLeft > 4);
-            colorGrid.classList.toggle('fade-r', colorGrid.scrollLeft < max - 4);
+            var mx = colorGrid.scrollWidth - colorGrid.clientWidth;
+            var my = colorGrid.scrollHeight - colorGrid.clientHeight;
+            colorGrid.classList.toggle('fade-l', mx > 4 && colorGrid.scrollLeft > 4);
+            colorGrid.classList.toggle('fade-r', mx > 4 && colorGrid.scrollLeft < mx - 4);
+            colorGrid.classList.toggle('fade-t', my > 4 && colorGrid.scrollTop > 4);
+            colorGrid.classList.toggle('fade-b', my > 4 && colorGrid.scrollTop < my - 4);
         }
         colorGrid.addEventListener('scroll', updateStripFade, { passive: true });
 
