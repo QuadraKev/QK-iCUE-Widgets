@@ -1,6 +1,16 @@
 {
   "en": {
     "translation": {
+      "QK Paint": "QK Paint",
+      "Paint": "Paint",
+      "Widget Personalization": "Widget Personalization",
+      "Canvas Color": "Canvas Color",
+      "Custom Title": "Custom Title",
+      "Discord Webhook URL": "Discord Webhook URL",
+      "Text Color": "Text Color",
+      "Accent Color": "Accent Color",
+      "Background Color": "Background Color",
+      "Transparency": "Transparency",
       "Background Image": "Background Image",
       "Background Brightness": "Background Brightness",
       "Glass Blur": "Glass Blur"

@@ -17,6 +17,8 @@
 
     <meta name="x-icue-property" content="canvasColor"
         data-label="tr('Canvas Color')" data-type="color" data-default="'#FFFFFF'">
+    <meta name="x-icue-property" content="discordWebhook"
+        data-label="tr('Discord Webhook URL')" data-type="textfield" data-default="''">
 
     <meta name="x-icue-property" content="textColor"
         data-label="tr('Text Color')" data-type="color" data-default="'#CCCCCC'">
@@ -40,7 +42,7 @@
     [
         {
             "title": "tr('Paint')",
-            "properties": ["canvasColor", "customTitle"]
+            "properties": ["canvasColor", "discordWebhook", "customTitle"]
         },
         {
             "title": "tr('Widget Personalization')",
@@ -64,6 +66,11 @@
             --accent-color: #4FC3F7;
             --bg-color: #1A1A1A;
             --widget-opacity: 1.0;
+            /* Share overlay tokens — 4.2vh = 29px label target in 697px-tall slots
+               (see docs/QK-typography-standard.md); overridden per bucket below */
+            --share-font: 4.2vh;
+            --share-btn-h: 9vh;
+            --qr-size: 52vh;
         }
 
         body {
@@ -471,6 +478,89 @@
             .picker-preview { width: 8vw; }
             .picker-cancel { width: 8vw; }
             .picker-ok { font-size: 3vw; }
+            :root { --share-font: 4.2vw; --share-btn-h: 9vw; --qr-size: 66vw; }
+        }
+
+        /* Share tokens per landscape bucket (29px font target in each).
+           Short slots follow hide-don't-shrink: the title (and in HS the URL
+           text) yield their space to the QR code. */
+        @media (min-aspect-ratio: 150/100) and (max-aspect-ratio: 200/100) {
+            :root { --share-font: 4.2vw; --share-btn-h: 12vh; --qr-size: 50vh; }
+            .share-title { display: none; }
+        }
+        @media (min-aspect-ratio: 243/100) and (max-aspect-ratio: 300/100) {
+            :root { --share-font: 8.4vh; --share-btn-h: 14vh; --qr-size: 44vh; }
+            .share-title, .share-url { display: none; }
+        }
+
+        /* ══════════════ Share Overlay ══════════════ */
+        .share-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 100;
+            align-items: center; justify-content: center;
+        }
+        .share-overlay.open { display: flex; }
+        .share-panel {
+            background: #222;
+            padding: 3vh;
+            display: flex; flex-direction: column;
+            align-items: center;
+            gap: 1.4vh;
+            box-shadow: 0 1.2vh 4.6vh rgba(0,0,0,0.7);
+            max-height: 97vh; max-width: 94vw;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+        }
+        .share-panel::-webkit-scrollbar { display: none; }
+        .share-title {
+            font-size: var(--share-font);
+            font-weight: 700;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            max-width: 100%;
+            text-align: center;
+        }
+        .share-menu, .share-result {
+            display: flex; flex-direction: column;
+            gap: 1.2vh;
+            width: min(64vh, 84vw);
+            align-items: stretch;
+        }
+        .share-result { display: none; align-items: center; }
+        .share-option {
+            height: var(--share-btn-h);
+            flex-shrink: 0;
+            width: 100%;
+            background: #2a2a2a;
+            color: var(--text-color);
+            font-size: var(--share-font);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .share-option:active { background: #555; }
+        #qrCanvas {
+            width: var(--qr-size); height: var(--qr-size);
+            image-rendering: pixelated;
+            background: #fff;
+        }
+        .share-url {
+            font-size: calc(var(--share-font) * 0.7);
+            color: #aaa;
+            word-break: break-all;
+            text-align: center;
+            max-width: 100%;
+        }
+        .share-status {
+            font-size: calc(var(--share-font) * 0.8);
+            color: var(--accent-color);
+            min-height: 1.3em;
+            text-align: center;
+            max-width: min(64vh, 84vw);
         }
 
     
@@ -522,6 +612,9 @@
                 <button class="action-btn" id="undoBtn" title="Undo" disabled>
                     <svg viewBox="0 0 256 256"><polyline points="88 152 24 152 24 88" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M224,184A96,96,0,0,0,60.12,116.12L24,152" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
+                <button class="action-btn" id="shareBtn" title="Share">
+                    <svg viewBox="0 0 256 256"><path d="M176,104h24a8,8,0,0,1,8,8v96a8,8,0,0,1-8,8H56a8,8,0,0,1-8-8V112a8,8,0,0,1,8-8H80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><polyline points="88 64 128 24 168 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><line x1="128" y1="24" x2="128" y2="136" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
+                </button>
                 <button class="action-btn danger" id="clearBtn" title="Clear">
                     <svg viewBox="0 0 256 256"><line x1="216" y1="56" x2="40" y2="56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><line x1="88" y1="24" x2="168" y2="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/><path d="M200,56V208a8,8,0,0,1-8,8H64a8,8,0,0,1-8-8V56" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></svg>
                 </button>
@@ -548,7 +641,31 @@
                 </div>
             </div>
         </div>
+
+        <!-- ── Share ── -->
+        <div class="share-overlay" id="shareOverlay">
+            <div class="share-panel">
+                <div class="share-title">Share Drawing</div>
+                <div class="share-menu" id="shareMenu">
+                    <button class="share-option" id="shareSaveBtn">Save to PC</button>
+                    <button class="share-option" id="shareUploadBtn">Upload &amp; Show QR</button>
+                    <button class="share-option" id="shareDiscordBtn">Send to Discord</button>
+                    <button class="share-option" id="shareCloseBtn">Close</button>
+                </div>
+                <div class="share-result" id="shareResult">
+                    <canvas id="qrCanvas"></canvas>
+                    <div class="share-url" id="shareUrl"></div>
+                    <button class="share-option" id="shareCopyBtn">Copy Link</button>
+                    <button class="share-option" id="shareDoneBtn">Done</button>
+                </div>
+                <div class="share-status" id="shareStatus"></div>
+            </div>
+        </div>
     </div>
+
+    <!-- QR Code Generator: Copyright (c) 2009 Kazuhiko Arase, MIT License.
+         'QR Code' is a registered trademark of DENSO WAVE INCORPORATED. -->
+    <script src="qrcode.js"></script>
 
     <script>
         /* MediaViewer - Corsair common tool for media-selector backgrounds */
@@ -1270,9 +1387,150 @@
         }
 
         // ══════════════════════════════════════════════════════════════
+        // Share — save to PC, upload + QR, Discord webhook
+        // (capabilities verified on-device 2026-07-10; see
+        //  docs/iCUE-Widget-System-Documentation.md "Available Web APIs")
+        // ══════════════════════════════════════════════════════════════
+        var shareOverlay = document.getElementById('shareOverlay');
+        var shareMenu = document.getElementById('shareMenu');
+        var shareResult = document.getElementById('shareResult');
+        var shareStatus = document.getElementById('shareStatus');
+        var shareUrlEl = document.getElementById('shareUrl');
+        var qrCanvas = document.getElementById('qrCanvas');
+        var shareWebhook = '';
+        var lastUploadUrl = '';
+
+        function setShareStatus(msg) { shareStatus.textContent = msg; }
+
+        // The canvas bitmap is transparent where nothing was drawn (the visible
+        // background is CSS); flatten onto canvasBg before exporting.
+        function flattenCanvas(cb) {
+            var out = document.createElement('canvas');
+            out.width = canvas.width; out.height = canvas.height;
+            var octx = out.getContext('2d');
+            octx.fillStyle = canvasBg;
+            octx.fillRect(0, 0, out.width, out.height);
+            octx.drawImage(canvas, 0, 0);
+            out.toBlob(cb, 'image/png');
+        }
+
+        function openShare() {
+            shareMenu.style.display = 'flex';
+            shareResult.style.display = 'none';
+            setShareStatus('');
+            shareOverlay.classList.add('open');
+            applySquircle('.share-panel', 0.125);
+            applySquircle('.share-option', 0.125);
+        }
+
+        function closeShare() { shareOverlay.classList.remove('open'); }
+
+        function shareSave() {
+            setShareStatus('Choose where to save…');
+            flattenCanvas(function(blob) {
+                var stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+                window.showSaveFilePicker({
+                    suggestedName: 'qk-paint-' + stamp + '.png',
+                    types: [{ description: 'PNG image', accept: { 'image/png': ['.png'] } }]
+                }).then(function(handle) {
+                    return handle.createWritable().then(function(w) {
+                        return w.write(blob).then(function() { return w.close(); });
+                    }).then(function() { setShareStatus('Saved as ' + handle.name); });
+                }).catch(function(e) {
+                    if (e && e.name === 'AbortError') { setShareStatus(''); return; }
+                    setShareStatus('Save failed: ' + (e.message || e.name));
+                });
+            });
+        }
+
+        function shareUpload() {
+            setShareStatus('Uploading…');
+            flattenCanvas(function(blob) {
+                var fd = new FormData();
+                fd.append('reqtype', 'fileupload');
+                fd.append('time', '1h');
+                fd.append('fileToUpload', blob, 'qk-paint.png');
+                fetch('https://litterbox.catbox.moe/resources/internals/api.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.text().then(function(t) {
+                        t = t.trim();
+                        if (!r.ok || t.indexOf('http') !== 0) throw new Error(t.slice(0, 60) || ('HTTP ' + r.status));
+                        showQr(t);
+                    }); })
+                    .catch(function(e) { setShareStatus('Upload failed: ' + (e.message || e.name)); });
+            });
+        }
+
+        function showQr(url) {
+            lastUploadUrl = url;
+            var qr = qrcode(0, 'M');
+            qr.addData(url);
+            qr.make();
+            var n = qr.getModuleCount();
+            var quiet = 4;
+            qrCanvas.width = n + quiet * 2;
+            qrCanvas.height = n + quiet * 2;
+            var qctx = qrCanvas.getContext('2d');
+            qctx.fillStyle = '#fff';
+            qctx.fillRect(0, 0, qrCanvas.width, qrCanvas.height);
+            qctx.fillStyle = '#000';
+            for (var row = 0; row < n; row++) {
+                for (var col = 0; col < n; col++) {
+                    if (qr.isDark(row, col)) qctx.fillRect(col + quiet, row + quiet, 1, 1);
+                }
+            }
+            shareUrlEl.textContent = url;
+            shareMenu.style.display = 'none';
+            shareResult.style.display = 'flex';
+            setShareStatus('Link expires in 1 hour');
+            // Panel geometry changed with the state swap: recompute its clip
+            applySquircle('.share-panel', 0.125);
+            applySquircle('.share-option', 0.125);
+        }
+
+        function shareCopyUrl() {
+            if (!lastUploadUrl) return;
+            var ta = document.createElement('textarea');
+            ta.value = lastUploadUrl;
+            document.body.appendChild(ta);
+            ta.select();
+            var ok = false;
+            try { ok = document.execCommand('copy'); } catch (e) {}
+            ta.remove();
+            setShareStatus(ok ? 'Link copied to clipboard' : 'Copy failed');
+        }
+
+        function shareDiscord() {
+            if (!shareWebhook) { setShareStatus('Set the Discord Webhook URL in widget settings'); return; }
+            setShareStatus('Sending to Discord…');
+            flattenCanvas(function(blob) {
+                var fd = new FormData();
+                fd.append('files[0]', blob, 'qk-paint.png');
+                var url = shareWebhook + (shareWebhook.indexOf('?') >= 0 ? '&' : '?') + 'wait=true';
+                fetch(url, { method: 'POST', body: fd })
+                    .then(function(r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        setShareStatus('Sent to Discord');
+                    })
+                    .catch(function(e) { setShareStatus('Discord failed: ' + (e.message || e.name)); });
+            });
+        }
+
+        document.getElementById('shareBtn').addEventListener('click', openShare);
+        document.getElementById('shareSaveBtn').addEventListener('click', shareSave);
+        document.getElementById('shareUploadBtn').addEventListener('click', shareUpload);
+        document.getElementById('shareDiscordBtn').addEventListener('click', shareDiscord);
+        document.getElementById('shareCopyBtn').addEventListener('click', shareCopyUrl);
+        document.getElementById('shareCloseBtn').addEventListener('click', closeShare);
+        document.getElementById('shareDoneBtn').addEventListener('click', closeShare);
+        shareOverlay.addEventListener('click', function(e) {
+            if (e.target === shareOverlay) closeShare();
+        });
+
+        // ══════════════════════════════════════════════════════════════
         // iCUE integration
         // ══════════════════════════════════════════════════════════════
         function readSettings() {
+            if (typeof discordWebhook !== 'undefined') shareWebhook = discordWebhook || '';
             if (typeof canvasColor !== 'undefined') {
                 canvasBg = canvasColor;
                 canvas.style.background = canvasBg;

@@ -10,6 +10,7 @@ A finger-painting app for the Corsair Xeneon Edge dashboard touchscreen.
 - 3 brush sizes (small, medium, large)
 - 24-color palette in a swipeable swatch strip, with draw/background color selection
 - Undo support (up to 15 steps)
+- Share: save the drawing as a PNG on your PC, upload it to a 1-hour link with an on-screen QR code, or post it to a Discord webhook
 - Clear canvas button
 - Configurable canvas background color via iCUE settings
 
@@ -21,6 +22,7 @@ A finger-painting app for the Corsair Xeneon Edge dashboard touchscreen.
 - **Size buttons**: Switch between small (8px), medium (20px), and large (40px) brush
 - **Color swatches**: Swipe the strip to browse, tap to set draw color; tap the DRAW/BG buttons to swap which is being set
 - **Undo**: Revert the last stroke or fill (up to 15 steps)
+- **Share**: Save to PC (native Save As dialog), Upload & Show QR (litterbox.catbox.moe, link expires after 1 hour; Copy Link puts the URL on the clipboard), or Send to Discord (requires a webhook URL in settings)
 - **Clear**: Reset the canvas to the background color
 
 ## Setup
@@ -41,6 +43,7 @@ A finger-painting app for the Corsair Xeneon Edge dashboard touchscreen.
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | canvasColor | color | #FFFFFF | Canvas background color |
+| discordWebhook | textfield | (empty) | Discord webhook URL for the Share → Send to Discord action |
 
 ## Technical Notes
 
@@ -49,3 +52,4 @@ A finger-painting app for the Corsair Xeneon Edge dashboard touchscreen.
 - Flood fill uses a queue-based algorithm operating on canvas pixel data
 - Toolbar layout adapts between column (landscape) and row (portrait) orientations
 - Brush sizes and color swatches are touch-friendly (minimum 40px targets)
+- Sharing uses capabilities verified on-device: the File System Access API (`showSaveFilePicker`) for local saves, and HTTPS `fetch` for uploads; QR codes are generated locally by the bundled `qrcode.js` (Kazuhiko Arase, MIT)
