@@ -133,59 +133,52 @@
         }
         .toolbar::-webkit-scrollbar { display: none; }
 
-        .tb-div { height: 1px; background: #333; flex-shrink: 0; }
-
-        /* Draw / BG color pair */
+        /* Draw / BG color pair — glyph badges (droplet = draw, frame = canvas) */
         .color-pair {
             display: flex; gap: 1vmin;
             flex-shrink: 0;
         }
         .draw-color, .bg-color {
-            flex: 1; height: 9vh;
+            flex: 1; height: 10vh;
             border: 0.4vmin solid #555;
             cursor: pointer;
             position: relative;
+            display: flex; align-items: center; justify-content: center;
+            color: #E8E8E8;
         }
-        .draw-color::after, .bg-color::after {
-            position: absolute;
-            bottom: 0.4vmin; left: 0; right: 0;
-            text-align: center;
-            font-size: 2.2vmin;
-            color: rgba(255,255,255,0.7);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        .draw-color svg, .bg-color svg {
+            width: 4.5vh; height: 4.5vh;
             pointer-events: none;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
         }
-        .draw-color.light-bg::after, .bg-color.light-bg::after {
-            color: rgba(0,0,0,0.6);
-            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+        .draw-color.light-bg, .bg-color.light-bg { color: #333; }
+        .draw-color.light-bg svg, .bg-color.light-bg svg {
+            filter: drop-shadow(0 1px 2px rgba(255,255,255,0.5));
         }
         .draw-color:active, .bg-color:active { opacity: 0.7; }
-        .draw-color::after { content: 'DRAW'; }
-        .bg-color::after { content: 'BG'; }
         .bg-color { border-style: dashed; }
 
-        /* Tool buttons — side by side */
+        /* Tool buttons — side by side, icon-only */
         .tool-row {
             display: flex; gap: 1vh;
             flex-shrink: 0;
         }
         .tool-btn {
-            flex: 1; height: 12vh;
+            flex: 1; height: 10vh;
             border: 0.4vmin solid transparent;
             background: #2a2a2a;
             cursor: pointer;
-            display: flex; flex-direction: column;
+            display: flex;
             align-items: center; justify-content: center;
-            gap: 0.3vh;
+            color: var(--text-color);
         }
         .tool-btn:active { background: #555; }
-        .tool-btn.active { border-color: #5af; background: #1a2a3a; }
-        .tool-btn svg { width: 6vh; height: 6vh; pointer-events: none; }
-        /* 2.5vh is a verified ceiling, not the 29px label target: three buttons share the
-           fixed 28vh sidebar width (touch geometry, not to be resized), and "Eraser" is the
-           longest caption - 2.7vh already clips it against the button edge (tested). */
-        .tool-label { font-size: 2.5vh; color: #999; pointer-events: none; }
-        .tool-btn.active .tool-label { color: #5af; }
+        .tool-btn.active {
+            border-color: var(--accent-color);
+            background: color-mix(in srgb, var(--accent-color) 18%, #1a1a1a);
+            color: var(--accent-color);
+        }
+        .tool-btn svg { width: 6.2vh; height: 6.2vh; pointer-events: none; }
 
         /* Brush size buttons */
         .size-row {
@@ -193,16 +186,19 @@
             flex-shrink: 0;
         }
         .size-btn {
-            flex: 1; height: 9vh;
+            flex: 1; height: 10vh;
             background: #2a2a2a;
             border: 0.4vmin solid transparent;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
         }
         .size-btn:active { background: #555; }
-        .size-btn.active { border-color: #5af; background: #1a2a3a; }
-        .size-btn.active .size-dot { background: #5af; }
-        .size-dot { border-radius: 50%; background: #aaa; }
+        .size-btn.active {
+            border-color: var(--accent-color);
+            background: color-mix(in srgb, var(--accent-color) 18%, #1a1a1a);
+        }
+        .size-btn.active .size-dot { background: var(--accent-color); }
+        .size-dot { border-radius: 50%; background: var(--text-color); }
 
         /* Color presets — single scrollable strip (column in landscape, row in portrait) */
         .color-strip {
@@ -233,23 +229,22 @@
         .color-swatch.light { border-color: #666; }
         .color-swatch.active { border-color: #fff; }
 
-        /* Action buttons — side by side */
+        /* Action buttons — side by side, icon-only */
         .action-row {
             display: flex; gap: 1vh;
             flex-shrink: 0;
         }
         .action-btn {
-            flex: 1; height: 9vh;
+            flex: 1; height: 10vh;
             background: #2a2a2a;
             cursor: pointer;
-            display: flex; flex-direction: column;
+            display: flex;
             align-items: center; justify-content: center;
-            gap: 0.2vh;
+            color: var(--text-color);
         }
         .action-btn:active { background: #555; }
         .action-btn.danger:active { background: #733; }
-        .action-btn svg { width: 4vh; height: 4vh; pointer-events: none; }
-        .action-label { font-size: 2.5vh; color: #999; pointer-events: none; }
+        .action-btn svg { width: 6vh; height: 6vh; pointer-events: none; }
         .action-btn:disabled { opacity: 0.4; pointer-events: none; }
 
         /* ══════════════ Canvas ══════════════ */
@@ -282,24 +277,20 @@
                 gap: 0.6vw;
                 overflow: hidden;
             }
-            .tb-div { display: none; }
-
             .color-pair { gap: 0.6vw; }
             .draw-color, .bg-color { width: 9vw; height: 9vw; flex: none; }
-            .draw-color::after, .bg-color::after { font-size: 2vw; }
+            .draw-color svg, .bg-color svg { width: 4.5vw; height: 4.5vw; }
 
             .tool-row { gap: 0.6vw; }
             .tool-btn { width: 9vw; height: 9vw; flex: none; }
-            .tool-btn svg { width: 5vw; height: 5vw; }
-            .tool-label { display: none; }
+            .tool-btn svg { width: 6vw; height: 6vw; }
 
             .size-row { gap: 0.6vw; }
             .size-btn { width: 9vw; height: 9vw; flex: none; }
 
             .action-row { gap: 0.6vw; }
             .action-btn { width: 9vw; height: 9vw; flex: none; }
-            .action-btn svg { width: 4vw; height: 4vw; }
-            .action-label { display: none; }
+            .action-btn svg { width: 5.5vw; height: 5.5vw; }
 
             .color-strip {
                 flex: 0 0 100%;
@@ -324,7 +315,6 @@
                 gap: 1.6vh;
             }
             .toolbar > * { grid-column: 1; }
-            .tb-div { display: none; }
             .color-strip {
                 grid-column: 2;
                 grid-row: 1 / span 4;
@@ -337,17 +327,15 @@
             }
             .color-pair { gap: 1.6vh; }
             .draw-color, .bg-color { height: 16vh; }
-            .draw-color::after, .bg-color::after { font-size: 4vh; }
+            .draw-color svg, .bg-color svg { width: 6vh; height: 6vh; }
             .tool-row { gap: 1.6vh; }
             .tool-btn { height: 20vh; }
-            .tool-btn svg { width: 10vh; height: 10vh; }
-            .tool-label { font-size: 3.6vh; }
+            .tool-btn svg { width: 11vh; height: 11vh; }
             .size-row { gap: 1.6vh; }
             .size-btn { height: 16vh; }
             .action-row { gap: 1.6vh; }
             .action-btn { height: 16vh; }
-            .action-btn svg { width: 7vh; height: 7vh; }
-            .action-label { font-size: 3.6vh; }
+            .action-btn svg { width: 8vh; height: 8vh; }
             .color-swatch { flex-basis: 12vh; width: 12vh; }
         }
 
@@ -362,7 +350,6 @@
                 gap: 1.6vh;
             }
             .toolbar > * { grid-column: 1; }
-            .tb-div { display: none; }
             .color-strip {
                 grid-column: 2;
                 grid-row: 1 / span 4;
@@ -373,17 +360,15 @@
             }
             .color-pair { gap: 1.6vh; }
             .draw-color, .bg-color { height: 16vh; }
-            .draw-color::after, .bg-color::after { font-size: 4vh; }
+            .draw-color svg, .bg-color svg { width: 6vh; height: 6vh; }
             .tool-row { gap: 1.6vh; }
             .tool-btn { height: 20vh; }
-            .tool-btn svg { width: 10vh; height: 10vh; }
-            .tool-label { font-size: 3.6vh; }
+            .tool-btn svg { width: 11vh; height: 11vh; }
             .size-row { gap: 1.6vh; }
             .size-btn { height: 16vh; }
             .action-row { gap: 1.6vh; }
             .action-btn { height: 16vh; }
-            .action-btn svg { width: 7vh; height: 7vh; }
-            .action-label { font-size: 3.6vh; }
+            .action-btn svg { width: 8vh; height: 8vh; }
             .color-swatch { flex-basis: 14vh; width: 14vh; }
         }
 
@@ -452,11 +437,11 @@
         .picker-ok {
             flex: 1; height: 9vh;
             border-radius: 1.4vh;
-            background: #5af; color: #000;
+            background: var(--accent-color); color: #000;
             font-weight: 600; font-size: 3vh;
             cursor: pointer;
         }
-        .picker-ok:active { background: #7cf; }
+        .picker-ok:active { filter: brightness(1.15); }
         .picker-cancel {
             width: 9vh; height: 9vh;
             border-radius: 1.4vh;
@@ -506,28 +491,25 @@
         <!-- ── Toolbar ── -->
         <div class="toolbar">
             <div class="color-pair">
-                <button class="draw-color" id="drawColor" title="Draw Color"></button>
-                <button class="bg-color" id="bgColor" title="Background Color"></button>
+                <button class="draw-color" id="drawColor" title="Draw Color">
+                    <svg viewBox="0 0 20 20"><path d="M10 3c3 4 5 6.3 5 8.7a5 5 0 1 1-10 0C5 9.3 7 7 10 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+                </button>
+                <button class="bg-color" id="bgColor" title="Background Color">
+                    <svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 13l4-4 3 3 3-3 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+                </button>
             </div>
-
-            <div class="tb-div"></div>
 
             <div class="tool-row">
                 <button class="tool-btn active" data-tool="brush" title="Brush">
-                    <svg viewBox="0 0 20 20"><path d="M14 3l3 3-10 10H4v-3L14 3z" fill="none" stroke="#ccc" stroke-width="1.6" stroke-linejoin="round"/></svg>
-                    <span class="tool-label">Brush</span>
+                    <svg viewBox="0 0 20 20"><path d="M14 3l3 3-10 10H4v-3L14 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
                 </button>
                 <button class="tool-btn" data-tool="fill" title="Fill">
-                    <svg viewBox="0 0 20 20"><path d="M5 5h10l-2 11H7L5 5z" fill="none" stroke="#ccc" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 8q2 3 0 4" fill="none" stroke="#ccc" stroke-width="1.6" stroke-linecap="round"/></svg>
-                    <span class="tool-label">Fill</span>
+                    <svg viewBox="0 0 20 20"><path d="M5 5h10l-2 11H7L5 5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15 8q2 3 0 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                 </button>
                 <button class="tool-btn" data-tool="eraser" title="Eraser">
-                    <svg viewBox="0 0 20 20"><path d="M9 4l7 7-5 5H5L2 13l7-9z" fill="none" stroke="#ccc" stroke-width="1.6" stroke-linejoin="round"/><line x1="3" y1="16" x2="17" y2="16" stroke="#ccc" stroke-width="1.6"/></svg>
-                    <span class="tool-label">Eraser</span>
+                    <svg viewBox="0 0 20 20"><path d="M9 4l7 7-5 5H5L2 13l7-9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="3" y1="16" x2="17" y2="16" stroke="currentColor" stroke-width="1.6"/></svg>
                 </button>
             </div>
-
-            <div class="tb-div"></div>
 
             <div class="size-row">
                 <button class="size-btn" data-size="8" title="Small"><span class="size-dot" style="width:1.7vmin;height:1.7vmin"></span></button>
@@ -535,20 +517,14 @@
                 <button class="size-btn" data-size="40" title="Large"><span class="size-dot" style="width:5.2vmin;height:5.2vmin"></span></button>
             </div>
 
-            <div class="tb-div"></div>
-
             <div class="action-row">
                 <button class="action-btn" id="undoBtn" title="Undo" disabled>
-                    <svg viewBox="0 0 20 20"><path d="M6 9a5 5 0 0 1 9 1" fill="none" stroke="#ccc" stroke-width="1.6" stroke-linecap="round"/><path d="M6 9L4 6M6 9l3-3" fill="none" stroke="#ccc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span class="action-label">Undo</span>
+                    <svg viewBox="0 0 20 20"><path d="M6 9a5 5 0 0 1 9 1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6 9L4 6M6 9l3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <button class="action-btn danger" id="clearBtn" title="Clear">
-                    <svg viewBox="0 0 20 20"><path d="M6 5l1 11h6l1-11" fill="none" stroke="#ccc" stroke-width="1.6" stroke-linejoin="round"/><line x1="4" y1="5" x2="16" y2="5" stroke="#ccc" stroke-width="1.6"/><path d="M8 3h4" stroke="#ccc" stroke-width="1.6" stroke-linecap="round"/></svg>
-                    <span class="action-label">Clear</span>
+                    <svg viewBox="0 0 20 20"><path d="M6 5l1 11h6l1-11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="4" y1="5" x2="16" y2="5" stroke="currentColor" stroke-width="1.6"/><path d="M8 3h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                 </button>
             </div>
-
-            <div class="tb-div"></div>
 
             <div class="color-strip" id="colorGrid"></div>
         </div>
@@ -1304,7 +1280,10 @@
             }
             var root = document.documentElement;
             if (typeof textColor !== 'undefined') root.style.setProperty('--text-color', textColor);
-            if (typeof accentColor !== 'undefined') root.style.setProperty('--accent-color', accentColor);
+            if (typeof accentColor !== 'undefined') {
+                root.style.setProperty('--accent-color', accentColor);
+                pickerOk.style.color = colorLum(accentColor) > 150 ? '#000' : '#fff';
+            }
             if (typeof backgroundColor !== 'undefined') root.style.setProperty('--bg-color', backgroundColor);
             if (typeof transparency !== 'undefined') root.style.setProperty('--widget-opacity', Number(transparency) / 100);
 
