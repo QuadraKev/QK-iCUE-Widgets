@@ -122,6 +122,10 @@
             gap: var(--space-gap); padding: var(--space-pad);
             border-left: 1px solid var(--panel-border);
         }
+        #stale-marker {
+            margin-left: 0.5em; color: var(--text-muted); display: none;
+        }
+        #stale-marker::before { content: '\00B7\0020'; }
     </style>
 </head>
 <body>
@@ -129,7 +133,7 @@
     <div id="widget-title"></div>
     <div id="root">
         <div id="hero">
-            <div id="badge">&mdash;</div>
+            <div id="badge"><span id="badge-label">&mdash;</span><span id="stale-marker">STALE</span></div>
             <div id="countdown">T-00:00:00</div>
             <div id="mission" data-tr="Acquiring"></div>
             <div id="detail">&mdash;</div>
@@ -201,6 +205,68 @@
             bgColor: '#0A0A0A',
             transparency: 100
         };
+
+        // @testable-start
+        var TERMINAL_STATUSES = ['Success', 'Failure', 'Partial Failure'];
+        function isTerminalStatus(status) {
+            return TERMINAL_STATUSES.indexOf(status) !== -1;
+        }
+        function pad2(n) { return (n < 10 ? '0' : '') + n; }
+        function fmtCountdown(deltaMs) {
+            var totalSec, h, m, s;
+            if (deltaMs < 0) {
+                totalSec = Math.floor(-deltaMs / 1000);
+                h = Math.floor(totalSec / 3600);
+                m = Math.floor((totalSec % 3600) / 60);
+                s = totalSec % 60;
+                return 'T+' + pad2(h) + ':' + pad2(m) + ':' + pad2(s);
+            }
+            totalSec = Math.floor(deltaMs / 1000);
+            var days = Math.floor(totalSec / 86400);
+            h = Math.floor((totalSec % 86400) / 3600);
+            m = Math.floor((totalSec % 3600) / 60);
+            s = totalSec % 60;
+            var hhmmss = pad2(h) + ':' + pad2(m) + ':' + pad2(s);
+            return days > 0 ? ('T-' + days + 'd ' + hhmmss) : ('T-' + hhmmss);
+        }
+        function fmtRelative(deltaMs) {
+            var totalSec = Math.floor(Math.abs(deltaMs) / 1000);
+            var days = Math.floor(totalSec / 86400);
+            var hours = Math.floor((totalSec % 86400) / 3600);
+            var mins = Math.floor((totalSec % 3600) / 60);
+            if (days > 0) return days + 'd ' + hours + 'h';
+            if (hours > 0) return hours + 'h ' + mins + 'm';
+            return mins + 'm';
+        }
+        // Current-launch selection: first non-terminal entry ordered by net.
+        // In T+ mode, a just-launched non-terminal entry stays current for 30 min,
+        // and a terminal entry stays current for 5 min (to show the outcome).
+        function pickCurrent(launches, nowMs, tPlus) {
+            if (!launches || !launches.length) return null;
+            var sorted = launches.slice().sort(function (a, b) {
+                return new Date(a.net).getTime() - new Date(b.net).getTime();
+            });
+            for (var i = 0; i < sorted.length; i++) {
+                var L = sorted[i];
+                var netMs = new Date(L.net).getTime();
+                var status = L.status && L.status.abbrev;
+                var deltaMs = netMs - nowMs;
+                if (isTerminalStatus(status)) {
+                    if (tPlus && deltaMs < 0 && -deltaMs <= 5 * 60000) return L;
+                    continue;
+                }
+                if (deltaMs >= 0) return L;
+                if (tPlus && -deltaMs <= 30 * 60000) return L;
+            }
+            return null;
+        }
+        function shortName(name) {
+            if (!name) return name;
+            var idx = name.indexOf('|');
+            if (idx === -1) return name;
+            return name.slice(idx + 1).trim();
+        }
+        // @testable-end
 
         function readSettings() {
             if (typeof showTimeline !== 'undefined') cfg.showTimeline = !!showTimeline;
@@ -308,12 +374,132 @@
             el.style.clipPath = "path('" + d.join(' ') + "')";
         }
 
+        var LL_API = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=8&mode=list';
+        var POLL_INTERVAL = 900000;   // 15 min
+        var BACKOFF_FLOOR = 240000;   // 240 s -- never poll faster than this (15 req/hr budget)
+        var BACKOFF_STEPS = [30000, 60000, 300000];
+
+        var lcState = {
+            launches: null, lastPollAt: 0, failures: 0, acquiring: true,
+            mocked: false, offline: false, inFlight: false, stale: false, wasEmpty: false
+        };
+        var pollTimer = null;
+
+        function __lcMock(launchArray) {
+            lcState.mocked = true;
+            clearTimeout(pollTimer);
+            lcState.launches = launchArray;
+            lcState.lastPollAt = Date.now();
+            lcState.failures = 0;
+            lcState.acquiring = false;
+            lcState.stale = false;
+            updateHero();
+        }
+        function __lcMockOffline(on) {
+            lcState.offline = on;
+            if (on) { lcState.lastPollAt = Date.now() - 40 * 60000; updateHero(); }
+        }
+
+        function fetchJSON(url) {
+            if (lcState.offline) return Promise.reject(new Error('mock offline'));
+            return fetch(url, { signal: AbortSignal.timeout(12000) }).then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            });
+        }
+
+        function applyLaunches(data) {
+            lcState.launches = (data && data.results) || [];
+            lcState.lastPollAt = Date.now();
+            lcState.failures = 0;
+            lcState.acquiring = false;
+            updateHero();
+        }
+
+        function pollLaunches() {
+            if (lcState.mocked || lcState.inFlight) return;  // single-flight
+            lcState.inFlight = true;
+            fetchJSON(LL_API).then(function (data) {
+                lcState.inFlight = false;
+                if (!lcState.mocked) applyLaunches(data);  // a mock installed mid-flight wins
+            }).catch(function () {
+                lcState.inFlight = false;
+                lcState.failures++;
+                var raw = BACKOFF_STEPS[Math.min(lcState.failures - 1, BACKOFF_STEPS.length - 1)];
+                var backoff = Math.max(raw, BACKOFF_FLOOR);
+                clearTimeout(pollTimer);
+                pollTimer = setTimeout(pollLoop, backoff);
+            });
+        }
+        function pollLoop() {
+            pollLaunches();
+            clearTimeout(pollTimer);
+            pollTimer = setTimeout(pollLoop, POLL_INTERVAL);
+        }
+
+        function badgeColor(status) {
+            if (status === 'Go') return '#39D98A';
+            if (status === 'Hold') return '#FFB100';
+            return 'var(--text-muted)';
+        }
+
+        function updateHero() {
+            var badgeLabel = document.getElementById('badge-label');
+            var staleMarker = document.getElementById('stale-marker');
+            var countdownEl = document.getElementById('countdown');
+            var missionEl = document.getElementById('mission');
+            var detailEl = document.getElementById('detail');
+            var now = Date.now();
+
+            staleMarker.style.display = lcState.stale ? 'inline' : 'none';
+
+            if (lcState.acquiring) return;
+
+            var current = pickCurrent(lcState.launches || [], now, cfg.tPlusMode);
+
+            if (!current) {
+                if (!lcState.wasEmpty) {
+                    badgeLabel.textContent = '—';
+                    badgeLabel.style.color = 'var(--text-muted)';
+                    countdownEl.textContent = '—';
+                    detailEl.textContent = '—';
+                    missionEl.setAttribute('data-tr', 'No upcoming launches');
+                    translateLabels();
+                    lcState.wasEmpty = true;
+                }
+                return;
+            }
+            lcState.wasEmpty = false;
+
+            missionEl.removeAttribute('data-tr');
+            var status = current.status && current.status.abbrev;
+            badgeLabel.textContent = (status || '—').toUpperCase();
+            badgeLabel.style.color = badgeColor(status);
+
+            var netMs = new Date(current.net).getTime();
+            countdownEl.textContent = fmtCountdown(netMs - now);
+            missionEl.textContent = shortName(current.name || '');
+
+            var detailParts = [];
+            if (current.lsp_name) detailParts.push(current.lsp_name);
+            var padLoc = [current.pad, current.location].filter(function (v) { return !!v; }).join(', ');
+            if (padLoc) detailParts.push(padLoc);
+            detailEl.textContent = detailParts.length ? detailParts.join(' · ') : '—';
+        }
+
+        function tick() {
+            lcState.stale = !lcState.acquiring && lcState.lastPollAt > 0 && (Date.now() - lcState.lastPollAt) > 30 * 60000;
+            updateHero();
+        }
+
         function onInit() {
             mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
             readSettings();
             applySettings();
             updateSquircle();
             translateLabels();
+            pollLoop();
+            setInterval(tick, 1000);
         }
 
         window.addEventListener('resize', function() {
