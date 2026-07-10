@@ -1,6 +1,6 @@
 # QK iCUE Widget Design Guidelines
 
-**These are QK project-specific guidelines**, not official iCUE requirements. They define the conventions, quality standards, and patterns used across all QK widgets to keep them visually and technically consistent. For the iCUE widget API reference (meta tags, properties, events, translation), see `iCUE-Widget-System-Documentation.md`. For official iCUE requirements, see the [Official Widget Specification](WidgetBuilder-kit/Documentation/docs/WidgetSpecification.md) and [Marketplace Guidelines](WidgetBuilder-kit/Documentation/Marketplace_Guidelines.md) (NDA — do not commit to GitHub).
+**These are QK project-specific guidelines**, not official iCUE requirements. They define the conventions, quality standards, and patterns used across all QK widgets to keep them visually and technically consistent. For the iCUE widget API reference (meta tags, properties, events, translation), see `iCUE-Widget-System-Documentation.md` (local-only; kept in the `.QK-iCUE-Widgets` sibling directory). For official iCUE requirements, see the [Official Widget Specification](WidgetBuilder-kit/Documentation/docs/WidgetSpecification.md) and [Marketplace Guidelines](WidgetBuilder-kit/Documentation/Marketplace_Guidelines.md) (NDA — do not commit to GitHub).
 
 ## Device Specifications
 
