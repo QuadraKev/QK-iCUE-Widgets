@@ -116,7 +116,11 @@
             font-size: var(--font-value); font-weight: 600; color: var(--text-color); white-space: nowrap;
         }
         #detail {
-            font-size: var(--font-label); font-weight: 400; color: var(--text-secondary); white-space: nowrap;
+            font-size: var(--font-label); font-weight: 400; color: var(--text-secondary);
+            /* Long pad/location strings (e.g. "Space Launch Complex 4E, Vandenberg
+               SFB, CA, USA") overflowed at HM: wrap up to 2 lines, then ellipsis. */
+            max-width: 100%; overflow: hidden; display: -webkit-box;
+            -webkit-line-clamp: 2; -webkit-box-orient: vertical;
         }
         #timeline {
             flex: 0 0 32%; display: flex; flex-direction: column; justify-content: center;
