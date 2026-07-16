@@ -9,9 +9,6 @@
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [
@@ -24,5 +21,6 @@
     {
       "type": "keyboard_lcd"
     }
-  ]
+  ],
+  "min_app_version": "5.45"
 }

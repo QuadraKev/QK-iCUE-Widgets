@@ -15,5 +15,6 @@
     {
       "type": "pump_lcd"
     }
-  ]
+  ],
+  "min_app_version": "5.45"
 }

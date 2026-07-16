@@ -9,9 +9,6 @@
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [
@@ -22,5 +19,6 @@
       ]
     }
   ],
+  "min_app_version": "5.45",
   "interactive": true
 }

@@ -8,8 +8,11 @@ const path = require('path');
 
 const AUTHOR = 'QuadraKev';
 const MIN_FRAMEWORK_VERSION = '1.0.0';
+const MIN_APP_VERSION = '5.45';
 const VERSION = '1.2.0';
-const OS = [{ platform: 'windows' }, { platform: 'macos' }];
+// Windows-only: the official spec and icuewidget CLI (≥0.2.3, still in 0.4.41)
+// accept only 'windows'; iCUE 5.x import also rejects 'macos'.
+const OS = [{ platform: 'windows' }];
 
 const widgets = [
   {
@@ -28,7 +31,6 @@ const widgets = [
     devices: [{ type: 'dashboard_lcd' }],
     interactive: false,
     version: '1.0.0',
-    os: [{ platform: 'windows' }], // iCUE 5.x import + CLI both reject 'macos' (see memory: icuewidget-cli-os-bug)
     modules: ['modules/OpenMeteo.mjs'],
   },
   {
@@ -64,7 +66,6 @@ const widgets = [
     devices: [{ type: 'dashboard_lcd' }],
     interactive: false,
     version: '1.1.2',
-    os: [{ platform: 'windows' }], // iCUE 5.x import + CLI both reject 'macos' (see memory: icuewidget-cli-os-bug)
     modules: ['modules/OpenMeteo.mjs'],
   },
   {
@@ -75,7 +76,6 @@ const widgets = [
     devices: [{ type: 'dashboard_lcd' }],
     interactive: false,
     version: '1.0.0',
-    os: [{ platform: 'windows' }], // iCUE 5.x import + CLI both reject 'macos' (see memory: icuewidget-cli-os-bug)
   },
   {
     folder: 'QKMagic8Ball',
@@ -101,7 +101,6 @@ const widgets = [
     description: 'Audio visualizer for pump LCD with album art and now-playing info.',
     devices: [{ type: 'pump_lcd' }],
     interactive: false,
-    os: [{ platform: 'windows' }],
     previewIcon: 'resources/qk-pump-visualizer.svg',
   },
   {
@@ -143,6 +142,7 @@ const widgets = [
     description: 'Audio visualizer with customizable bar display for the Xeneon Edge.',
     devices: [{ type: 'dashboard_lcd' }],
     interactive: false,
+    version: '1.2.1',
   },
   {
     folder: 'QKBinaryClock',
@@ -199,6 +199,7 @@ const widgets = [
     description: 'Live weather conditions and forecast with customizable location.',
     devices: [{ type: 'pump_lcd' }, { type: 'dashboard_lcd' }, { type: 'keyboard_lcd' }],
     interactive: false,
+    version: '1.2.1',
     modules: ['modules/OpenMeteo.mjs'],
   },
 ];
@@ -220,6 +221,7 @@ for (const w of widgets) {
       if (d.features) entry.features = d.features;
       return entry;
     }),
+    min_app_version: MIN_APP_VERSION,
   };
   if (w.interactive) manifest.interactive = true;
   if (w.modules) manifest.modules = w.modules;
