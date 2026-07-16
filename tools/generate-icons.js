@@ -29,7 +29,7 @@ const folders = [
   'QK2048', 'QKAurora', 'QKCalculator', 'QKClock', 'QKDiceRoller', 'QKFidgetSpinner', 'QKISSTracker', 'QKLaunchCountdown', 'QKMagic8Ball',
   'QKPaint', 'QKSimon', 'QKTallyCounter', 'QKWorldClocks', 'QKXEVisualizer',
   'QKBinaryClock', 'QKDayProgress', 'QKGameOfLife', 'QKMatrixRain', 'QKMoonPhase',
-  'QKStarfield',
+  'QKStarfield', 'QKWeather',
 ];
 
 // Colorize SVG for PNG rendering. Most widgets get a flat primary color.
