@@ -3,15 +3,12 @@
   "id": "com.quadrakev.weather",
   "name": "Weather",
   "description": "Live weather conditions and forecast with customizable location.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [
@@ -25,6 +22,7 @@
       "type": "keyboard_lcd"
     }
   ],
+  "min_app_version": "5.45",
   "modules": [
     "modules/OpenMeteo.mjs"
   ]

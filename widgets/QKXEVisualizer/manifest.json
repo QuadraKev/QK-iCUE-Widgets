@@ -3,20 +3,18 @@
   "id": "com.quadrakev.xevisualizer",
   "name": "XE Visualizer",
   "description": "Audio visualizer with customizable bar display for the Xeneon Edge.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "preview_icon": "icon.png",
   "min_framework_version": "1.0.0",
   "os": [
     {
       "platform": "windows"
-    },
-    {
-      "platform": "macos"
     }
   ],
   "supported_devices": [
     {
       "type": "dashboard_lcd"
     }
-  ]
+  ],
+  "min_app_version": "5.45"
 }

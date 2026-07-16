@@ -16,6 +16,7 @@
       "type": "dashboard_lcd"
     }
   ],
+  "min_app_version": "5.45",
   "modules": [
     "modules/OpenMeteo.mjs"
   ]
