@@ -7,6 +7,7 @@ node_modules/
 catalog/
 dist/
 .claude/
+CLAUDE.md
 docs/WidgetBuilder-kit/
 docs/superpowers/
 docs/iCUE-Widget-System-Documentation.md
