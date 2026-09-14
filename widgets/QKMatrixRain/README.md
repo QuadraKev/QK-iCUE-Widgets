@@ -40,7 +40,3 @@ The iconic digital rain effect from The Matrix. Columns of characters cascade do
 - Trail effect achieved via semi-transparent background overlay each frame (alpha 0.05)
 - Character set includes half-width katakana (U+FF66-U+FF96) for authentic Matrix look
 - Each column has independent speed, length, and character mutation rate
-
-## Attribution
-
-Created by Claude Code for the QK iCUE Widget collection.

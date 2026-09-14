@@ -46,7 +46,3 @@ Each pad is 50% of the board width and height -- well over 10mm in all slot size
 | textColor | color | #E0E0E0 | Text color |
 | backgroundColor | color | #0A0A0A | Background color |
 | transparency | slider | 0 | Background transparency (0-100%) |
-
-## Attribution
-
-Created by Claude Code for the QK iCUE Widget collection.

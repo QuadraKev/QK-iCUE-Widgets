@@ -39,7 +39,3 @@ A classic warp-speed starfield simulation. Stars fly outward from the center wit
 - Stars exist in a 3D coordinate space (-1000 to 1000 on X/Y, 0 to 1000 on Z)
 - Perspective projection: screen_x = (x / z) * focal_length + center_x
 - Trail effect uses semi-transparent background overlay for persistence of vision
-
-## Attribution
-
-Created by Claude Code for the QK iCUE Widget collection.

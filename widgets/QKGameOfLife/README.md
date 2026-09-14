@@ -42,7 +42,3 @@ Conway's Game of Life cellular automaton. A mesmerizing simulation that works on
 | accentColor | color | #00FF88 | Alive cell color |
 | backgroundColor | color | #0A0A0A | Background color |
 | transparency | slider | 0 | Background transparency (0-100%) |
-
-## Attribution
-
-Created by Claude Code for the QK iCUE Widget collection.

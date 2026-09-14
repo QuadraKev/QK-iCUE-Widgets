@@ -49,7 +49,3 @@ The classic 2048 sliding tile puzzle game for the Corsair Xeneon Edge dashboard 
 - Board state stored as flat 16-element array
 - Line extraction supports all 4 directions using index mapping
 - Merge logic: slide non-zeros left, merge adjacent equals, pad with zeros
-
-## Attribution
-
-Created by Claude Code for the QK iCUE Widget collection.
