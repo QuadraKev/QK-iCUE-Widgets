@@ -974,6 +974,20 @@ void main() {
             var hw = 0.5 * aspect * (1 - (1 - LAMP_GEOM.TOP_RATIO) * y);
             return Math.abs(x - aspect / 2) <= hw;
         }
+
+        // CSS px (relative to the container) -> { lamp, x, y } in that lamp's units, or null
+        function mapPointer(px, py, layout) {
+            if (!layout || !(layout.cellW > 0) || !isFinite(px) || !isFinite(py)) return null;
+            if (!layout.masked && (px < 0 || px > layout.cssW || py < 0 || py > layout.cssH)) return null;
+            var i = layout.masked ? Math.floor(px / layout.cellW) : 0;
+            if (i < 0 || i >= layout.lamps.length) return null;
+            var g = layout.lamps[i].glass;
+            if (!(g.height > 0)) return null;
+            var x = (px - g.left) / g.height;
+            var y = 1 - (py - g.top) / g.height;
+            if (layout.masked && !insideBottle(x, y, g.width / g.height)) return null;
+            return { lamp: i, x: x, y: y };
+        }
         // @testable-end
 
         // ================================================================
@@ -1338,6 +1352,44 @@ void main() {
                 relayout();
             }
         }
+
+        // ================================================================
+        // Touch: drag to stir
+        // ================================================================
+        var activePointer = null, lastPointer = null;
+
+        function localPoint(e) {
+            var r = container.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top, t: e.timeStamp / 1000 };
+        }
+
+        container.addEventListener('pointerdown', function (e) {
+            if (!e.isPrimary || activePointer !== null) return;
+            activePointer = e.pointerId;
+            try { container.setPointerCapture(e.pointerId); } catch (err) { /* capture is best effort */ }
+            lastPointer = localPoint(e);
+        });
+
+        container.addEventListener('pointermove', function (e) {
+            if (e.pointerId !== activePointer || !lastPointer) return;
+            var cur = localPoint(e);
+            var dt = cur.t - lastPointer.t;
+            if (!(dt > 0)) return;
+            var a = mapPointer(lastPointer.x, lastPointer.y, layout);
+            var b = mapPointer(cur.x, cur.y, layout);
+            lastPointer = cur;
+            if (!a || !b || a.lamp !== b.lamp || !lamps[b.lamp]) return;
+            lamps[b.lamp].sim.stir(b.x, b.y, (b.x - a.x) / dt, (b.y - a.y) / dt);
+        });
+
+        function endPointer(e) {
+            if (e.pointerId !== activePointer) return;
+            activePointer = null;
+            lastPointer = null;
+        }
+        container.addEventListener('pointerup', endPointer);
+        container.addEventListener('pointercancel', endPointer);
+        container.addEventListener('lostpointercapture', endPointer);
 
         // ================================================================
         // iCUE lifecycle

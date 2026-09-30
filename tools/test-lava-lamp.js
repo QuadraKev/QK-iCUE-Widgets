@@ -605,5 +605,26 @@ if (W.computeLampLayout && W.insideBottle) {
   check('layout implemented', false);
 }
 
+// ================= Task 6: pointer mapping =================
+if (W.mapPointer && W.computeLampLayout) {
+  const L4 = W.computeLampLayout(1689, 697, 4, 1);
+  const c1 = L4.lamps[1].glass;
+  const hit = W.mapPointer(c1.left + c1.width / 2, c1.top + c1.height / 2, L4);
+  check('mapPointer: center of lamp 2 maps to lamp 1 at (aspect/2, 0.5)', hit && hit.lamp === 1 && Math.abs(hit.x - 0.21) < 1e-9 && Math.abs(hit.y - 0.5) < 1e-9);
+  const bottom = W.mapPointer(c1.left + c1.width / 2, c1.top + c1.height - 1, L4);
+  check('mapPointer: y points up', bottom && bottom.y < 0.01);
+  check('review: a pointer between lamps maps to null', W.mapPointer(L4.cellW, 348, L4) === null);
+  check('review: a pointer on the base maps to null', W.mapPointer(L4.lamps[0].cx, L4.lamps[0].base.top + 5, L4) === null);
+  check('review: a pointer outside the widget maps to null', W.mapPointer(-10, 348, L4) === null && W.mapPointer(1700, 348, L4) === null);
+  check('review: a NaN pointer maps to null', W.mapPointer(NaN, 348, L4) === null);
+  const F = W.computeFillLayout(1689, 697, 1);
+  const fh = W.mapPointer(1689, 0, F);
+  check('mapPointer: fill maps the top-right corner to (aspect, 1)', fh && fh.lamp === 0 && Math.abs(fh.x - 1689 / 697) < 1e-9 && Math.abs(fh.y - 1) < 1e-9);
+  check('mapPointer ignores a fill pointer outside the widget', W.mapPointer(-5, 100, F) === null && W.mapPointer(F.cssW + 5, 100, F) === null && W.mapPointer(10, 100, F) !== null);
+  check('review: a zero-size fill layout maps to null', W.mapPointer(10, 10, W.computeFillLayout(0, 0, 1)) === null);
+} else {
+  check('mapPointer implemented', false);
+}
+
 console.log(ran + ' checks, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
