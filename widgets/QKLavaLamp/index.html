@@ -72,6 +72,7 @@
             --bg-color: #7A3A08;
             --liquid-color: #7A3A08;
             --widget-opacity: 1.0;
+            --halo-color: 0,0,0;
             --lamp-count: 1;
             --u: 1vh;
             --font-label: calc(var(--u) * 4.2);
@@ -157,7 +158,7 @@
             color: var(--text-color);
             /* Dark halo keeps the opaque title legible over light wax.
                Padding with a matching negative margin gives the halo room inside the ellipsis clip. */
-            text-shadow: 0 0 0.6em rgba(0, 0, 0, 0.85), 0 0 0.2em rgba(0, 0, 0, 0.9);
+            text-shadow: 0 0 0.6em rgba(var(--halo-color), 0.85), 0 0 0.2em rgba(var(--halo-color), 0.9);
             padding: 0.6em;
             margin: -0.6em;
             text-transform: uppercase;
@@ -184,7 +185,7 @@ precision highp int;
 
 uniform vec4 uBlobs[64];      // x, y, kernel r, stretch (lamp units)
 uniform vec4 uTails[64];      // x, y, kernel r, weight
-uniform vec4 uPool[6];        // x0, x1, y, thickness (per lamp)
+uniform vec4 uPool[6];        // x0, x1, y, thickness * KERNEL_R (per lamp)
 uniform vec4 uLampRect[6];    // interior rect in buffer px: x0, y0, width, height (bottom-left origin)
 uniform ivec2 uLampSlice[6];  // first slot, active count
 uniform int uLampCount;
@@ -281,7 +282,7 @@ void main() {
     }
 
     // ---- Edge and normal
-    float fw = max(length(g) * 1.5 / pxPerUnit, 1e-4);
+    float fw = max(length(g) * 1.5 / pxPerUnit, 0.75 * fwidth(F));
     float edge = smoothstep(ISO - fw, ISO + fw, F);
     float h = clamp((F - ISO) / 0.6, 0.0, 1.0);
     vec3 n = normalize(vec3(-g * NORMAL_K * (1.0 - h), 0.5 + h));   // tilt fades with depth
@@ -323,9 +324,8 @@ void main() {
 
     // ---- Composite (premultiplied alpha)
     float liqA = (uStyle == 1) ? 1.0 : uOpacity;
-    vec3 col = clamp(mix(liq, wax, edge), 0.0, 1.0);
     float a = mix(liqA, 1.0, edge);
-    vec3 pre = col * a + vec3(hl);
+    vec3 pre = mix(liq * liqA, wax, edge) + vec3(hl);
     a = clamp(a + hl, 0.0, 1.0);
     fragColor = vec4(min(pre, vec3(a)), a) * mask;
 }
@@ -926,6 +926,11 @@ void main() {
             return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
         }
 
+        // Dark text needs a light halo to stay legible over the wax/liquid; light text keeps the dark one.
+        function haloFor(hex) {
+            return relativeLuminance(parseHexColor(hex, '#FFFFFF')) < 0.4 ? '255,255,255' : '0,0,0';
+        }
+
         // ---- Lamp geometry (shared by the shader uniforms, the overlay and the pointer mapping)
         var LAMP_GEOM = {
             CAP: 0.08,              // cap height / lamp height
@@ -1167,7 +1172,7 @@ void main() {
         function relayout() {
             var w = container.clientWidth, h = container.clientHeight;
             if (!w || !h) return;
-            var dpr = Math.min(2, window.devicePixelRatio || 1);
+            var dpr = lavaClamp(window.devicePixelRatio || 1, 1, 2);
             var bw = Math.max(1, Math.round(w * dpr)), bh = Math.max(1, Math.round(h * dpr));
             glCanvas.width = bw; glCanvas.height = bh;
             overlay.width = bw; overlay.height = bh;
@@ -1231,7 +1236,7 @@ void main() {
             ctx.setTransform(layout.dpr, 0, 0, layout.dpr, 0, 0);
             for (var i = 0; i < layout.lamps.length; i++) {
                 var L = layout.lamps[i];
-                drawMetal(ctx, L.cx, L.cap.top, L.cap.bottom, L.cap.topW, L.cap.bottomW);
+                drawMetal(ctx, L.cx, L.cap.top, L.cap.bottom + LAMP_GEOM.CORNER * L.glass.height, L.cap.topW, L.cap.bottomW);
                 drawMetal(ctx, L.cx, L.base.top, L.base.bottom, L.base.topW, L.base.bottomW);
                 drawGlassRims(ctx, L);
             }
@@ -1325,6 +1330,7 @@ void main() {
             colors = resolveColors(cfg.preset, cfg.accentColor, cfg.bgColor);
             // Parsed to opaque rgb(): a Qt #AARRGGBB value must not make the title translucent
             root.style.setProperty('--text-color', rgbToCss(parseHexColor(cfg.textColor, '#FFFFFF')));
+            root.style.setProperty('--halo-color', haloFor(cfg.textColor));
             root.style.setProperty('--bg-color', rgbToCss(colors.backdrop));
             root.style.setProperty('--liquid-color', rgbToCss(colors.liquid));
             root.style.setProperty('--widget-opacity', cfg.transparency / 100);
@@ -1335,12 +1341,6 @@ void main() {
 
             var blur = (typeof glassBlur !== 'undefined') ? glassBlur : 0;
             root.style.setProperty('--bg-blur', blur + 'px');
-            if (mediaViewer) {
-                var bgImage = (typeof backgroundMedia !== 'undefined') ? backgroundMedia : null;
-                var media = normalizeMediaConfig(bgImage);
-                if (media) { mediaViewer.loadMedia(media); }
-                else { mediaViewer.clear(); }
-            }
 
             container.classList.toggle('lamp-style', cfg.style === 'lamp');
             for (var i = 0; i < lamps.length; i++) {
@@ -1350,6 +1350,12 @@ void main() {
             if (styleChanged) {
                 lamps = [];
                 relayout();
+            }
+            if (mediaViewer) {
+                var bgImage = (typeof backgroundMedia !== 'undefined') ? backgroundMedia : null;
+                var media = normalizeMediaConfig(bgImage);
+                if (media) { mediaViewer.loadMedia(media); }
+                else { mediaViewer.clear(); }
             }
         }
 
@@ -1364,7 +1370,8 @@ void main() {
         }
 
         container.addEventListener('pointerdown', function (e) {
-            if (!e.isPrimary || activePointer !== null) return;
+            if (!e.isPrimary) return;
+            if (activePointer !== null) { activePointer = null; lastPointer = null; }
             activePointer = e.pointerId;
             try { container.setPointerCapture(e.pointerId); } catch (err) { /* capture is best effort */ }
             lastPointer = localPoint(e);

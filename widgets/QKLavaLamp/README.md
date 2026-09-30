@@ -1,12 +1,12 @@
 # QK Lava Lamp - iCUE Dashboard Widget
 
-A realistic lava lamp for the **Corsair Xeneon Edge** touchscreen, built for iCUE's LCD widget system. Wax heats at the bottom, rises, cools at the top, sinks, merges and splits in a lit liquid. Drag a finger across the display to stir the wax.
+A realistic lava lamp for the **Corsair Xeneon Edge** touchscreen, built for iCUE's LCD widget system. Wax heats at the bottom and rises. It cools at the top and sinks back down. Along the way it merges and splits in a lit liquid. Drag a finger across the display to stir the wax.
 
 ---
 
 ## How It Works
 
-A small physics simulation moves the wax. A pool of wax lies on the bottom. When the pool is hot, buds neck off it and rise. At the top the wax cools and sinks back, and the pool absorbs it. Blobs merge when they touch and split when they rise fast. A WebGL2 metaball shader draws the wax as one soft, translucent material.
+A small physics simulation moves the wax. A pool of wax lies on the bottom. When the pool is hot, buds separate from it and rise. At the top the wax cools and sinks back, and the pool absorbs it. Blobs merge when they touch and split when they rise fast. A WebGL2 metaball shader draws the wax as one soft, translucent material.
 
 Drag across the wax to stir it. A fast stroke through a blob cuts it in two. The current you make fades out over a few seconds, and the lamp returns to calm on its own.
 
@@ -72,6 +72,6 @@ Fill style fills every slot. Lamp style shows a row of lamps sized to the slot:
 
 ## Technical Notes
 
-- The wax is a set of metaballs (Wyvill kernel) plus a capsule for the pool, drawn in one fragment shader pass with an analytic gradient for the edge and the lighting.
+- The wax is a set of metaballs (Wyvill kernel) plus a capsule for the pool. One fragment shader pass draws all of it. The pass uses an analytic gradient for both the edge and the lighting.
 - The simulation runs in fixed 1/60 s steps and conserves the wax volume exactly. Unit tests: `node tools/test-lava-lamp.js`.
 - When the iCUE window is open on the desktop, a touch on the widget takes focus from the active application. No widget can prevent this.

@@ -10,7 +10,7 @@ if (!m) { console.error('FAIL: @testable markers not found in index.html'); proc
 
 const exportNames = ['LAVA', 'createSim', 'heatScale', 'waxBudget', 'stirFactor', 'lavaPrng',
   'LAMP_GEOM', 'computeLampLayout', 'computeFillLayout', 'insideBottle', 'mapPointer',
-  'PRESETS', 'parseHexColor', 'resolveColors', 'contrastRatio', 'lampSlice'];
+  'PRESETS', 'parseHexColor', 'resolveColors', 'contrastRatio', 'lampSlice', 'haloFor'];
 const fn = new Function(m[1] + '\nreturn {' + exportNames.map(n => n + ': (typeof ' + n + ' !== "undefined" ? ' + n + ' : undefined)').join(',') + '};');
 const W = fn();
 
@@ -389,10 +389,8 @@ if (W.createSim && W.stirFactor) {
 
   // Force-field math: gain settles near the drag-limited fixed point for a normal blob.
   // A literal "0.6 +/- 0.05" target (as for a huge, low-drag blob) is not reachable for a
-  // normal-size blob given the pre-existing drag constant KD: even an idealized
-  // never-drifting full-weight sample settles at the closed-form fixed point
-  // a*tx / (1 - D*(1-a)), well under 0.6 for r about 0.1. This check verifies against
-  // that same formula (computed from LAVA's own constants) rather than a magic number.
+  // normal-size blob given the pre-existing drag constant KD: the derived ceiling for r
+  // about 0.1 is 0.4546. The measured gain here is about 0.42, well under that ceiling.
   const sf2 = W.createSim({ seed: 29, aspect: 2.43, heat: 5, waxAmount: 5 });
   clearToPool(sf2);
   const bf2 = addBlob(sf2, 1.2, 0.5, Math.PI * 0.1 * 0.1, sf2.pool.T);
@@ -403,7 +401,7 @@ if (W.createSim && W.stirFactor) {
   }
   const gainVx = findById(sf2, bf2.id).vx;
   check('stir force: gain settles near the drag-limited target for a normal blob',
-    Math.abs(gainVx - 0.42) < 0.08);
+    Math.abs(gainVx - 0.42) < 0.04);
 
   // Force-field math: the coverage cap keeps many stacked samples from saturating the rate
   const sf3 = W.createSim({ seed: 30, aspect: 2.43, heat: 5, waxAmount: 5 });
@@ -545,6 +543,7 @@ if (W.parseHexColor && W.resolveColors && W.contrastRatio && W.lampSlice) {
     check('contrast: white title on ' + k + ' liquid is at least 4.5:1 (' + c.toFixed(2) + ')', c >= 4.5);
   });
   check('contrast: white title on the default backdrop is at least 4.5:1', W.contrastRatio(white, W.parseHexColor('#7A3A08')) >= 4.5);
+  check('halo color flips for dark text', W.haloFor('#FFFFFF') === '0,0,0' && W.haloFor('#222222') === '255,255,255');
   const sl0 = W.lampSlice(0, 1), sl5 = W.lampSlice(5, 6);
   check('lampSlice divides the 64 slots', sl0.start === 0 && sl0.count === 64 && sl5.start === 50 && sl5.count === 10);
   let fl1, fl3, flBad;
@@ -580,7 +579,7 @@ if (W.computeLampLayout && W.insideBottle) {
   })(L4.lamps[0]));
   check('layout: rect is in buffer px, bottom-left origin', Math.abs(L4.lamps[0].rect[1] - (697 - L4.lamps[0].base.top)) < 1e-9);
   const L2 = W.computeLampLayout(1689, 697, 4, 2);
-  check('layout: dpr 2 doubles the rect', Math.abs(L2.lamps[1].rect[2] - 2 * L4.lamps[1].rect[2]) < 1e-9);
+  check('layout: dpr 2 doubles the rect', L2.lamps[1].rect.every((v, i) => Math.abs(v - 2 * L4.lamps[1].rect[i]) < 1e-9));
   const LVXL = W.computeLampLayout(697, 2537, 1, 1);
   check('layout: VXL lamp is width-limited', Math.abs(LVXL.lamps[0].base.bottomW - 697 * 0.92) < 1e-6 && LVXL.lamps[0].cap.top > 0);
   const L0 = W.computeLampLayout(0, 0, 4, 1);
@@ -598,7 +597,8 @@ if (W.computeLampLayout && W.insideBottle) {
     '\nreturn function (l) { layout = l; buildSims(); return lamps; };')();
   const lampSims = build(W.computeLampLayout(1689, 697, 4, 1));
   const fillSims = build(W.computeFillLayout(1689, 697, 1));
-  check('lamp sims taper with the bottle', lampSims.length === 4 && lampSims.every(l => l.sim.taper === 0.8) &&
+  check('lamp sims taper with the bottle', lampSims.length === 4 &&
+    lampSims.every((l, i) => l.sim.taper === 0.8 && l.sim.cap === W.lampSlice(i, 4).count) &&
     fillSims.length === 1 && fillSims[0].sim.taper === 1);
 
 } else {
@@ -620,7 +620,8 @@ if (W.mapPointer && W.computeLampLayout) {
   const F = W.computeFillLayout(1689, 697, 1);
   const fh = W.mapPointer(1689, 0, F);
   check('mapPointer: fill maps the top-right corner to (aspect, 1)', fh && fh.lamp === 0 && Math.abs(fh.x - 1689 / 697) < 1e-9 && Math.abs(fh.y - 1) < 1e-9);
-  check('mapPointer ignores a fill pointer outside the widget', W.mapPointer(-5, 100, F) === null && W.mapPointer(F.cssW + 5, 100, F) === null && W.mapPointer(10, 100, F) !== null);
+  check('mapPointer ignores a fill pointer outside the widget', W.mapPointer(-5, 100, F) === null && W.mapPointer(F.cssW + 5, 100, F) === null &&
+    W.mapPointer(100, -5, F) === null && W.mapPointer(100, F.cssH + 5, F) === null && W.mapPointer(10, 100, F) !== null);
   check('review: a zero-size fill layout maps to null', W.mapPointer(10, 10, W.computeFillLayout(0, 0, 1)) === null);
 } else {
   check('mapPointer implemented', false);
