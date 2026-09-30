@@ -156,7 +156,7 @@
             line-height: 1.2;
             text-align: center;
             color: var(--text-color);
-            /* Dark halo keeps the opaque title legible over light wax.
+            /* The halo is dark for light text and light for dark text, so the opaque title stays legible over the wax.
                Padding with a matching negative margin gives the halo room inside the ellipsis clip. */
             text-shadow: 0 0 0.6em rgba(var(--halo-color), 0.85), 0 0 0.2em rgba(var(--halo-color), 0.9);
             padding: 0.6em;
@@ -282,7 +282,7 @@ void main() {
     }
 
     // ---- Edge and normal
-    float fw = max(length(g) * 1.5 / pxPerUnit, 0.75 * fwidth(F));
+    float fw = max(length(g) * 1.5 / pxPerUnit, 0.02);
     float edge = smoothstep(ISO - fw, ISO + fw, F);
     float h = clamp((F - ISO) / 0.6, 0.0, 1.0);
     vec3 n = normalize(vec3(-g * NORMAL_K * (1.0 - h), 0.5 + h));   // tilt fades with depth
@@ -928,7 +928,7 @@ void main() {
 
         // Dark text needs a light halo to stay legible over the wax/liquid; light text keeps the dark one.
         function haloFor(hex) {
-            return relativeLuminance(parseHexColor(hex, '#FFFFFF')) < 0.4 ? '255,255,255' : '0,0,0';
+            return relativeLuminance(parseHexColor(hex, '#FFFFFF')) < 0.18 ? '255,255,255' : '0,0,0';
         }
 
         // ---- Lamp geometry (shared by the shader uniforms, the overlay and the pointer mapping)
@@ -1186,7 +1186,8 @@ void main() {
             drawOverlay();
         }
 
-        function drawMetal(ctx, cx, top, bottom, topW, bottomW) {
+        function drawMetal(ctx, cx, top, bottom, topW, bottomW, ext) {
+            ext = ext || 0;
             var g = ctx.createLinearGradient(cx - bottomW / 2, 0, cx + bottomW / 2, 0);
             g.addColorStop(0, '#1b1d20');
             g.addColorStop(0.28, '#8d949b');
@@ -1197,6 +1198,8 @@ void main() {
             ctx.moveTo(cx - topW / 2, top);
             ctx.lineTo(cx + topW / 2, top);
             ctx.lineTo(cx + bottomW / 2, bottom);
+            if (ext) ctx.lineTo(cx + bottomW / 2, bottom + ext);
+            if (ext) ctx.lineTo(cx - bottomW / 2, bottom + ext);
             ctx.lineTo(cx - bottomW / 2, bottom);
             ctx.closePath();
             ctx.fillStyle = g;
@@ -1204,7 +1207,7 @@ void main() {
             ctx.save();
             ctx.clip();
             ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';   // brushed lines
-            for (var y = top; y < bottom; y += 3) ctx.fillRect(cx - bottomW / 2, y, bottomW, 1);
+            for (var y = top; y < bottom + ext; y += 3) ctx.fillRect(cx - bottomW / 2, y, bottomW, 1);
             ctx.restore();
         }
 
@@ -1217,12 +1220,12 @@ void main() {
             ctx.lineCap = 'round';
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
             ctx.beginPath();
-            ctx.moveTo(L.cx - topW / 2 + lw * 2, g.top + lw * 2);
+            ctx.moveTo(L.cx - topW / 2 + lw * 2, g.top + LAMP_GEOM.CORNER * g.height + lw * 2);
             ctx.lineTo(L.cx - g.width / 2 + lw * 2, g.top + g.height - lw * 2);
             ctx.stroke();
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
             ctx.beginPath();
-            ctx.moveTo(L.cx + topW / 2 - lw * 2, g.top + lw * 2);
+            ctx.moveTo(L.cx + topW / 2 - lw * 2, g.top + LAMP_GEOM.CORNER * g.height + lw * 2);
             ctx.lineTo(L.cx + g.width / 2 - lw * 2, g.top + g.height - lw * 2);
             ctx.stroke();
             ctx.restore();
@@ -1236,7 +1239,7 @@ void main() {
             ctx.setTransform(layout.dpr, 0, 0, layout.dpr, 0, 0);
             for (var i = 0; i < layout.lamps.length; i++) {
                 var L = layout.lamps[i];
-                drawMetal(ctx, L.cx, L.cap.top, L.cap.bottom + LAMP_GEOM.CORNER * L.glass.height, L.cap.topW, L.cap.bottomW);
+                drawMetal(ctx, L.cx, L.cap.top, L.cap.bottom, L.cap.topW, L.cap.bottomW, LAMP_GEOM.CORNER * L.glass.height);
                 drawMetal(ctx, L.cx, L.base.top, L.base.bottom, L.base.topW, L.base.bottomW);
                 drawGlassRims(ctx, L);
             }
