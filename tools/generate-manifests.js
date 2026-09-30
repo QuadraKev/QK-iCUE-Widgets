@@ -80,7 +80,7 @@ const widgets = [
   {
     folder: 'QKLavaLamp',
     id: 'com.quadrakev.lavalamp',
-    name: 'QK Lava Lamp',
+    name: 'Lava Lamp',
     description: 'Realistic lava lamp with wax blobs that heat, rise, cool and sink. Drag to stir the wax.',
     devices: [{ type: 'dashboard_lcd' }],
     interactive: true,
