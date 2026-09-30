@@ -81,6 +81,11 @@
         @media (max-aspect-ratio: 199/100) { :root { --u: 1vw; } }
         @media (max-aspect-ratio: 150/100) and (min-aspect-ratio: 90/100) { :root { --u: 1vh; } }
 
+        /* Lamp style: lamps per slot. HXL 6, HS/HL 4, VS 2, HM 2, portrait 1 (the default) */
+        @media (min-aspect-ratio: 300/100) { :root { --lamp-count: 6; } }
+        @media (min-aspect-ratio: 200/100) and (max-aspect-ratio: 299/100) { :root { --lamp-count: 4; } }
+        @media (min-aspect-ratio: 90/100) and (max-aspect-ratio: 199/100) { :root { --lamp-count: 2; } }
+
         body {
             width: 100vw;
             height: 100vh;
@@ -119,6 +124,9 @@
             z-index: 1;
             touch-action: none;
         }
+        .container.lamp-style {
+            background-color: color-mix(in srgb, var(--bg-color), transparent calc((1 - var(--widget-opacity)) * 100%));
+        }
         .container.no-gl {
             background: linear-gradient(to top,
                 color-mix(in srgb, var(--liquid-color), transparent calc((1 - var(--widget-opacity)) * 100%)),
@@ -133,6 +141,7 @@
         }
         #gl { z-index: 1; }
         #overlay { z-index: 2; display: none; pointer-events: none; }
+        .container.lamp-style:not(.no-gl) #overlay { display: block; }
 
         .widget-title {
             display: none;
@@ -511,6 +520,7 @@ void main() {
                 pool: { vol: 0, T: 1, thickness: LAVA.POOL_MIN },
                 time: 0,
                 width: width,
+                taper: taper,
                 cap: cap,
                 V: budget.V,
                 N: budget.N,
@@ -915,6 +925,55 @@ void main() {
             var la = relativeLuminance(a), lb = relativeLuminance(b);
             return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
         }
+
+        // ---- Lamp geometry (shared by the shader uniforms, the overlay and the pointer mapping)
+        var LAMP_GEOM = {
+            CAP: 0.08,              // cap height / lamp height
+            GLASS: 0.62,            // glass height / lamp height
+            BASE: 0.30,             // base height / lamp height
+            INTERIOR_ASPECT: 0.42,  // glass width at the widest point (bottom) / glass height
+            TOP_RATIO: 0.8,         // glass top width / glass bottom width
+            CAP_TOP: 0.45,          // cap top width / glass width
+            BASE_TOP: 0.9,          // base top width / glass width
+            BASE_BOTTOM: 1.25,      // base bottom width / glass width
+            MARGIN: 0.92,           // the lamp fills this fraction of its cell
+            CORNER: 0.04            // bottle corner radius in lamp units
+        };
+
+        // All values in CSS px with a top-left origin, except rect (buffer px, bottom-left origin).
+        function computeLampLayout(cssW, cssH, count, dpr) {
+            cssW = Math.max(0, Number(cssW) || 0);
+            cssH = Math.max(0, Number(cssH) || 0);
+            count = lavaClamp(Math.floor(Number(count) || 1), 1, 6);
+            dpr = lavaClamp(Number(dpr) || 1, 1, 2);
+            var G = LAMP_GEOM;
+            var lampAspect = G.GLASS * G.INTERIOR_ASPECT * G.BASE_BOTTOM;
+            var cellW = cssW / count;
+            var lampH = Math.min(cssH * G.MARGIN, cellW * G.MARGIN / lampAspect);
+            var lamps = [];
+            for (var i = 0; i < count; i++) {
+                var cx = cellW * (i + 0.5);
+                var top = (cssH - lampH) / 2;
+                var capH = lampH * G.CAP, glassH = lampH * G.GLASS, baseH = lampH * G.BASE;
+                var glassW = glassH * G.INTERIOR_ASPECT;
+                var glassTop = top + capH, glassBottom = glassTop + glassH;
+                lamps.push({
+                    index: i, cellX: cellW * i, cellW: cellW, cx: cx,
+                    cap: { top: top, bottom: glassTop, topW: glassW * G.CAP_TOP, bottomW: glassW * G.TOP_RATIO },
+                    glass: { left: cx - glassW / 2, top: glassTop, width: glassW, height: glassH },
+                    base: { top: glassBottom, bottom: glassBottom + baseH, topW: glassW * G.BASE_TOP, bottomW: glassW * G.BASE_BOTTOM },
+                    rect: [(cx - glassW / 2) * dpr, (cssH - glassBottom) * dpr, glassW * dpr, glassH * dpr]
+                });
+            }
+            return { masked: true, count: count, cellW: cellW, cssW: cssW, cssH: cssH, dpr: dpr, lamps: lamps };
+        }
+
+        // Lamp units: interior height 1, width = aspect, y up. Ignores the corner rounding.
+        function insideBottle(x, y, aspect) {
+            if (!(y >= 0 && y <= 1) || !(aspect > 0)) return false;
+            var hw = 0.5 * aspect * (1 - (1 - LAMP_GEOM.TOP_RATIO) * y);
+            return Math.abs(x - aspect / 2) <= hw;
+        }
         // @testable-end
 
         // ================================================================
@@ -1064,23 +1123,30 @@ void main() {
             // Wrap keeps float32 precision; the shimmer rates 0.4, 0.25 and 0.3 are seamless at 40 pi
             gl.uniform1f(uni.uTime, time % (40 * Math.PI));
             gl.uniform2f(uni.uResolution, w, h);
+            gl.uniform2f(uni.uBottle, LAMP_GEOM.TOP_RATIO, LAMP_GEOM.CORNER);
             gl.drawArrays(gl.TRIANGLES, 0, 3);
         }
 
         // ================================================================
         // Layout, simulations and the Lamp overlay
         // ================================================================
+        function readLampCount() {
+            return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--lamp-count'), 10) || 1;
+        }
+
         function lampAspect(i) {
             var g = layout.lamps[i].glass;
             return g.width / g.height;
         }
 
         function buildSims() {
-            var cap = layout.masked ? Math.floor(LAVA.SLOTS / layout.count) : LAVA.SLOTS;
+            // Lamp style: the walls narrow with the bottle. Fill style: straight walls.
+            var taper = layout.masked ? LAMP_GEOM.TOP_RATIO : 1;
             lamps = [];
             for (var i = 0; i < layout.count; i++) {
                 lamps.push({ sim: createSim({ seed: baseSeed + i * 7919, aspect: lampAspect(i),
-                                              heat: cfg.heat, waxAmount: cfg.wax, cap: cap }) });
+                                              heat: cfg.heat, waxAmount: cfg.wax,
+                                              cap: lampSlice(i, layout.count).count, taper: taper }) });
             }
         }
 
@@ -1092,11 +1158,68 @@ void main() {
             glCanvas.width = bw; glCanvas.height = bh;
             overlay.width = bw; overlay.height = bh;
             var prevCount = layout.count, prevMasked = layout.masked;
-            layout = computeFillLayout(w, h, dpr);
+            layout = (cfg.style === 'lamp') ? computeLampLayout(w, h, readLampCount(), dpr) : computeFillLayout(w, h, dpr);
             if (!lamps.length || layout.count !== prevCount || layout.masked !== prevMasked) {
                 buildSims();
             } else {
                 for (var i = 0; i < lamps.length; i++) lamps[i].sim.resize(lampAspect(i));
+            }
+            drawOverlay();
+        }
+
+        function drawMetal(ctx, cx, top, bottom, topW, bottomW) {
+            var g = ctx.createLinearGradient(cx - bottomW / 2, 0, cx + bottomW / 2, 0);
+            g.addColorStop(0, '#1b1d20');
+            g.addColorStop(0.28, '#8d949b');
+            g.addColorStop(0.42, '#d9dde1');
+            g.addColorStop(0.6, '#5d646b');
+            g.addColorStop(1, '#16181a');
+            ctx.beginPath();
+            ctx.moveTo(cx - topW / 2, top);
+            ctx.lineTo(cx + topW / 2, top);
+            ctx.lineTo(cx + bottomW / 2, bottom);
+            ctx.lineTo(cx - bottomW / 2, bottom);
+            ctx.closePath();
+            ctx.fillStyle = g;
+            ctx.fill();
+            ctx.save();
+            ctx.clip();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';   // brushed lines
+            for (var y = top; y < bottom; y += 3) ctx.fillRect(cx - bottomW / 2, y, bottomW, 1);
+            ctx.restore();
+        }
+
+        function drawGlassRims(ctx, L) {
+            var g = L.glass;
+            var topW = g.width * LAMP_GEOM.TOP_RATIO;
+            var lw = Math.max(1, g.width * 0.015);
+            ctx.save();
+            ctx.lineWidth = lw;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.beginPath();
+            ctx.moveTo(L.cx - topW / 2 + lw * 2, g.top + lw * 2);
+            ctx.lineTo(L.cx - g.width / 2 + lw * 2, g.top + g.height - lw * 2);
+            ctx.stroke();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+            ctx.beginPath();
+            ctx.moveTo(L.cx + topW / 2 - lw * 2, g.top + lw * 2);
+            ctx.lineTo(L.cx + g.width / 2 - lw * 2, g.top + g.height - lw * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawOverlay() {
+            var ctx = overlay.getContext('2d');
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            if (!layout.masked) return;
+            ctx.setTransform(layout.dpr, 0, 0, layout.dpr, 0, 0);
+            for (var i = 0; i < layout.lamps.length; i++) {
+                var L = layout.lamps[i];
+                drawMetal(ctx, L.cx, L.cap.top, L.cap.bottom, L.cap.topW, L.cap.bottomW);
+                drawMetal(ctx, L.cx, L.base.top, L.base.bottom, L.base.topW, L.base.bottomW);
+                drawGlassRims(ctx, L);
             }
         }
 

@@ -565,5 +565,45 @@ if (W.parseHexColor && W.resolveColors && W.contrastRatio && W.lampSlice) {
   check('colors implemented', false);
 }
 
+// ================= Task 5: lamp layout =================
+if (W.computeLampLayout && W.insideBottle) {
+  const L4 = W.computeLampLayout(1689, 697, 4, 1);
+  check('layout: 4 lamps', L4.lamps.length === 4);
+  const g0 = L4.lamps[0].glass;
+  check('layout: glass interior aspect is 0.42', Math.abs(g0.width / g0.height - 0.42) < 1e-9);
+  check('layout: lamps fit their cells', L4.lamps.every(l => l.base.bottomW <= l.cellW + 1e-9 && l.base.bottom <= 697 + 1e-9 && l.cap.top >= -1e-9));
+  check('layout: proportions cap 8, glass 62, base 30 percent', (l0 => {
+    const H = l0.base.bottom - l0.cap.top;
+    return Math.abs((l0.cap.bottom - l0.cap.top) / H - 0.08) < 1e-9 &&
+      Math.abs(l0.glass.height / H - 0.62) < 1e-9 &&
+      Math.abs((l0.base.bottom - l0.base.top) / H - 0.30) < 1e-9;
+  })(L4.lamps[0]));
+  check('layout: rect is in buffer px, bottom-left origin', Math.abs(L4.lamps[0].rect[1] - (697 - L4.lamps[0].base.top)) < 1e-9);
+  const L2 = W.computeLampLayout(1689, 697, 4, 2);
+  check('layout: dpr 2 doubles the rect', Math.abs(L2.lamps[1].rect[2] - 2 * L4.lamps[1].rect[2]) < 1e-9);
+  const LVXL = W.computeLampLayout(697, 2537, 1, 1);
+  check('layout: VXL lamp is width-limited', Math.abs(LVXL.lamps[0].base.bottomW - 697 * 0.92) < 1e-6 && LVXL.lamps[0].cap.top > 0);
+  const L0 = W.computeLampLayout(0, 0, 4, 1);
+  check('review: zero-size layout has no NaN', JSON.stringify(L0).indexOf('null') === -1 && L0.lamps.every(l => l.rect.every(Number.isFinite)));
+
+  check('insideBottle: center is inside', W.insideBottle(0.21, 0.5, 0.42));
+  check('insideBottle: bottom corner is inside', W.insideBottle(0.01, 0.01, 0.42));
+  check('insideBottle: top corner is outside (taper)', !W.insideBottle(0.01, 0.99, 0.42));
+  check('insideBottle: above the glass is outside', !W.insideBottle(0.21, 1.05, 0.42));
+
+  // buildSims is page code: run its real source on top of the testable region
+  const pageFn = name => (html.match(new RegExp('\\n        function ' + name + '\\([\\s\\S]*?\\n        \\}\\n')) || [''])[0];
+  const build = new Function(m[1] + '\nvar cfg = { heat: 5, wax: 5 }, baseSeed = 1, lamps = [], layout;\n' +
+    pageFn('lampAspect') + pageFn('buildSims') +
+    '\nreturn function (l) { layout = l; buildSims(); return lamps; };')();
+  const lampSims = build(W.computeLampLayout(1689, 697, 4, 1));
+  const fillSims = build(W.computeFillLayout(1689, 697, 1));
+  check('lamp sims taper with the bottle', lampSims.length === 4 && lampSims.every(l => l.sim.taper === 0.8) &&
+    fillSims.length === 1 && fillSims[0].sim.taper === 1);
+
+} else {
+  check('layout implemented', false);
+}
+
 console.log(ran + ' checks, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
