@@ -322,6 +322,20 @@ if (W.createSim && W.stirFactor) {
     Math.abs(s1.blobs[0].x - s1.blobs[1].x) < 1e-9 && s1.blobs[0].y !== s1.blobs[1].y);
   check('stir: the halves carry the merge cooldown', s1.blobs.every(b => b.mergeCooldown > 0));
 
+  // Split gates: a fast stroke must not split a blob on cooldown or under the volume floor
+  const sg1 = W.createSim({ seed: 26, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(sg1);
+  const bg1 = addBlob(sg1, 1.2, 0.5, 1.5 * sg1.Vb, 0.5);
+  bg1.mergeCooldown = 0.5;
+  sg1.stir(bg1.x, bg1.y, 2.5, 0);
+  check('stir: a stroke does not split a blob on cooldown', sg1.blobs.length === 1);
+
+  const sg2 = W.createSim({ seed: 27, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(sg2);
+  const bg2 = addBlob(sg2, 1.2, 0.5, 0.4 * sg2.Vb, 0.5);
+  sg2.stir(bg2.x, bg2.y, 2.5, 0);
+  check('stir: a stroke does not split a blob under the volume floor', sg2.blobs.length === 1);
+
   // Slow stroke does not split
   const s2 = W.createSim({ seed: 22, aspect: 2.43, heat: 5, waxAmount: 5 });
   clearToPool(s2);
@@ -337,6 +351,49 @@ if (W.createSim && W.stirFactor) {
   run(s3, 6);
   const b3n = findById(s3, b3.id);
   check('stir: a nearby blob moves with the stroke', b3n && b3n.vx > 0.2);
+
+  // Force-field math: age decay acts on the pull, not the responsiveness
+  const sf1 = W.createSim({ seed: 28, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(sf1);
+  const bf1 = addBlob(sf1, 1.2, 0.5, sf1.Vb, sf1.pool.T);
+  sf1.samples.push({ x: bf1.x, y: bf1.y, vx: 1, vy: 0, t0: sf1.time });
+  sf1.step(STEP);
+  const d0 = findById(sf1, bf1.id).vx;
+  const bf1n = findById(sf1, bf1.id);
+  bf1n.vx = 0;
+  sf1.samples[0].t0 = sf1.time - 3;
+  sf1.step(STEP);
+  const d3 = findById(sf1, bf1.id).vx;
+  check('stir force: age decay matches exp(-3/1.7)', Math.abs(d3 / d0 - Math.exp(-3 / 1.7)) < 0.03);
+
+  // Force-field math: gain settles near 0.6 for a steady stroke.
+  // A large blob (low drag-per-mass) isolates the gain from the drag term.
+  const sf2 = W.createSim({ seed: 29, aspect: 40, heat: 5, waxAmount: 5 });
+  clearToPool(sf2);
+  const bf2 = addBlob(sf2, 10, 0.5, 5, sf2.pool.T);
+  for (let i = 0; i < 60; i++) {
+    const bb = findById(sf2, bf2.id);
+    sf2.stir(bb.x, bb.y, 1, 0);
+    sf2.step(STEP);
+  }
+  check('stir force: gain settles near 0.6 after 1 s of steady stroke', Math.abs(findById(sf2, bf2.id).vx - 0.6) < 0.05);
+
+  // Force-field math: the coverage cap keeps many stacked samples from saturating the rate
+  const sf3 = W.createSim({ seed: 30, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(sf3);
+  const bf3 = addBlob(sf3, 1.2, 0.5, sf3.Vb, sf3.pool.T);
+  sf3.samples.push({ x: bf3.x, y: bf3.y, vx: 1, vy: 0, t0: sf3.time });
+  sf3.step(STEP);
+  const oneSample = findById(sf3, bf3.id).vx;
+
+  const sf4 = W.createSim({ seed: 30, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(sf4);
+  const bf4 = addBlob(sf4, 1.2, 0.5, sf4.Vb, sf4.pool.T);
+  for (let i = 0; i < 200; i++) sf4.samples.push({ x: bf4.x, y: bf4.y, vx: 1, vy: 0, t0: sf4.time });
+  sf4.step(STEP);
+  const manySamples = findById(sf4, bf4.id).vx;
+  check('stir force: 200 stacked samples give the same pull as one full-weight sample',
+    Math.abs(manySamples - oneSample) < 1e-6 && manySamples > 0 && manySamples < 0.6);
 
   // A tap with no movement records nothing
   const s4 = W.createSim({ seed: 24, aspect: 2.43, heat: 5, waxAmount: 5 });
@@ -366,6 +423,19 @@ if (W.createSim && W.stirFactor) {
   s4.stir(1.2, 0.5, Infinity, 0);
   run(s4, 30);
   check('review: stir ignores an infinite velocity', s4.samples.length === n1 && allFinite(s4));
+
+  // Sample spacing applies across ticks, not just within one
+  const s6 = W.createSim({ seed: 41, aspect: 2.43, heat: 5, waxAmount: 5 });
+  let sx = 0.1;
+  for (let i = 0; i < 300; i++) { s6.stir(sx, 0.5, 1.0, 0); sx += 0.03; }
+  check('stir: spacing caps a long path at 256 samples across ticks',
+    s6.samples.length <= 256 && s6.samples.length > 200);
+
+  const s7 = W.createSim({ seed: 42, aspect: 2.43, heat: 5, waxAmount: 5 });
+  s7.stir(1.0, 0.5, 1.0, 0);
+  s7.stir(1.005, 0.5, 2.0, 0.5);
+  check('stir: two close calls in one tick merge into one sample with the latest velocity',
+    s7.samples.length === 1 && s7.samples[0].vx === 2.0 && s7.samples[0].vy === 0.5);
 
   // No split at the cap
   const s5 = W.createSim({ seed: 25, aspect: 0.42, heat: 5, waxAmount: 5, cap: 1 });

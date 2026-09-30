@@ -589,23 +589,26 @@
                     if (sim.time - sim.samples[k].t0 >= LAVA.STIR_LIFE) sim.samples.splice(k, 1);
                 }
                 if (!sim.samples.length) return;
+                var fArr = new Array(sim.samples.length);
+                for (k = 0; k < sim.samples.length; k++) {
+                    fArr[k] = stirFactor(sim.time - sim.samples[k].t0);
+                }
                 var R2 = LAVA.STIR_R * LAVA.STIR_R;
                 for (i = 0; i < sim.blobs.length; i++) {
                     b = sim.blobs[i];
-                    var wsum = 0, fx = 0, fy = 0;
+                    var ksum = 0, fx = 0, fy = 0;
                     for (k = 0; k < sim.samples.length; k++) {
                         sm = sim.samples[k];
                         var dx = b.x - sm.x, dy = b.y - sm.y;
                         var d2 = dx * dx + dy * dy;
                         if (d2 >= R2) continue;
                         var q = 1 - d2 / R2;
-                        var w = q * q * stirFactor(sim.time - sm.t0);
-                        wsum += w; fx += sm.vx * w; fy += sm.vy * w;
+                        var kw = q * q;
+                        ksum += kw; fx += kw * fArr[k] * sm.vx; fy += kw * fArr[k] * sm.vy;
                     }
-                    if (wsum <= 0) continue;
-                    var strength = Math.min(1, wsum);
-                    var tx = LAVA.STIR_GAIN * fx / wsum, ty = LAVA.STIR_GAIN * fy / wsum;
-                    var a = Math.min(1, strength * LAVA.STIR_RATE * dt);
+                    if (ksum < 1e-9) continue;
+                    var tx = LAVA.STIR_GAIN * fx / ksum, ty = LAVA.STIR_GAIN * fy / ksum;
+                    var a = Math.min(1, LAVA.STIR_RATE * dt * Math.min(1, ksum));
                     b.vx += (tx - b.vx) * a;
                     b.vy += (ty - b.vy) * a;
                 }
@@ -652,9 +655,9 @@
                 if (!(sp > 1e-3)) return;
                 if (sp > LAVA.STIR_MAX_V) { vx *= LAVA.STIR_MAX_V / sp; vy *= LAVA.STIR_MAX_V / sp; sp = LAVA.STIR_MAX_V; }
                 var last = sim.samples[sim.samples.length - 1];
-                if (last && last.t0 === sim.time &&
+                if (last &&
                     (last.x - x) * (last.x - x) + (last.y - y) * (last.y - y) < LAVA.STIR_SPACING * LAVA.STIR_SPACING) {
-                    last.x = x; last.y = y; last.vx = vx; last.vy = vy;
+                    last.x = x; last.y = y; last.vx = vx; last.vy = vy; last.t0 = sim.time;
                 } else {
                     sim.samples.push({ x: x, y: y, vx: vx, vy: vy, t0: sim.time });
                     if (sim.samples.length > LAVA.STIR_MAX_SAMPLES) sim.samples.shift();
