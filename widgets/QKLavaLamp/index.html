@@ -657,7 +657,7 @@
                 var last = sim.samples[sim.samples.length - 1];
                 if (last &&
                     (last.x - x) * (last.x - x) + (last.y - y) * (last.y - y) < LAVA.STIR_SPACING * LAVA.STIR_SPACING) {
-                    last.x = x; last.y = y; last.vx = vx; last.vy = vy; last.t0 = sim.time;
+                    last.vx = vx; last.vy = vy; last.t0 = sim.time;
                 } else {
                     sim.samples.push({ x: x, y: y, vx: vx, vy: vy, t0: sim.time });
                     if (sim.samples.length > LAVA.STIR_MAX_SAMPLES) sim.samples.shift();
