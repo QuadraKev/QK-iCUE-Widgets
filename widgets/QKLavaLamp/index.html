@@ -245,6 +245,387 @@
         // via eval() assigning bare globals, which strict mode breaks.
 
         // @testable-start
+        // Pure simulation. No DOM access in this region.
+        var LAVA = {
+            SLOTS: 64,
+            SUBSTEP: 1 / 60,
+            MAX_DT: 0.1,
+            TN: 0.5,
+            HEAT_ZONE: 0.15,
+            G: 3,
+            KD: 1.0,
+            KH: 0.012,
+            KC: 0.009,
+            KH_POOL: 0.35,
+            KCONV: 0.05,
+            KW: 20,
+            KST: 0.3,
+            KS: 8,
+            KT: 8,
+            POOL_MIN: 0.03,
+            REF_AREA: 1.21,
+            MERGE_COOLDOWN: 1.5,
+            DRIP_T: 0.35,
+            ABSORB_DEPTH: 1.0,
+            HEAT_LO: 0.16,
+            HEAT_HI: 2.0,
+            STIR_R: 0.25,
+            STIR_GAIN: 0.6,
+            STIR_RATE: 20,
+            STIR_TAU: 1.7,
+            STIR_LIFE: 5,
+            STIR_MAX_V: 3,
+            STIR_SPLIT_V: 1.5,
+            STIR_SPACING: 0.02,
+            STIR_MAX_SAMPLES: 256
+        };
+
+        function lavaClamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+        function lavaLerp(a, b, t) { return a + (b - a) * t; }
+
+        // mulberry32: small deterministic PRNG, returns floats in [0, 1)
+        function lavaPrng(seed) {
+            var s = seed >>> 0;
+            return function () {
+                s = (s + 0x6D2B79F5) >>> 0;
+                var t = s;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+
+        // Heat 1 -> HEAT_LO, Heat 5 -> 1, Heat 10 -> HEAT_HI (log-linear between the anchors)
+        function heatScale(h) {
+            h = lavaClamp(Number(h) || 5, 1, 10);
+            return h <= 5 ? Math.pow(LAVA.HEAT_LO, (5 - h) / 4) : Math.pow(LAVA.HEAT_HI, (h - 5) / 5);
+        }
+
+        function waxBudget(aspect, waxAmount, cap) {
+            var t = (lavaClamp(Number(waxAmount) || 5, 1, 10) - 1) / 9;
+            var A = aspect * 1;
+            var f = lavaLerp(0.25, 0.35, t);
+            var V = f * A;
+            var N = Math.round(lavaLerp(4, 40, t) * A / LAVA.REF_AREA);
+            N = lavaClamp(N, 2, 48);
+            if (cap < LAVA.SLOTS) N = Math.min(N, Math.floor(cap * 0.75));
+            N = Math.max(1, N);
+            return { A: A, f: f, V: V, N: N, Vb: V / N };
+        }
+
+        function createSim(opts) {
+            opts = opts || {};
+            var rand = lavaPrng(opts.seed || 1);
+            var cap = lavaClamp(opts.cap || LAVA.SLOTS, 1, LAVA.SLOTS);
+            var heat = opts.heat || 5;
+            var wax = opts.waxAmount || 5;
+            var width = Math.max(0.05, opts.aspect || 1);
+            // Interior width ratio at the top of the lamp (1 = straight walls)
+            var taper = lavaClamp(Number(opts.taper) || 1, 0.5, 1);
+            var budget = waxBudget(width, wax, cap);
+            var s = heatScale(heat);
+            var p1 = rand() * Math.PI * 2;
+            var p2 = rand() * Math.PI * 2;
+            var nextId = 1;
+            var budTimer = 0.5 + 1.5 * rand();
+            var acc = 0;
+
+            var sim = {
+                blobs: [],
+                tails: [],
+                samples: [],
+                pool: { vol: 0, T: 1, thickness: LAVA.POOL_MIN },
+                time: 0,
+                width: width,
+                cap: cap,
+                V: budget.V,
+                N: budget.N,
+                Vb: budget.Vb,
+                events: { buds: 0, merges: 0, splits: 0, drips: 0, absorbs: 0, stirSplits: 0 },
+                onBud: null
+            };
+
+            function radiusOf(vol) { return Math.sqrt(vol / Math.PI); }
+
+            // Half the interior width at height y, about the center width / 2
+            function halfW(y) {
+                return (sim.width / 2) * (1 - (1 - taper) * lavaClamp(y, 0, 1));
+            }
+
+            function makeBlob(x, y, vol, T) {
+                return { id: nextId++, x: x, y: y, vx: 0, vy: 0, vol: vol, r: radiusOf(vol),
+                         T: T, stretch: 1, mergeCooldown: 0, target: 0 };
+            }
+
+            function poolTop() {
+                return Math.max(LAVA.POOL_MIN, sim.pool.vol / sim.width);
+            }
+
+            function seedState() {
+                sim.blobs.length = 0;
+                sim.pool.vol = sim.V * 0.4;
+                sim.pool.T = 1;
+                var m = Math.max(1, Math.round(sim.N * 0.5));
+                var weights = [], wsum = 0, i;
+                for (i = 0; i < m; i++) { weights.push(0.6 + 0.8 * rand()); wsum += weights[i]; }
+                var blobVol = sim.V - sim.pool.vol;
+                for (i = 0; i < m; i++) {
+                    var vol = blobVol * weights[i] / wsum;
+                    var r = radiusOf(vol);
+                    var x = lavaLerp(Math.min(r, sim.width / 2), Math.max(sim.width - r, sim.width / 2), rand());
+                    var y = lavaLerp(0.2, 0.9, rand());
+                    sim.blobs.push(makeBlob(x, y, vol, lavaLerp(0.3, 0.7, rand())));
+                }
+                sim.pool.thickness = poolTop();
+            }
+
+            function rescaleVolumes(ratio) {
+                sim.pool.vol *= ratio;
+                for (var i = 0; i < sim.blobs.length; i++) {
+                    var b = sim.blobs[i];
+                    b.vol *= ratio;
+                    b.target *= ratio;
+                    b.r = radiusOf(b.vol);
+                }
+            }
+
+            function applyBudget() {
+                var nb = waxBudget(sim.width, wax, cap);
+                var ratio = nb.V / sim.V;
+                sim.V = nb.V; sim.N = nb.N; sim.Vb = nb.Vb;
+                rescaleVolumes(ratio);
+                sim.pool.thickness = poolTop();
+            }
+
+            function thermal(dt) {
+                for (var i = 0; i < sim.blobs.length; i++) {
+                    var b = sim.blobs[i];
+                    var k;
+                    if (b.y < LAVA.HEAT_ZONE) {
+                        k = LAVA.KH * s / b.r;
+                        b.T += (1 - b.T) * Math.min(1, k * dt);
+                    } else {
+                        var Ta = 0.45 - 0.25 * b.y;
+                        k = LAVA.KC * s / b.r;
+                        if (b.y > 1 - b.r) k *= 3;
+                        b.T += (Ta - b.T) * Math.min(1, k * dt);
+                    }
+                }
+                sim.pool.T += (1 - sim.pool.T) * Math.min(1, LAVA.KH_POOL * s * dt);
+            }
+
+            function forces(dt) {
+                var n = sim.blobs.length, i, j, b, c;
+                var t = sim.time;
+                var cx = sim.width / 2;
+                for (i = 0; i < n; i++) {
+                    b = sim.blobs[i];
+                    b.ax = LAVA.KCONV * (Math.sin(0.7 * t + 2.1 * b.y + p1) + 0.5 * Math.sin(1.3 * t - 1.4 * b.y + p2));
+                    b.ay = LAVA.G * s * (b.T - LAVA.TN);
+                    var hw = halfW(b.y);
+                    var left = cx - hw + b.r, right = cx + hw - b.r;
+                    if (b.x < left) b.ax += LAVA.KW * (left - b.x);
+                    if (b.x > right) b.ax -= LAVA.KW * (b.x - right);
+                    if (b.y > 1 - b.r) b.ay -= LAVA.KW * (b.y - (1 - b.r));
+                }
+                for (i = 0; i < n; i++) {
+                    b = sim.blobs[i];
+                    for (j = i + 1; j < n; j++) {
+                        c = sim.blobs[j];
+                        var dx = c.x - b.x, dy = c.y - b.y;
+                        var d = Math.sqrt(dx * dx + dy * dy);
+                        var overlap = b.r + c.r - d;
+                        if (overlap > 0 && d > 1e-9) {
+                            var f = LAVA.KST * overlap / d;
+                            b.ax += f * dx; b.ay += f * dy;
+                            c.ax -= f * dx; c.ay -= f * dy;
+                        }
+                    }
+                }
+                for (i = 0; i < n; i++) {
+                    b = sim.blobs[i];
+                    b.vx += b.ax * dt;
+                    b.vy += b.ay * dt;
+                    var drag = Math.exp(-LAVA.KD * dt / b.r);
+                    b.vx *= drag; b.vy *= drag;
+                }
+            }
+
+            function integrate(dt) {
+                var cx = sim.width / 2;
+                for (var i = 0; i < sim.blobs.length; i++) {
+                    var b = sim.blobs[i];
+                    b.x += b.vx * dt;
+                    b.y += b.vy * dt;
+                    var hw = halfW(b.y);
+                    if (b.x < cx - hw) { b.x = cx - hw; if (b.vx < 0) b.vx = 0; }
+                    if (b.x > cx + hw) { b.x = cx + hw; if (b.vx > 0) b.vx = 0; }
+                    if (b.y < 0) { b.y = 0; if (b.vy < 0) b.vy = 0; }
+                    if (b.y > 1) { b.y = 1; if (b.vy > 0) b.vy = 0; }
+                    b.stretch = 1 + lavaClamp(LAVA.KS * Math.abs(b.vy), 0, 0.8);
+                    if (b.mergeCooldown > 0) b.mergeCooldown = Math.max(0, b.mergeCooldown - dt);
+                }
+            }
+
+            function splitBlob(i, dirx, diry) {
+                var b = sim.blobs[i];
+                var len = Math.sqrt(dirx * dirx + diry * diry) || 1;
+                var px = -diry / len, py = dirx / len;
+                var half = b.vol / 2;
+                var off = 0.5 * b.r;
+                var a = makeBlob(b.x + px * off, b.y + py * off, half, b.T);
+                var c = makeBlob(b.x - px * off, b.y - py * off, half, b.T);
+                a.vx = b.vx + px * 0.05; a.vy = b.vy + py * 0.05;
+                c.vx = b.vx - px * 0.05; c.vy = b.vy - py * 0.05;
+                a.mergeCooldown = c.mergeCooldown = LAVA.MERGE_COOLDOWN;
+                a.id = b.id;
+                sim.blobs.splice(i, 1, a, c);
+            }
+
+            function mergeAndSplit(dt) {
+                var i, j, b, c;
+                for (i = 0; i < sim.blobs.length; i++) {
+                    b = sim.blobs[i];
+                    if (b.mergeCooldown > 0) continue;
+                    for (j = i + 1; j < sim.blobs.length; j++) {
+                        c = sim.blobs[j];
+                        if (c.mergeCooldown > 0) continue;
+                        var dx = c.x - b.x, dy = c.y - b.y;
+                        if (Math.sqrt(dx * dx + dy * dy) < 0.5 * (b.r + c.r)) {
+                            var m = b.vol + c.vol;
+                            var wb = b.vol / m, wc = c.vol / m;
+                            b.x = b.x * wb + c.x * wc; b.y = b.y * wb + c.y * wc;
+                            b.vx = b.vx * wb + c.vx * wc; b.vy = b.vy * wb + c.vy * wc;
+                            b.T = b.T * wb + c.T * wc;
+                            if (c.vol > b.vol) b.id = c.id;
+                            b.vol = m; b.r = radiusOf(m); b.target = 0;
+                            sim.blobs.splice(j, 1);
+                            sim.events.merges++;
+                            j--;
+                        }
+                    }
+                }
+                var rSplit = 1.4 * radiusOf(sim.Vb);
+                for (i = 0; i < sim.blobs.length && sim.blobs.length < sim.cap; i++) {
+                    b = sim.blobs[i];
+                    if (b.vy > 0 && b.T > LAVA.TN && b.r > rSplit && b.stretch > 1.6 && b.mergeCooldown === 0) {
+                        splitBlob(i, b.vx, b.vy);
+                        sim.events.splits++;
+                        i++;
+                    }
+                }
+                for (i = 0; i < sim.blobs.length && sim.blobs.length < sim.cap; i++) {
+                    b = sim.blobs[i];
+                    if (b.y > 0.85 && b.T < LAVA.DRIP_T && b.vol > 2 * sim.Vb && rand() < 0.3 * dt) {
+                        var dv = b.vol * 0.15;
+                        b.vol -= dv; b.r = radiusOf(b.vol);
+                        var d = makeBlob(b.x, Math.max(0, b.y - b.r * 0.9), dv, b.T);
+                        d.vy = -0.02; d.vx = b.vx;
+                        d.mergeCooldown = b.mergeCooldown = LAVA.MERGE_COOLDOWN;
+                        sim.blobs.push(d);
+                        sim.events.drips++;
+                    }
+                }
+            }
+
+            function poolExchange(dt) {
+                var top = poolTop(), i, b;
+                for (i = 0; i < sim.blobs.length; i++) {
+                    b = sim.blobs[i];
+                    if (b.target <= 0) continue;
+                    if (b.y - b.r < top) {
+                        var flow = Math.min(sim.Vb * dt, b.target - b.vol, sim.pool.vol);
+                        if (flow > 0) { b.vol += flow; sim.pool.vol -= flow; b.r = radiusOf(b.vol); }
+                        b.T = Math.max(b.T, sim.pool.T);
+                        if (b.vol >= b.target - 1e-12 || sim.pool.vol <= 0) b.target = 0;
+                    } else {
+                        b.target = 0;
+                    }
+                }
+                top = poolTop();
+                for (i = sim.blobs.length - 1; i >= 0; i--) {
+                    b = sim.blobs[i];
+                    if (b.target <= 0 && b.T < LAVA.TN && b.y < top + LAVA.ABSORB_DEPTH * b.r) {
+                        var nv = sim.pool.vol + b.vol;
+                        sim.pool.T = (sim.pool.T * sim.pool.vol + b.T * b.vol) / nv;
+                        sim.pool.vol = nv;
+                        sim.blobs.splice(i, 1);
+                        sim.events.absorbs++;
+                    }
+                }
+                budTimer -= dt;
+                if (budTimer <= 0 && sim.pool.T > 0.7 && sim.pool.vol > sim.Vb &&
+                    sim.blobs.length < sim.N && sim.blobs.length < sim.cap) {
+                    var target = sim.Vb * lavaLerp(0.6, 1.4, rand());
+                    var rt = radiusOf(target);
+                    var vol0 = Math.min(target * 0.1, sim.pool.vol);
+                    sim.pool.vol -= vol0;
+                    var x = lavaLerp(Math.min(rt, sim.width / 2), Math.max(sim.width - rt, sim.width / 2), rand());
+                    var bud = makeBlob(x, poolTop(), vol0, 1);
+                    bud.target = target;
+                    bud.mergeCooldown = LAVA.MERGE_COOLDOWN;
+                    sim.blobs.push(bud);
+                    sim.events.buds++;
+                    if (sim.onBud) sim.onBud(bud);
+                    budTimer = 0.5 + 1.5 * rand();
+                }
+                sim.pool.thickness = poolTop();
+            }
+
+            function updateTails() {
+                sim.tails.length = sim.blobs.length;
+                for (var i = 0; i < sim.blobs.length; i++) {
+                    var b = sim.blobs[i];
+                    var sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+                    var w = lavaClamp(LAVA.KT * sp, 0, 1);
+                    var tl = sim.tails[i] || (sim.tails[i] = { x: 0, y: 0, r: 0, w: 0 });
+                    if (sp < 1e-6 || w < 0.01) { tl.x = b.x; tl.y = b.y; tl.r = 0; tl.w = 0; continue; }
+                    tl.x = b.x - b.vx / sp * 0.8 * b.r;
+                    tl.y = b.y - b.vy / sp * 0.8 * b.r;
+                    tl.r = 0.5 * b.r;
+                    tl.w = w;
+                }
+            }
+
+            function substep(dt) {
+                sim.time += dt;
+                thermal(dt);
+                forces(dt);
+                integrate(dt);
+                mergeAndSplit(dt);
+                poolExchange(dt);
+            }
+
+            sim.step = function (dt) {
+                dt = lavaClamp(Number(dt) || 0, 0, LAVA.MAX_DT);
+                acc += dt;
+                var n = Math.floor(acc / LAVA.SUBSTEP + 1e-9);
+                acc -= n * LAVA.SUBSTEP;
+                if (acc < 0) acc = 0;
+                for (var i = 0; i < n; i++) substep(LAVA.SUBSTEP);
+                updateTails();
+            };
+
+            sim.setHeat = function (h) { heat = h; s = heatScale(h); };
+            sim.setWaxAmount = function (w) { wax = w; applyBudget(); };
+            sim.resize = function (aspect) {
+                var nw = Math.max(0.05, Number(aspect) || sim.width);
+                var sx = nw / sim.width;
+                for (var i = 0; i < sim.blobs.length; i++) sim.blobs[i].x *= sx;
+                for (var k = 0; k < sim.samples.length; k++) sim.samples[k].x *= sx;
+                sim.width = nw;
+                applyBudget();
+            };
+            sim.total = function () {
+                var t = sim.pool.vol;
+                for (var i = 0; i < sim.blobs.length; i++) t += sim.blobs[i].vol;
+                return t;
+            };
+
+            seedState();
+            updateTails();
+            return sim;
+        }
         // @testable-end
 
         // ================================================================
