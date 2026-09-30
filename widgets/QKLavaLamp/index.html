@@ -321,7 +321,8 @@
             var wax = opts.waxAmount || 5;
             var width = Math.max(0.05, opts.aspect || 1);
             // Interior width ratio at the top of the lamp (1 = straight walls)
-            var taper = lavaClamp(Number(opts.taper) || 1, 0.5, 1);
+            var taperIn = Number(opts.taper);
+            var taper = opts.taper == null || !isFinite(taperIn) ? 1 : lavaClamp(taperIn, 0.5, 1);
             var budget = waxBudget(width, wax, cap);
             var s = heatScale(heat);
             var p1 = rand() * Math.PI * 2;
@@ -475,6 +476,10 @@
                 var off = 0.5 * b.r;
                 var a = makeBlob(b.x + px * off, b.y + py * off, half, b.T);
                 var c = makeBlob(b.x - px * off, b.y - py * off, half, b.T);
+                // Keep both children inside the (tapered) walls
+                var cx = sim.width / 2, hwa = halfW(a.y), hwc = halfW(c.y);
+                a.x = lavaClamp(a.x, cx - hwa, cx + hwa);
+                c.x = lavaClamp(c.x, cx - hwc, cx + hwc);
                 a.vx = b.vx + px * 0.05; a.vy = b.vy + py * 0.05;
                 c.vx = b.vx - px * 0.05; c.vy = b.vy - py * 0.05;
                 a.mergeCooldown = c.mergeCooldown = LAVA.MERGE_COOLDOWN;

@@ -68,6 +68,10 @@ function addBlob(sim, x, y, vol, T) {
   return b;
 }
 function findById(sim, id) { return sim.blobs.find(b => b.id === id); }
+// Half the interior width at height y for a tapered sim (mirrors halfW in index.html).
+function taperHalfW(width, taper, y) {
+  return (width / 2) * (1 - (1 - taper) * Math.min(1, Math.max(0, y)));
+}
 
 // The reference run: seed 1, aspect 2.43, wax 5, 20000 substeps at the given heat.
 // It tracks every bud's spawn-to-descent time (the first descent after it passes
@@ -148,7 +152,8 @@ if (W.createSim) {
   // Tapered walls (Lamp style): every blob center stays inside the narrowing walls.
   // Each seeded blob starts at the straight wall on its side, moving outward, so
   // straight walls would fail the check.
-  const tp = W.createSim({ seed: 3, aspect: 0.42, heat: 10, waxAmount: 10, cap: 10, taper: 0.8 });
+  const TAPER = 0.8;
+  const tp = W.createSim({ seed: 3, aspect: 0.42, heat: 10, waxAmount: 10, cap: 10, taper: TAPER });
   for (const b of tp.blobs) {
     if (b.x < tp.width / 2) { b.x = 0; b.vx = -0.5; } else { b.x = tp.width; b.vx = 0.5; }
   }
@@ -157,8 +162,7 @@ if (W.createSim) {
     tp.step(STEP);
     const cx = tp.width / 2;
     for (const b of tp.blobs) {
-      const halfW = (tp.width / 2) * (1 - 0.2 * Math.min(1, Math.max(0, b.y)));
-      if (Math.abs(b.x - cx) > halfW + 1e-9) tpInside = false;
+      if (Math.abs(b.x - cx) > taperHalfW(tp.width, TAPER, b.y) + 1e-9) tpInside = false;
       tpSeen++;
     }
   }
@@ -166,12 +170,76 @@ if (W.createSim) {
 
   // Wall force: a blob outside the left wall gets pushed back in. The bound is the
   // largest velocity that convection alone can add in one substep.
+  const CONV_BOUND = 1.5 * W.LAVA.KCONV * STEP;
   const wf = W.createSim({ seed: 7, aspect: 2.43, heat: 5, waxAmount: 5, taper: 1 });
   clearToPool(wf);
   const wb = addBlob(wf, -0.05, 0.5, wf.Vb, 0.5);
   wf.step(1 / 60);
   const wbAfter = findById(wf, wb.id);
-  check('wall force pushes an outside blob back in', !!wbAfter && wbAfter.vx > 1.5 * W.LAVA.KCONV * STEP);
+  check('wall force pushes an outside blob back in', !!wbAfter && wbAfter.vx > CONV_BOUND);
+
+  // Tapered wall force: at y = 0.9 the blob is inside the clamp and right of r, but
+  // left of the tapered force limit cx - halfW + r. Only a tapered force pushes it.
+  const tf = W.createSim({ seed: 7, aspect: 0.42, heat: 5, waxAmount: 5, taper: TAPER });
+  clearToPool(tf);
+  const tfb = addBlob(tf, 0.06, 0.9, Math.PI * 0.05 * 0.05, 0.5);
+  tf.step(STEP);
+  const tfAfter = findById(tf, tfb.id);
+  check('tapered wall force pushes a blob in below the straight-wall limit', !!tfAfter && tfAfter.vx > CONV_BOUND);
+
+  // taper 0 clamps to the 0.5 minimum: a blob at x = 0 near the top ends on the 0.5 wall
+  const t0s = W.createSim({ seed: 7, aspect: 0.42, heat: 5, waxAmount: 5, taper: 0 });
+  clearToPool(t0s);
+  const t0b = addBlob(t0s, 0, 0.99, Math.PI * 0.05 * 0.05, 0.5);
+  t0s.step(STEP);
+  const t0After = findById(t0s, t0b.id);
+  check('taper 0 clamps to the 0.5 minimum', !!t0After &&
+    Math.abs(t0After.x - (t0s.width / 2 - taperHalfW(t0s.width, 0.5, t0After.y))) < 1e-9);
+
+  // Split children stay inside the tapered walls: a blob primed to split sits on the
+  // left clamp limit and rises, so one child lands past the wall unless it is clamped.
+  const sc = W.createSim({ seed: 7, aspect: 0.42, heat: 5, waxAmount: 5, taper: TAPER });
+  clearToPool(sc);
+  const scb = addBlob(sc, sc.width / 2 - taperHalfW(sc.width, TAPER, 0.5), 0.5, 2.5 * sc.Vb, 0.9);
+  scb.vy = 0.3;
+  sc.step(STEP);
+  check('split children stay inside the tapered walls', sc.events.splits === 1 &&
+    sc.blobs.every(b => Math.abs(b.x - sc.width / 2) <= taperHalfW(sc.width, TAPER, b.y) + 1e-9));
+
+  // Cap gate: with the count at the cap, a primed blob neither splits nor drips.
+  // Each setup is 1 primed blob plus 9 small fillers (10 blobs). The control at
+  // cap 11 proves the blob is primed.
+  function capSetup(cap, seed, primedY, primedVol, primedT) {
+    const sim = W.createSim({ seed: seed, aspect: 2.43, heat: 5, waxAmount: 5, cap: cap });
+    clearToPool(sim);
+    const primed = addBlob(sim, 1.2, primedY, primedVol * sim.Vb, primedT);
+    for (let k = 0; k < 9; k++) addBlob(sim, 0.15 + 0.25 * k, 0.3, 0.05 * sim.Vb, 0.45).mergeCooldown = 1;
+    return { sim: sim, primed: primed };
+  }
+  function capSplit(cap) {
+    const c = capSetup(cap, 7, 0.5, 2.5, 0.9);
+    c.primed.vy = 0.3;
+    c.sim.step(STEP);
+    return c.sim;
+  }
+  const cs10 = capSplit(10), cs11 = capSplit(11);
+  check('cap gate: no split at the cap', cs10.blobs.length === 10 && cs10.events.splits === 0 &&
+    cs10.events.drips === 0 && cs11.events.splits === 1);
+  // Drip is a 0.3 per second random event, so this runs 20 s with every blob pinned.
+  function capDrip(cap) {
+    const c = capSetup(cap, 5, 0.95, 3, 0.3);
+    const pins = new Map(c.sim.blobs.map(b => [b.id, { y: b.y, T: b.T }]));
+    const st = run(c.sim, 1200, function (sim) {
+      for (const b of sim.blobs) {
+        const p = pins.get(b.id);
+        if (p) { b.y = p.y; b.vy = 0; b.T = p.T; b.mergeCooldown = 1; }
+      }
+    });
+    return { sim: c.sim, st: st };
+  }
+  const cd10 = capDrip(10), cd11 = capDrip(11);
+  check('cap gate: no drip at the cap', cd10.st.maxCount <= 10 && cd10.sim.blobs.length === 10 &&
+    cd10.sim.events.drips === 0 && cd10.sim.events.splits === 0 && cd11.sim.events.drips >= 1);
 
   // Very tall fill (VXL) keeps cycling
   const vxl = W.createSim({ seed: 2, aspect: 0.27, heat: 5, waxAmount: 5 });
@@ -227,6 +295,9 @@ if (W.createSim) {
   const t1 = rf.time;
   rf.step(-1); rf.step(NaN); rf.step(Infinity);
   check('review: negative, NaN and Infinity dt do not explode', rf.time - t1 <= 0.1 + STEP + 1e-9 && allFinite(rf));
+  const t2 = rf.time;
+  for (let i = 0; i < 30; i++) rf.step(STEP);
+  check('review: normal frames advance the time again after bad dt', Math.abs(rf.time - t2 - 0.5) <= 0.02);
   rf.resize(0); rf.resize(NaN); rf.resize(-3);
   check('review: resize(0), resize(NaN), resize(-3) keep the state finite', allFinite(rf) && rf.width > 0 && Math.abs(rf.total() - rf.V) < 1e-9);
 } else {
