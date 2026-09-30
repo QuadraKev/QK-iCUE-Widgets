@@ -533,7 +533,6 @@ if (W.parseHexColor && W.resolveColors && W.contrastRatio && W.lampSlice) {
   check('review: parseHexColor Qt #AARRGGBB drops alpha', eq(W.parseHexColor('#80FF8000'), [1, 128 / 255, 0]));
   check('review: parseHexColor garbage uses the fallback', eq(W.parseHexColor('rgb(1,2,3)', '#000000'), [0, 0, 0]) &&
     eq(W.parseHexColor(undefined, '#FFFFFF'), [1, 1, 1]) && eq(W.parseHexColor('', '#FF0000'), [1, 0, 0]));
-  check('parseHexColor drops a Qt alpha prefix', eq(W.parseHexColor('#80FFFFFF', '#000000'), [1, 1, 1]));
   const cl = W.resolveColors('classic', '#00FF00', '#0000FF');
   check('resolveColors: a preset ignores both pickers', eq(cl.wax, W.parseHexColor('#FF4A1F')) && eq(cl.liquid, W.parseHexColor('#7A3A08')));
   check('resolveColors: the backdrop is always backgroundColor', eq(cl.backdrop, [0, 0, 1]));
@@ -548,6 +547,20 @@ if (W.parseHexColor && W.resolveColors && W.contrastRatio && W.lampSlice) {
   check('contrast: white title on the default backdrop is at least 4.5:1', W.contrastRatio(white, W.parseHexColor('#7A3A08')) >= 4.5);
   const sl0 = W.lampSlice(0, 1), sl5 = W.lampSlice(5, 6);
   check('lampSlice divides the 64 slots', sl0.start === 0 && sl0.count === 64 && sl5.start === 50 && sl5.count === 10);
+  let fl1, fl3, flBad;
+  try {
+    fl1 = W.computeFillLayout(1688, 696, 1);
+    fl3 = W.computeFillLayout(1688, 696, 3);
+    flBad = [W.computeFillLayout(0, 0, 1), W.computeFillLayout(NaN, NaN, NaN)];
+  } catch (e) { fl1 = null; }
+  const finiteLayout = l => [l.cellW, l.cssW, l.cssH, l.dpr, l.lamps[0].cx, l.lamps[0].glass.width,
+    l.lamps[0].glass.height].concat(l.lamps[0].rect).every(Number.isFinite);
+  check('computeFillLayout maps the container', !!fl1 && fl1.masked === false && fl1.count === 1 && fl1.lamps.length === 1 &&
+    fl1.lamps[0].glass.left === 0 && fl1.lamps[0].glass.top === 0 &&
+    fl1.lamps[0].glass.width === 1688 && fl1.lamps[0].glass.height === 696 &&
+    fl1.lamps[0].rect.join() === '0,0,1688,696' &&
+    fl3.dpr === 2 && fl3.lamps[0].rect.join() === '0,0,3376,1392' &&
+    flBad.every(finiteLayout));
 } else {
   check('colors implemented', false);
 }
