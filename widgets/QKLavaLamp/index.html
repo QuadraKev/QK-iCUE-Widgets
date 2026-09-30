@@ -313,6 +313,12 @@
             return { A: A, f: f, V: V, N: N, Vb: V / N };
         }
 
+        // Lingering-current weight of a stir sample of the given age in seconds
+        function stirFactor(age) {
+            if (age < 0 || age >= LAVA.STIR_LIFE) return 0;
+            return Math.exp(-age / LAVA.STIR_TAU);
+        }
+
         function createSim(opts) {
             opts = opts || {};
             var rand = lavaPrng(opts.seed || 1);
@@ -577,6 +583,34 @@
                 sim.pool.thickness = poolTop();
             }
 
+            function stirForces(dt) {
+                var i, k, b, sm;
+                for (k = sim.samples.length - 1; k >= 0; k--) {
+                    if (sim.time - sim.samples[k].t0 >= LAVA.STIR_LIFE) sim.samples.splice(k, 1);
+                }
+                if (!sim.samples.length) return;
+                var R2 = LAVA.STIR_R * LAVA.STIR_R;
+                for (i = 0; i < sim.blobs.length; i++) {
+                    b = sim.blobs[i];
+                    var wsum = 0, fx = 0, fy = 0;
+                    for (k = 0; k < sim.samples.length; k++) {
+                        sm = sim.samples[k];
+                        var dx = b.x - sm.x, dy = b.y - sm.y;
+                        var d2 = dx * dx + dy * dy;
+                        if (d2 >= R2) continue;
+                        var q = 1 - d2 / R2;
+                        var w = q * q * stirFactor(sim.time - sm.t0);
+                        wsum += w; fx += sm.vx * w; fy += sm.vy * w;
+                    }
+                    if (wsum <= 0) continue;
+                    var strength = Math.min(1, wsum);
+                    var tx = LAVA.STIR_GAIN * fx / wsum, ty = LAVA.STIR_GAIN * fy / wsum;
+                    var a = Math.min(1, strength * LAVA.STIR_RATE * dt);
+                    b.vx += (tx - b.vx) * a;
+                    b.vy += (ty - b.vy) * a;
+                }
+            }
+
             function updateTails() {
                 sim.tails.length = sim.blobs.length;
                 for (var i = 0; i < sim.blobs.length; i++) {
@@ -599,6 +633,7 @@
                 integrate(dt);
                 mergeAndSplit(dt);
                 poolExchange(dt);
+                stirForces(dt);
             }
 
             sim.step = function (dt) {
@@ -609,6 +644,33 @@
                 if (acc < 0) acc = 0;
                 for (var i = 0; i < n; i++) substep(LAVA.SUBSTEP);
                 updateTails();
+            };
+
+            sim.stir = function (x, y, vx, vy) {
+                if (!isFinite(x) || !isFinite(y) || !isFinite(vx) || !isFinite(vy)) return;
+                var sp = Math.sqrt(vx * vx + vy * vy);
+                if (!(sp > 1e-3)) return;
+                if (sp > LAVA.STIR_MAX_V) { vx *= LAVA.STIR_MAX_V / sp; vy *= LAVA.STIR_MAX_V / sp; sp = LAVA.STIR_MAX_V; }
+                var last = sim.samples[sim.samples.length - 1];
+                if (last && last.t0 === sim.time &&
+                    (last.x - x) * (last.x - x) + (last.y - y) * (last.y - y) < LAVA.STIR_SPACING * LAVA.STIR_SPACING) {
+                    last.x = x; last.y = y; last.vx = vx; last.vy = vy;
+                } else {
+                    sim.samples.push({ x: x, y: y, vx: vx, vy: vy, t0: sim.time });
+                    if (sim.samples.length > LAVA.STIR_MAX_SAMPLES) sim.samples.shift();
+                }
+                if (sp <= LAVA.STIR_SPLIT_V || sim.blobs.length >= sim.cap) return;
+                var best = -1, bestD = Infinity;
+                for (var i = 0; i < sim.blobs.length; i++) {
+                    var b = sim.blobs[i];
+                    var d = Math.sqrt((b.x - x) * (b.x - x) + (b.y - y) * (b.y - y));
+                    if (d < b.r && d < bestD && b.mergeCooldown === 0 && b.vol >= 0.5 * sim.Vb) { best = i; bestD = d; }
+                }
+                if (best >= 0) {
+                    // Split along the stroke: the halves sit on either side of the stroke line
+                    splitBlob(best, vx, vy);
+                    sim.events.stirSplits++;
+                }
             };
 
             sim.setHeat = function (h) { heat = h; s = heatScale(h); };

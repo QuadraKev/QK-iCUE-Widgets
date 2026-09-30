@@ -304,5 +304,94 @@ if (W.createSim) {
   check('createSim implemented', false);
 }
 
+// ================= Task 3: stir =================
+if (W.createSim && W.stirFactor) {
+  check('stirFactor(0) is 1', W.stirFactor(0) === 1);
+  check('stirFactor(4.9) is small but not zero', W.stirFactor(4.9) > 0 && W.stirFactor(4.9) < 0.06);
+  check('stirFactor(5) is 0: samples expire at 5 s', W.stirFactor(5) === 0);
+
+  // Fast stroke through a blob splits it
+  const s1 = W.createSim({ seed: 21, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(s1);
+  const big = addBlob(s1, 1.2, 0.5, 1.5 * s1.Vb, 0.5);
+  const before = s1.blobs.length;
+  s1.stir(big.x, big.y, 2.5, 0);
+  check('stir: a fast stroke through a blob adds one blob', s1.blobs.length === before + 1);
+  check('stir: the split conserves volume', Math.abs(s1.total() - s1.V) < 1e-12);
+  check('stir: the halves sit on either side of the stroke line', s1.blobs.length === 2 &&
+    Math.abs(s1.blobs[0].x - s1.blobs[1].x) < 1e-9 && s1.blobs[0].y !== s1.blobs[1].y);
+  check('stir: the halves carry the merge cooldown', s1.blobs.every(b => b.mergeCooldown > 0));
+
+  // Slow stroke does not split
+  const s2 = W.createSim({ seed: 22, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(s2);
+  const b2 = addBlob(s2, 1.2, 0.5, 1.5 * s2.Vb, 0.5);
+  s2.stir(b2.x, b2.y, 1.0, 0);
+  check('stir: a slow stroke does not split', s2.blobs.length === 1);
+
+  // The stroke drags nearby blobs along
+  const s3 = W.createSim({ seed: 23, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(s3);
+  const b3 = addBlob(s3, 1.2, 0.5, s3.Vb, 0.5);
+  s3.stir(1.1, 0.5, 1.2, 0);
+  run(s3, 6);
+  const b3n = findById(s3, b3.id);
+  check('stir: a nearby blob moves with the stroke', b3n && b3n.vx > 0.2);
+
+  // A tap with no movement records nothing
+  const s4 = W.createSim({ seed: 24, aspect: 2.43, heat: 5, waxAmount: 5 });
+  s4.stir(1.0, 0.5, 0, 0);
+  check('stir: a tap records no sample', s4.samples.length === 0);
+
+  // Lingering current decays and expires
+  s4.stir(1.0, 0.5, 1.0, 0.5);
+  check('stir: a move records one sample', s4.samples.length === 1);
+  run(s4, 60 * 4);
+  check('stir: the sample lingers at 4 s', s4.samples.length === 1);
+  run(s4, 60 * 1 + 6);
+  check('stir: the sample is dropped after 5 s', s4.samples.length === 0);
+
+  // Stroke velocity is clamped to 3 heights per second
+  s4.stir(1.0, 0.5, 1000, 0);
+  const smp = s4.samples[s4.samples.length - 1];
+  check('stir: velocity clamped to 3', smp && Math.abs(Math.hypot(smp.vx, smp.vy) - 3) < 1e-9);
+
+  // Review Focus: non-finite pointer input is ignored
+  const n0 = s4.samples.length;
+  s4.stir(NaN, 0.5, 1, 0); s4.stir(0.5, Infinity, 1, 0); s4.stir(0.5, 0.5, NaN, 0);
+  check('review: non-finite stir input is ignored', s4.samples.length === n0 && allFinite(s4));
+
+  // Review Focus: an infinite velocity is ignored
+  const n1 = s4.samples.length;
+  s4.stir(1.2, 0.5, Infinity, 0);
+  run(s4, 30);
+  check('review: stir ignores an infinite velocity', s4.samples.length === n1 && allFinite(s4));
+
+  // No split at the cap
+  const s5 = W.createSim({ seed: 25, aspect: 0.42, heat: 5, waxAmount: 5, cap: 1 });
+  clearToPool(s5);
+  const b5 = addBlob(s5, 0.21, 0.5, 1.5 * s5.Vb, 0.5);
+  s5.stir(b5.x, b5.y, 2.5, 0);
+  check('stir: no split when the count equals the cap', s5.blobs.length === 1);
+
+  // Long stirred runs keep all invariants
+  [5, 10].forEach(function (heat) {
+    const sim = W.createSim({ seed: 1, aspect: 2.43, heat: heat, waxAmount: 5 });
+    const st = run(sim, 20000, function (s, i) {
+      if (i % 20 === 0) {
+        const t = i / 60;
+        s.stir(1.2 + Math.sin(t * 0.7), 0.5 + 0.4 * Math.sin(t * 1.3), 2.8 * Math.cos(t * 0.7), 2.0 * Math.cos(t * 1.3));
+      }
+    });
+    check('stirred heat ' + heat + ': volume conserved within 1e-6', Math.abs(sim.total() - sim.V) < 1e-6);
+    check('stirred heat ' + heat + ': no NaN', st.finite);
+    check('stirred heat ' + heat + ': blobs stay in bounds', st.bounds);
+    check('stirred heat ' + heat + ': count never exceeds the cap', st.maxCount <= sim.cap);
+    check('stirred heat ' + heat + ': stroke splits happen', sim.events.stirSplits > 0);
+  });
+} else {
+  check('stir implemented', false);
+}
+
 console.log(ran + ' checks, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
