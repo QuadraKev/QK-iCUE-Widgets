@@ -10,7 +10,7 @@ if (!m) { console.error('FAIL: @testable markers not found in index.html'); proc
 
 const exportNames = ['LAVA', 'createSim', 'heatScale', 'waxBudget', 'stirFactor', 'lavaPrng',
   'LAMP_GEOM', 'computeLampLayout', 'computeFillLayout', 'insideBottle', 'mapPointer',
-  'PRESETS', 'parseHexColor', 'resolveColors', 'contrastRatio'];
+  'PRESETS', 'parseHexColor', 'resolveColors', 'contrastRatio', 'lampSlice'];
 const fn = new Function(m[1] + '\nreturn {' + exportNames.map(n => n + ': (typeof ' + n + ' !== "undefined" ? ' + n + ' : undefined)').join(',') + '};');
 const W = fn();
 
@@ -523,6 +523,33 @@ if (W.createSim && W.stirFactor) {
   });
 } else {
   check('stir implemented', false);
+}
+
+// ================= Task 4: colors =================
+if (W.parseHexColor && W.resolveColors && W.contrastRatio && W.lampSlice) {
+  const eq = (a, b) => a.length === 3 && a.every((v, i) => Math.abs(v - b[i]) < 1e-9);
+  check('parseHexColor #RRGGBB', eq(W.parseHexColor('#FF8000'), [1, 128 / 255, 0]));
+  check('parseHexColor #RGB', eq(W.parseHexColor('#F80'), [1, 136 / 255, 0]));
+  check('review: parseHexColor Qt #AARRGGBB drops alpha', eq(W.parseHexColor('#80FF8000'), [1, 128 / 255, 0]));
+  check('review: parseHexColor garbage uses the fallback', eq(W.parseHexColor('rgb(1,2,3)', '#000000'), [0, 0, 0]) &&
+    eq(W.parseHexColor(undefined, '#FFFFFF'), [1, 1, 1]) && eq(W.parseHexColor('', '#FF0000'), [1, 0, 0]));
+  check('parseHexColor drops a Qt alpha prefix', eq(W.parseHexColor('#80FFFFFF', '#000000'), [1, 1, 1]));
+  const cl = W.resolveColors('classic', '#00FF00', '#0000FF');
+  check('resolveColors: a preset ignores both pickers', eq(cl.wax, W.parseHexColor('#FF4A1F')) && eq(cl.liquid, W.parseHexColor('#7A3A08')));
+  check('resolveColors: the backdrop is always backgroundColor', eq(cl.backdrop, [0, 0, 1]));
+  const cu = W.resolveColors('custom', '#00FF00', '#0000FF');
+  check('resolveColors: custom uses accentColor and backgroundColor', eq(cu.wax, [0, 1, 0]) && eq(cu.liquid, [0, 0, 1]));
+  check('review: resolveColors unknown preset acts as custom', eq(W.resolveColors('constructor', '#00FF00', '#0000FF').wax, [0, 1, 0]));
+  const white = [1, 1, 1];
+  Object.keys(W.PRESETS).forEach(function (k) {
+    const c = W.contrastRatio(white, W.parseHexColor(W.PRESETS[k].liquid));
+    check('contrast: white title on ' + k + ' liquid is at least 4.5:1 (' + c.toFixed(2) + ')', c >= 4.5);
+  });
+  check('contrast: white title on the default backdrop is at least 4.5:1', W.contrastRatio(white, W.parseHexColor('#7A3A08')) >= 4.5);
+  const sl0 = W.lampSlice(0, 1), sl5 = W.lampSlice(5, 6);
+  check('lampSlice divides the 64 slots', sl0.start === 0 && sl0.count === 64 && sl5.start === 50 && sl5.count === 10);
+} else {
+  check('colors implemented', false);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');

@@ -154,6 +154,168 @@
             pointer-events: none;
         }
     </style>
+
+    <script type="x-shader/x-vertex" id="vs">
+#version 300 es
+in vec2 aPos;
+void main() {
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+    </script>
+
+    <script type="x-shader/x-fragment" id="fs">
+#version 300 es
+precision highp float;
+precision highp int;
+
+uniform vec4 uBlobs[64];      // x, y, kernel r, stretch (lamp units)
+uniform vec4 uTails[64];      // x, y, kernel r, weight
+uniform vec4 uPool[6];        // x0, x1, y, thickness (per lamp)
+uniform vec4 uLampRect[6];    // interior rect in buffer px: x0, y0, width, height (bottom-left origin)
+uniform ivec2 uLampSlice[6];  // first slot, active count
+uniform int uLampCount;
+uniform int uStyle;           // 0 = Fill, 1 = Lamp
+uniform vec3 uWax;
+uniform vec3 uLiquid;
+uniform float uOpacity;       // transparency / 100
+uniform float uTime;
+uniform vec2 uResolution;
+uniform vec2 uBottle;         // x = glass top width ratio, y = corner radius (lamp units)
+
+out vec4 fragColor;
+
+const float ISO = 0.3;
+const float NORMAL_K = 0.1;
+const float SHEEN = 0.08;     // wide dim sheen: one fifth of the probe's 0.4. Set 0.0 to remove.
+const float RIM = 0.1;        // Fresnel rim: a trace only
+
+// Isosceles trapezoid SDF (Inigo Quilez). r1 = bottom half-width, r2 = top half-width, he = half-height.
+float sdTrapezoid(vec2 p, float r1, float r2, float he) {
+    vec2 k1 = vec2(r2, he);
+    vec2 k2 = vec2(r2 - r1, 2.0 * he);
+    p.x = abs(p.x);
+    vec2 ca = vec2(p.x - min(p.x, (p.y < 0.0) ? r1 : r2), abs(p.y) - he);
+    vec2 cb = p - k1 + k2 * clamp(dot(k1 - p, k2) / dot(k2, k2), 0.0, 1.0);
+    float s = (cb.x < 0.0 && ca.y < 0.0) ? -1.0 : 1.0;
+    return s * sqrt(min(dot(ca, ca), dot(cb, cb)));
+}
+
+void main() {
+    vec2 frag = gl_FragCoord.xy;
+    int li = 0;
+    if (uStyle == 1) {
+        float cellW = uResolution.x / float(uLampCount);
+        li = clamp(int(floor(frag.x / cellW)), 0, uLampCount - 1);
+    }
+    vec4 rect = uLampRect[li];
+    float pxPerUnit = max(rect.w, 1.0);
+    float aspect = rect.z / pxPerUnit;
+    vec2 p = (frag - rect.xy) / pxPerUnit;
+
+    float mask = 1.0;
+    float taper = 1.0;
+    if (uStyle == 1) {
+        taper = uBottle.x;
+        float R = uBottle.y;
+        float sd = sdTrapezoid(p - vec2(0.5 * aspect, 0.5), 0.5 * aspect - R, 0.5 * aspect * taper - R, 0.5 - R) - R;
+        mask = clamp(0.5 - sd * pxPerUnit, 0.0, 1.0);
+        if (mask <= 0.0) { fragColor = vec4(0.0); return; }
+    }
+
+    // ---- Metaball field: Wyvill kernel (1 - (d/2r)^2)^3, support 2r, analytic gradient
+    float F = 0.0;
+    vec2 g = vec2(0.0);
+    ivec2 sl = uLampSlice[li];
+    for (int k = 0; k < 64; k++) {
+        if (k >= sl.y) break;
+        vec4 b = uBlobs[sl.x + k];
+        float sq = sqrt(max(b.w, 1.0));
+        vec2 a = vec2(1.0 / sq, sq);          // ellipse: narrower in x, taller in y, same area
+        vec2 D = (p - b.xy) / a;
+        float r2 = b.z * b.z;
+        float q = dot(D, D) / r2;
+        if (q < 4.0) {
+            float t = 1.0 - 0.25 * q;
+            F += t * t * t;
+            g -= 1.5 * t * t * (D / a) / r2;
+        }
+        vec4 tl = uTails[sl.x + k];
+        if (tl.w > 0.0) {
+            vec2 dt = p - tl.xy;
+            float tr2 = tl.z * tl.z;
+            float tq = dot(dt, dt) / tr2;
+            if (tq < 4.0) {
+                float t = 1.0 - 0.25 * tq;
+                float w = 0.5 * tl.w;         // tails are half-weight kernels
+                F += w * t * t * t;
+                g -= w * 1.5 * t * t * dt / tr2;
+            }
+        }
+    }
+    // Pool: one capsule kernel along the floor
+    vec4 pool = uPool[li];
+    {
+        vec2 dp = vec2(p.x - clamp(p.x, pool.x, pool.y), p.y - pool.z);
+        float pr = max(pool.w * 0.87, 1e-4);
+        float pr2 = pr * pr;
+        float q = dot(dp, dp) / pr2;
+        if (q < 4.0) {
+            float t = 1.0 - 0.25 * q;
+            F += t * t * t;
+            g -= 1.5 * t * t * dp / pr2;
+        }
+    }
+
+    // ---- Edge and normal
+    float fw = max(length(g) * 1.5 / pxPerUnit, 1e-4);
+    float edge = smoothstep(ISO - fw, ISO + fw, F);
+    float h = clamp((F - ISO) / 0.6, 0.0, 1.0);
+    vec3 n = normalize(vec3(-g * NORMAL_K, 0.5 + h));
+
+    // ---- Wax: matte, translucent, lit from the bulb below
+    float lum = dot(uWax, vec3(0.2126, 0.7152, 0.0722));
+    vec3 deep = clamp(mix(vec3(lum), uWax, 1.3) * 0.82, 0.0, 1.0);
+    vec3 thinTint = clamp(uWax * 1.35 + vec3(0.22, 0.14, 0.05), 0.0, 1.0);
+    vec3 Lbulb = normalize(vec3(0.0, -0.75, 0.65));
+    float diff = 0.5 + 0.5 * max(0.0, dot(n, Lbulb));
+    vec3 wax = mix(uWax, deep, h * h) * diff;
+    wax = mix(wax, thinTint, (1.0 - h) * 0.55);
+    vec3 Lsheen = normalize(vec3(-0.45, 0.6, 0.65));
+    float sheen = pow(max(0.0, dot(reflect(-Lsheen, n), vec3(0.0, 0.0, 1.0))), 6.0) * SHEEN;
+    float rim = pow(max(0.0, 1.0 - n.z), 3.0) * RIM;
+    wax += vec3(sheen) + rim * thinTint;
+
+    // ---- Liquid
+    float yy = clamp(p.y, 0.0, 1.0);
+    vec3 glowCol = clamp(mix(uLiquid, vec3(1.0, 0.86, 0.6), 0.55) * 1.2, 0.0, 1.0);
+    vec3 liq = uLiquid * mix(1.15, 0.55, yy);
+    float glow;
+    if (uStyle == 1) {
+        vec2 bd = vec2((p.x - 0.5 * aspect) / (0.45 * aspect), (p.y + 0.05) / 0.3);
+        glow = exp(-dot(bd, bd)) * 0.7;
+    } else {
+        float cx = (p.x - 0.5 * aspect) / (0.3 * aspect);
+        glow = exp(-(p.y * p.y) / 0.01) * (0.3 + 0.4 * exp(-cx * cx));
+    }
+    liq += glowCol * glow;
+    float shimmer = sin(p.x * 9.0 + uTime * 0.4 + 2.0 * sin(p.y * 4.0 - uTime * 0.25)) * sin(p.y * 7.0 - uTime * 0.3 + p.x * 2.0);
+    liq *= 1.0 + 0.035 * shimmer;
+    float hw = 0.5 * aspect * (1.0 - (1.0 - taper) * yy);
+    float u = 0.5 + 0.5 * (p.x - 0.5 * aspect) / hw;
+    float gx = smoothstep(0.0, 0.08, u) * smoothstep(0.0, 0.08, 1.0 - u);
+    liq *= 0.6 + 0.4 * gx;
+    // pow needs a non-negative base (GLSL ES 3.00): square the absolute offset
+    float hl = 0.10 * exp(-pow(abs(u - 0.2) / 0.03, 2.0)) + 0.06 * exp(-pow(abs(u - 0.8) / 0.018, 2.0));
+
+    // ---- Composite (premultiplied alpha)
+    float liqA = (uStyle == 1) ? 1.0 : uOpacity;
+    vec3 col = clamp(mix(liq, wax, edge), 0.0, 1.0);
+    float a = mix(liqA, 1.0, edge);
+    vec3 pre = col * a + vec3(hl);
+    a = clamp(a + hl, 0.0, 1.0);
+    fragColor = vec4(min(pre, vec3(a)), a) * mask;
+}
+    </script>
 </head>
 <body>
     <div class="widget-background" id="widget-background">
@@ -696,7 +858,255 @@
             updateTails();
             return sim;
         }
+
+        // Lamp i of count lamps owns a contiguous slice of floor(SLOTS / count) slots
+        function lampSlice(i, count) {
+            var per = Math.floor(LAVA.SLOTS / Math.max(1, count));
+            return { start: i * per, count: per };
+        }
+
+        function computeFillLayout(cssW, cssH, dpr) {
+            cssW = Math.max(0, Number(cssW) || 0);
+            cssH = Math.max(0, Number(cssH) || 0);
+            dpr = lavaClamp(Number(dpr) || 1, 1, 2);
+            return { masked: false, count: 1, cellW: cssW, cssW: cssW, cssH: cssH, dpr: dpr, lamps: [{
+                index: 0, cellX: 0, cellW: cssW, cx: cssW / 2,
+                glass: { left: 0, top: 0, width: cssW, height: cssH },
+                rect: [0, 0, cssW * dpr, cssH * dpr]
+            }] };
+        }
+
+        // ---- Colors
+        var PRESETS = {
+            classic: { wax: '#FF4A1F', liquid: '#7A3A08' },
+            ocean:   { wax: '#F4F7FA', liquid: '#0B3D91' },
+            violet:  { wax: '#FF5FB0', liquid: '#4A1A7A' },
+            jungle:  { wax: '#FFD23F', liquid: '#145A32' }
+        };
+
+        // '#RGB', '#RRGGBB' or Qt-style '#AARRGGBB' -> [r, g, b] in 0..1. Garbage -> fallback.
+        function parseHexColor(value, fallback) {
+            var m = /^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(String(value == null ? '' : value).trim());
+            if (!m) return fallback ? parseHexColor(fallback) : [0, 0, 0];
+            var h = m[1];
+            if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+            if (h.length === 8) h = h.slice(2);
+            return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+        }
+
+        function resolveColors(preset, accentHex, backgroundHex) {
+            var backdrop = parseHexColor(backgroundHex, PRESETS.classic.liquid);
+            var p = Object.prototype.hasOwnProperty.call(PRESETS, preset) ? PRESETS[preset] : null;
+            if (p) return { wax: parseHexColor(p.wax), liquid: parseHexColor(p.liquid), backdrop: backdrop };
+            return { wax: parseHexColor(accentHex, PRESETS.classic.wax), liquid: backdrop, backdrop: backdrop };
+        }
+
+        function relativeLuminance(rgb) {
+            var c = rgb.map(function (v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+            return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+        }
+
+        function contrastRatio(a, b) {
+            var la = relativeLuminance(a), lb = relativeLuminance(b);
+            return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+        }
         // @testable-end
+
+        // ================================================================
+        // Widget state
+        // ================================================================
+        var MAX_LAMPS = 6;
+        var FRAME_MIN = 1 / 30 - 0.002;   // render at most 30 times per second
+        var KERNEL_R = 0.87;              // a lone kernel's iso contour sits at r / 0.87, so upload r * 0.87
+        var ZERO_TAIL = { x: 0, y: 0, r: 0, w: 0 };
+
+        var mediaViewer = null;
+        var cfg = {
+            style: 'fill',
+            preset: 'classic',
+            heat: 5,
+            wax: 5,
+            title: '',
+            textColor: '#FFFFFF',
+            accentColor: '#FF4A1F',
+            bgColor: '#7A3A08',
+            transparency: 100
+        };
+        var colors = resolveColors(cfg.preset, cfg.accentColor, cfg.bgColor);
+
+        var container = document.getElementById('container');
+        var glCanvas = document.getElementById('gl');
+        var overlay = document.getElementById('overlay');
+
+        var gl = null, program = null, uni = {}, glReady = false;
+        var layout = computeFillLayout(0, 0, 1);
+        var lamps = [];
+        var baseSeed = (Math.random() * 1e9) >>> 0;
+        var running = false, lastRender = 0;
+
+        var blobBuf = new Float32Array(LAVA.SLOTS * 4);
+        var tailBuf = new Float32Array(LAVA.SLOTS * 4);
+        var poolBuf = new Float32Array(MAX_LAMPS * 4);
+        var rectBuf = new Float32Array(MAX_LAMPS * 4);
+        var sliceBuf = new Int32Array(MAX_LAMPS * 2);
+
+        function rgbToCss(c) {
+            return 'rgb(' + Math.round(c[0] * 255) + ',' + Math.round(c[1] * 255) + ',' + Math.round(c[2] * 255) + ')';
+        }
+
+        // ================================================================
+        // WebGL2
+        // ================================================================
+        function compileShader(type, id) {
+            var sh = gl.createShader(type);
+            gl.shaderSource(sh, document.getElementById(id).textContent.trim());
+            gl.compileShader(sh);
+            if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+                console.error('QK Lava Lamp shader: ' + gl.getShaderInfoLog(sh));
+                return null;
+            }
+            return sh;
+        }
+
+        function initGL() {
+            glReady = false;
+            if (!gl) {
+                try {
+                    gl = glCanvas.getContext('webgl2', {
+                        alpha: true, premultipliedAlpha: true, antialias: false, depth: false,
+                        stencil: false, preserveDrawingBuffer: false, powerPreference: 'high-performance'
+                    });
+                } catch (e) { gl = null; }
+            }
+            if (!gl || gl.isContextLost()) return false;
+            var vs = compileShader(gl.VERTEX_SHADER, 'vs');
+            var fs = compileShader(gl.FRAGMENT_SHADER, 'fs');
+            if (!vs || !fs) return false;
+            program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('QK Lava Lamp link: ' + gl.getProgramInfoLog(program));
+                return false;
+            }
+            var vao = gl.createVertexArray();
+            gl.bindVertexArray(vao);
+            var buf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+            var loc = gl.getAttribLocation(program, 'aPos');
+            gl.enableVertexAttribArray(loc);
+            gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+            ['uBlobs', 'uTails', 'uPool', 'uLampRect', 'uLampSlice', 'uLampCount', 'uStyle', 'uWax',
+             'uLiquid', 'uOpacity', 'uTime', 'uResolution', 'uBottle'].forEach(function (n) {
+                uni[n] = gl.getUniformLocation(program, n);
+            });
+            gl.clearColor(0, 0, 0, 0);
+            glReady = true;
+            return true;
+        }
+
+        function showFallback() {
+            glReady = false;
+            container.classList.add('no-gl');
+        }
+
+        glCanvas.addEventListener('webglcontextlost', function (e) {
+            e.preventDefault();
+            glReady = false;
+        }, false);
+        glCanvas.addEventListener('webglcontextrestored', function () {
+            if (initGL()) container.classList.remove('no-gl');
+            else showFallback();
+        }, false);
+
+        function render(time) {
+            if (!glReady) return;
+            var w = glCanvas.width, h = glCanvas.height;
+            blobBuf.fill(0);
+            tailBuf.fill(0);
+            for (var i = 0; i < lamps.length && i < MAX_LAMPS; i++) {
+                var sim = lamps[i].sim;
+                var slice = lampSlice(i, layout.count);
+                var first = slice.start;
+                var n = Math.min(sim.blobs.length, slice.count);
+                for (var k = 0; k < n; k++) {
+                    var b = sim.blobs[k], t = sim.tails[k] || ZERO_TAIL, o = (first + k) * 4;
+                    blobBuf[o] = b.x; blobBuf[o + 1] = b.y; blobBuf[o + 2] = b.r * KERNEL_R; blobBuf[o + 3] = b.stretch;
+                    tailBuf[o] = t.x; tailBuf[o + 1] = t.y; tailBuf[o + 2] = t.r * KERNEL_R; tailBuf[o + 3] = t.w;
+                }
+                sliceBuf[i * 2] = first;
+                sliceBuf[i * 2 + 1] = n;
+                poolBuf[i * 4] = 0; poolBuf[i * 4 + 1] = sim.width; poolBuf[i * 4 + 2] = 0; poolBuf[i * 4 + 3] = sim.pool.thickness;
+                if (layout.masked) rectBuf.set(layout.lamps[i].rect, i * 4);
+                else rectBuf.set([0, 0, w, h], i * 4);
+            }
+            gl.viewport(0, 0, w, h);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.useProgram(program);
+            gl.uniform4fv(uni.uBlobs, blobBuf);
+            gl.uniform4fv(uni.uTails, tailBuf);
+            gl.uniform4fv(uni.uPool, poolBuf);
+            gl.uniform4fv(uni.uLampRect, rectBuf);
+            gl.uniform2iv(uni.uLampSlice, sliceBuf);
+            gl.uniform1i(uni.uLampCount, Math.max(1, Math.min(lamps.length, MAX_LAMPS)));
+            gl.uniform1i(uni.uStyle, layout.masked ? 1 : 0);
+            gl.uniform3fv(uni.uWax, colors.wax);
+            gl.uniform3fv(uni.uLiquid, colors.liquid);
+            gl.uniform1f(uni.uOpacity, cfg.transparency / 100);
+            gl.uniform1f(uni.uTime, time);
+            gl.uniform2f(uni.uResolution, w, h);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+        }
+
+        // ================================================================
+        // Layout, simulations and the Lamp overlay
+        // ================================================================
+        function lampAspect(i) {
+            var g = layout.lamps[i].glass;
+            return g.width / g.height;
+        }
+
+        function buildSims() {
+            var cap = layout.masked ? Math.floor(LAVA.SLOTS / layout.count) : LAVA.SLOTS;
+            lamps = [];
+            for (var i = 0; i < layout.count; i++) {
+                lamps.push({ sim: createSim({ seed: baseSeed + i * 7919, aspect: lampAspect(i),
+                                              heat: cfg.heat, waxAmount: cfg.wax, cap: cap }) });
+            }
+        }
+
+        function relayout() {
+            var w = container.clientWidth, h = container.clientHeight;
+            if (!w || !h) return;
+            var dpr = Math.min(2, window.devicePixelRatio || 1);
+            var bw = Math.max(1, Math.round(w * dpr)), bh = Math.max(1, Math.round(h * dpr));
+            glCanvas.width = bw; glCanvas.height = bh;
+            overlay.width = bw; overlay.height = bh;
+            var prevCount = layout.count, prevMasked = layout.masked;
+            layout = computeFillLayout(w, h, dpr);
+            if (!lamps.length || layout.count !== prevCount || layout.masked !== prevMasked) {
+                buildSims();
+            } else {
+                for (var i = 0; i < lamps.length; i++) lamps[i].sim.resize(lampAspect(i));
+            }
+        }
+
+        // ================================================================
+        // Frame loop: physics by real elapsed time, render at most 30 FPS
+        // ================================================================
+        function frame(nowMs) {
+            if (!running) return;
+            requestAnimationFrame(frame);
+            var now = nowMs / 1000;
+            if (!lastRender) lastRender = now;
+            var elapsed = now - lastRender;
+            if (elapsed < FRAME_MIN) return;
+            lastRender = now;
+            for (var i = 0; i < lamps.length; i++) lamps[i].sim.step(elapsed);
+            render(now);
+        }
 
         // ================================================================
         // Squircle clip-path (superellipse corners, n=5)
@@ -747,18 +1157,80 @@
         }
 
         // ================================================================
+        // Settings
+        // ================================================================
+        function readSettings() {
+            var prevStyle = cfg.style;
+            if (typeof lampStyle !== 'undefined') cfg.style = (lampStyle === 'lamp') ? 'lamp' : 'fill';
+            if (typeof colorPreset !== 'undefined') cfg.preset = String(colorPreset);
+            if (typeof heat !== 'undefined') cfg.heat = lavaClamp(Number(heat) || 5, 1, 10);
+            if (typeof waxAmount !== 'undefined') cfg.wax = lavaClamp(Number(waxAmount) || 5, 1, 10);
+            if (typeof textColor !== 'undefined') cfg.textColor = textColor;
+            if (typeof accentColor !== 'undefined') cfg.accentColor = accentColor;
+            if (typeof backgroundColor !== 'undefined') cfg.bgColor = backgroundColor;
+            if (typeof transparency !== 'undefined') {
+                var tv = Number(transparency);
+                cfg.transparency = isFinite(tv) ? lavaClamp(tv, 0, 100) : 100;
+            }
+            if (typeof customTitle !== 'undefined') cfg.title = (customTitle == null) ? '' : String(customTitle);
+            applySettings(prevStyle !== cfg.style);
+        }
+
+        function applySettings(styleChanged) {
+            var root = document.documentElement;
+            colors = resolveColors(cfg.preset, cfg.accentColor, cfg.bgColor);
+            // Parsed to opaque rgb(): a Qt #AARRGGBB value must not make the title translucent
+            root.style.setProperty('--text-color', rgbToCss(parseHexColor(cfg.textColor, '#FFFFFF')));
+            root.style.setProperty('--bg-color', rgbToCss(colors.backdrop));
+            root.style.setProperty('--liquid-color', rgbToCss(colors.liquid));
+            root.style.setProperty('--widget-opacity', cfg.transparency / 100);
+
+            var wt = document.getElementById('widget-title');
+            wt.textContent = cfg.title;
+            wt.style.display = cfg.title ? 'block' : 'none';
+
+            var blur = (typeof glassBlur !== 'undefined') ? glassBlur : 0;
+            root.style.setProperty('--bg-blur', blur + 'px');
+            if (mediaViewer) {
+                var bgImage = (typeof backgroundMedia !== 'undefined') ? backgroundMedia : null;
+                var media = normalizeMediaConfig(bgImage);
+                if (media) { mediaViewer.loadMedia(media); }
+                else { mediaViewer.clear(); }
+            }
+
+            container.classList.toggle('lamp-style', cfg.style === 'lamp');
+            for (var i = 0; i < lamps.length; i++) {
+                lamps[i].sim.setHeat(cfg.heat);
+                lamps[i].sim.setWaxAmount(cfg.wax);
+            }
+            if (styleChanged) {
+                lamps = [];
+                relayout();
+            }
+        }
+
+        // ================================================================
         // iCUE lifecycle
         // ================================================================
         function onInit() {
+            if (running) return;
+            mediaViewer = new MediaViewer({ container: document.getElementById('media-background') });
+            readSettings();
             updateSquircle();
+            if (!initGL()) showFallback();
+            relayout();
+            running = true;
+            requestAnimationFrame(frame);
         }
 
         function onDataUpdated() {
+            readSettings();
         }
 
         new ResizeObserver(function () {
             updateSquircle();
-        }).observe(document.getElementById('container'));
+            relayout();
+        }).observe(container);
 
         // Bare assignments (no var) so iCUE's bootstrap can find these.
         icueEvents = {
