@@ -327,16 +327,16 @@ if (W.createSim && W.stirFactor) {
     s1Child.x === big.x && s1Child.y === big.y);
   // The stroke runs along +x, so across the stroke is y and along it is x. The drag slows the small
   // child, so it trails the parent along the stroke. Measured (seed 21): when the fill ends the
-  // halves sit 1.053 r0 apart across the stroke and the child is 0.504 r0 behind along it;
-  // at 0.5 s they sit 1.095 r0 apart and the child is 0.224 r0 behind.
+  // halves sit 1.018 r0 apart across the stroke and the child is 0.501 r0 behind along it;
+  // at 0.5 s they sit 1.019 r0 apart and the child is 0.215 r0 behind.
   run(s1, 19);
   const s1AcrossEnd = Math.abs(s1Child.y - big.y) / bigR0, s1LagEnd = (big.x - s1Child.x) / bigR0;
   run(s1, 11);
   check('stir: after 0.5 s the halves sit on either side of the stroke line, about r0 apart across it, and the child lags along it',
     (big.y - 0.5) * (s1Child.y - 0.5) < 0 && Math.abs(big.vol - s1Child.vol) < 1e-12 &&
-    s1AcrossEnd >= 0.95 && s1AcrossEnd <= 1.2 && s1LagEnd <= 0.75 &&
-    Math.abs(s1Child.y - big.y) / bigR0 >= 0.95 && Math.abs(s1Child.y - big.y) / bigR0 <= 1.25 &&
-    (big.x - s1Child.x) / bigR0 <= 0.35);
+    s1AcrossEnd >= 0.92 && s1AcrossEnd <= 1.17 && s1LagEnd <= 0.75 &&
+    Math.abs(s1Child.y - big.y) / bigR0 >= 0.87 && Math.abs(s1Child.y - big.y) / bigR0 <= 1.17 &&
+    (big.x - s1Child.x) / bigR0 <= 0.32);
   check('stir: the halves carry the merge cooldown', s1.blobs.every(b => b.mergeCooldown > 0));
 
   // Split gates: a fast stroke must not split a blob on cooldown or under the volume floor
@@ -1231,6 +1231,25 @@ if (typeof W.snapFrameTime === 'function') {
     c144.kept && Math.abs(c144.simTime - c144.real) <= STEP);
 } else {
   check('frame snap: snapFrameTime implemented', false);
+}
+
+// ================= Stir child temperature (final review) =================
+// A stir split runs between frames and makes the child empty. The next substep must not
+// treat the empty kernel as a tiny blob that takes the ambient temperature at once.
+{
+  const sc = W.createSim({ seed: 21, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
+  clearToPool(sc);
+  sc.pool.T = 0;
+  const scP = addBlob(sc, 0.21, 0.5, 1.5 * sc.Vb, 0.9);
+  sc.stir(scP.x, scP.y, 2.5, 0);
+  const scC = sc.blobs[1];
+  sc.step(STEP);
+  const scDT = scC ? Math.abs(scC.T - scP.T) : Infinity;
+  run(sc, Math.round(W.LAVA.FILL_TIME / STEP));
+  console.log('   stir child: T off the parent by ' + scDT.toFixed(3) + ' after one substep, vy ' +
+    (scC ? scC.vy.toFixed(3) : 'none') + ' after FILL_TIME');
+  check('stir: the child keeps the parent temperature and still rises after FILL_TIME',
+    !!scC && scDT < 0.01 && sc.blobs.indexOf(scC) >= 0 && scC.vy > 0);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');

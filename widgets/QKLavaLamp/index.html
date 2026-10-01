@@ -690,7 +690,8 @@ void main() {
                 for (var i = 0; i < sim.blobs.length; i++) {
                     var b = sim.blobs[i];
                     var k;
-                    if (b.drain) continue;
+                    // An empty kernel has no wax to heat. A stir-split child waits for its first fill step.
+                    if (b.drain || (b.vol <= 0 && b.target <= 0)) continue;
                     if (b.y < LAVA.HEAT_ZONE) {
                         k = LAVA.KH * s / b.r;
                         b.T += (1 - b.T) * Math.min(1, k * dt);
