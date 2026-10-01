@@ -202,9 +202,12 @@ if (W.createSim) {
   clearToPool(sc);
   const scb = addBlob(sc, sc.width / 2 - taperHalfW(sc.width, TAPER, 0.5), 0.5, 2.5 * sc.Vb, 0.9);
   scb.vy = scb.svy = 0.3; scb.stretch = 1.8;   // primed: rising fast, already stretched
-  sc.step(STEP);
-  check('split children stay inside the tapered walls', sc.events.splits === 1 &&
-    sc.blobs.every(b => Math.abs(b.x - sc.width / 2) <= taperHalfW(sc.width, TAPER, b.y) + 1e-9));
+  let scInside = true;
+  for (let i = 0; i < 30; i++) {
+    sc.step(STEP);
+    if (!sc.blobs.every(b => Math.abs(b.x - sc.width / 2) <= taperHalfW(sc.width, TAPER, b.y) + 1e-9)) scInside = false;
+  }
+  check('split children stay inside the tapered walls', sc.events.splits === 1 && scInside);
 
   // Cap gate: with the count at the cap, a primed blob neither splits nor drips.
   // Each setup is 1 primed blob plus 9 small fillers (10 blobs). The control at
@@ -318,8 +321,12 @@ if (W.createSim && W.stirFactor) {
   s1.stir(big.x, big.y, 2.5, 0);
   check('stir: a fast stroke through a blob adds one blob', s1.blobs.length === before + 1);
   check('stir: the split conserves volume', Math.abs(s1.total() - s1.V) < 1e-12);
-  check('stir: the halves sit on either side of the stroke line', s1.blobs.length === 2 &&
-    Math.abs(s1.blobs[0].x - s1.blobs[1].x) < 1e-9 && s1.blobs[0].y !== s1.blobs[1].y);
+  const s1Child = s1.blobs[1];
+  check('stir: the child starts empty at the parent position', s1.blobs.length === 2 && s1Child.vol === 0 &&
+    s1Child.x === big.x && s1Child.y === big.y);
+  run(s1, 30);
+  check('stir: after 0.5 s the halves sit on either side of the stroke line',
+    (big.y - 0.5) * (s1Child.y - 0.5) < 0 && Math.abs(big.vol - s1Child.vol) < 1e-12);
   check('stir: the halves carry the merge cooldown', s1.blobs.every(b => b.mergeCooldown > 0));
 
   // Split gates: a fast stroke must not split a blob on cooldown or under the volume floor
@@ -1097,6 +1104,59 @@ if (W.createSim) {
   const tpMax = W.LAVA.KT * Math.min(1, W.LAVA.KSHAPE * STEP) * Math.abs(tpB.vy);
   check('tail: one step after a jump in vy the tail weight is at most what the low-passed motion allows',
     tp.blobs[0] === tpB && tpB.vy > 0.05 && tpW > 0 && tpW <= tpMax + 1e-9 && tpW < 0.5);
+}
+
+// ================= Split and drip children fill (2026-10-01 amendment) =================
+if (W.createSim) {
+  // A rising split: the child starts empty at the parent and takes half over FILL_TIME
+  const fs1 = W.createSim({ seed: 58, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(fs1);
+  fs1.pool.T = 0;
+  const fsP = addBlob(fs1, 1.2, 0.5, 2.5 * fs1.Vb, 0.9);
+  fsP.vy = fsP.svy = 0.3; fsP.stretch = 1.8;
+  const fsV0 = fsP.vol, fsR0 = fsP.r, fsTotal = fs1.total();
+  fs1.step(STEP);
+  const fsC = fs1.blobs[fs1.blobs.indexOf(fsP) + 1];
+  check('split: the child starts at the parent and fills by at most one FILL_TIME step',
+    fs1.events.splits === 1 && !!fsC && fsC.vol <= 0.5 * fsV0 * STEP / W.LAVA.FILL_TIME * (1 + 1e-9) &&
+    Math.hypot(fsC.x - fsP.x, fsC.y - fsP.y) < 0.1 * fsR0);
+  let fsConserved = true;
+  for (let i = 0; i < Math.ceil(W.LAVA.FILL_TIME / STEP) + 1; i++) {
+    fs1.step(STEP);
+    if (Math.abs(fs1.total() - fsTotal) >= 1e-12) fsConserved = false;
+  }
+  check('split: after FILL_TIME the halves hold equal volume', Math.abs(fsC.vol - fsP.vol) < 1e-12 && Math.abs(fsC.vol - 0.5 * fsV0) < 1e-12);
+  check('split: after FILL_TIME the halves sit about r apart', Math.hypot(fsC.x - fsP.x, fsC.y - fsP.y) >= 0.9 * fsR0);
+  check('split: volume conserved at every step', fsConserved);
+
+  // A drip: the drop starts empty at the parent and fills while it moves to the underside
+  const dz = W.createSim({ seed: 5, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(dz);
+  dz.pool.T = 0;
+  const dzP = addBlob(dz, 1.2, 0.95, 4 * dz.Vb, 0.3);
+  let dzDrop = null, dzFirst = -1;
+  for (let i = 0; i < 1200 && !dzDrop; i++) {
+    dzP.y = 0.95; dzP.vy = 0; dzP.T = 0.3;
+    const before = dz.blobs.slice();
+    dz.step(STEP);
+    if (dz.events.drips > 0) { dzDrop = dz.blobs.find(b => before.indexOf(b) < 0); dzFirst = dzDrop ? dzDrop.vol : -1; }
+  }
+  check('drip: the drop starts with at most one FILL_TIME step of volume',
+    !!dzDrop && dzFirst <= 0.15 * 4 * dz.Vb * STEP / W.LAVA.FILL_TIME * (1 + 1e-9));
+  run(dz, Math.ceil(W.LAVA.FILL_TIME / STEP) + 1, function () { dzP.y = 0.95; dzP.vy = 0; dzP.T = 0.3; });
+  check('drip: after FILL_TIME the drop holds 15 percent and sits below the parent',
+    !!dzDrop && Math.abs(dzDrop.vol - 0.15 * 4 * dz.Vb) < 1e-9 && dzDrop.y < dzP.y - 0.5 * dzP.r);
+
+  // Review: Wax Amount and resize changes while flows run keep the volume exact and the state finite
+  const rv = W.createSim({ seed: 60, aspect: 0.42, heat: 10, waxAmount: 5, cap: 64, taper: 0.8 });
+  run(rv, 30 * 60);
+  let rvOk = true;
+  for (let i = 0; i < 40; i++) {
+    if (i % 2) rv.setWaxAmount(i % 4 === 1 ? 9 : 2); else rv.resize(i % 4 === 0 ? 0.5 : 0.42);
+    run(rv, 30);
+    if (Math.abs(rv.total() - rv.V) >= 1e-9 || !allFinite(rv)) rvOk = false;
+  }
+  check('review: settings changes during merges, drains and fills keep the volume exact and the state finite', rvOk);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');

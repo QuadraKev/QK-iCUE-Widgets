@@ -461,7 +461,8 @@ void main() {
             REP_RANGE: 2,        // that push reaches out to this many times r1 + r2
             ABSORB_TIME: 1.5,    // seconds for an absorbed blob to drain into the pool
             POOL_IN: 2,          // the pool takes at most this many Vb per second from draining blobs
-            KSHAPE: 6            // per second: low-pass rate of the stretch and the tail
+            KSHAPE: 6,           // per second: low-pass rate of the stretch and the tail
+            FILL_TIME: 0.3       // seconds for a split, stir-split or drip child to fill
         };
 
         function lavaClamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -555,14 +556,21 @@ void main() {
             // seconds and pulls `from` onto the receiver (the pool surface for the pool).
             // The source is removed when its volume reaches 0.
             function addFlow(from, to, time) {
-                sim.flows.push({ from: from, to: to, left: time });
+                sim.flows.push({ from: from, to: to, left: time, all: true });
+            }
+
+            // A fill moves `need` from parent `from` into child `to` over `time` seconds.
+            // On the way the child moves by (sx, sy) and the parent by -pk * (sx, sy).
+            function addFill(from, to, time, need, sx, sy, pk) {
+                sim.flows.push({ from: from, to: to, left: time, all: false, need: need, sx: sx, sy: sy, pk: pk });
             }
 
             // Volume still on its way into blob b
             function inbound(b) {
                 var v = 0;
                 for (var k = 0; k < sim.flows.length; k++) {
-                    if (sim.flows[k].to === b) v += sim.flows[k].from.vol;
+                    var f = sim.flows[k];
+                    if (f.to === b) v += f.all ? f.from.vol : f.need;
                 }
                 return v;
             }
@@ -582,8 +590,9 @@ void main() {
                     var src = f.from, dst = f.to;
                     var fdt = dst === null ? dt * slow : dt;
                     var a = Math.min(1, fdt / Math.max(f.left, dt));
-                    var dv = src.vol * a;
+                    var dv = f.all ? src.vol * a : Math.min(f.need * a, src.vol);
                     f.left -= fdt;
+                    if (!f.all) f.need -= dv;
                     src.vol -= dv; src.r = radiusOf(src.vol);
                     if (dst === null) {
                         var pv = sim.pool.vol + dv;
@@ -592,7 +601,7 @@ void main() {
                         src.y += (poolTop() - src.y) * a;
                     } else {
                         var m = dst.vol + dv;
-                        if (m > 0) {
+                        if (f.all && m > 0) {
                             // The receiver takes each increment at the source position, velocity and T
                             var w = dv / m;
                             dst.x += (src.x - dst.x) * w; dst.y += (src.y - dst.y) * w;
@@ -600,12 +609,24 @@ void main() {
                             dst.T += (src.T - dst.T) * w;
                         }
                         dst.vol = m; dst.r = radiusOf(m);
-                        src.x += (dst.x - src.x) * a; src.y += (dst.y - src.y) * a;
+                        if (f.all) {
+                            src.x += (dst.x - src.x) * a; src.y += (dst.y - src.y) * a;
+                        } else {
+                            // Parent and child move apart while the child fills
+                            var mx = f.sx * a, my = f.sy * a, cx = sim.width / 2;
+                            dst.x += mx; dst.y += my;
+                            src.x -= mx * f.pk; src.y -= my * f.pk;
+                            f.sx -= mx; f.sy -= my;
+                            dst.x = lavaClamp(dst.x, cx - halfW(dst.y), cx + halfW(dst.y));
+                            src.x = lavaClamp(src.x, cx - halfW(src.y), cx + halfW(src.y));
+                        }
                     }
                     if (a >= 1) {
-                        src.vol = 0; src.r = 0;
-                        var idx = sim.blobs.indexOf(src);
-                        if (idx >= 0) sim.blobs.splice(idx, 1);
+                        if (f.all) {
+                            src.vol = 0; src.r = 0;
+                            var idx = sim.blobs.indexOf(src);
+                            if (idx >= 0) sim.blobs.splice(idx, 1);
+                        }
                         sim.flows.splice(k, 1);
                         k--;
                     }
@@ -642,6 +663,9 @@ void main() {
                     b.vol *= ratio;
                     b.target *= ratio;
                     b.r = radiusOf(b.vol);
+                }
+                for (var k = 0; k < sim.flows.length; k++) {
+                    if (!sim.flows[k].all) sim.flows[k].need *= ratio;
                 }
             }
 
@@ -748,21 +772,16 @@ void main() {
                 var b = sim.blobs[i];
                 var len = Math.sqrt(dirx * dirx + diry * diry) || 1;
                 var px = -diry / len, py = dirx / len;
-                var half = b.vol / 2;
                 var off = 0.5 * b.r;
-                var a = makeBlob(b.x + px * off, b.y + py * off, half, b.T);
-                var c = makeBlob(b.x - px * off, b.y - py * off, half, b.T);
-                // Keep both children inside the (tapered) walls
-                var cx = sim.width / 2, hwa = halfW(a.y), hwc = halfW(c.y);
-                a.x = lavaClamp(a.x, cx - hwa, cx + hwa);
-                c.x = lavaClamp(c.x, cx - hwc, cx + hwc);
-                a.vx = b.vx + px * 0.05; a.vy = b.vy + py * 0.05;
-                c.vx = b.vx - px * 0.05; c.vy = b.vy - py * 0.05;
-                a.mergeCooldown = c.mergeCooldown = LAVA.MERGE_COOLDOWN;
-                a.id = b.id;
-                // A merge still draining into the parent drains into the child that keeps its id
-                for (var k = 0; k < sim.flows.length; k++) if (sim.flows[k].to === b) sim.flows[k].to = a;
-                sim.blobs.splice(i, 1, a, c);
+                // The child starts at the parent with volume 0 and takes half over FILL_TIME,
+                // while the parent and the child move to plus and minus 0.5 r. The walls
+                // clamp both on the way (runFlows).
+                var c = makeBlob(b.x, b.y, 0, b.T);
+                c.vx = b.vx - px * 0.05; c.vy = b.vy - py * 0.05; c.svy = b.svy;
+                b.vx += px * 0.05; b.vy += py * 0.05;
+                b.mergeCooldown = c.mergeCooldown = LAVA.MERGE_COOLDOWN;
+                addFill(b, c, LAVA.FILL_TIME, b.vol / 2, -px * off, -py * off, 1);
+                sim.blobs.splice(i + 1, 0, c);
             }
 
             function mergeAndSplit(dt) {
@@ -803,11 +822,12 @@ void main() {
                 for (i = 0; i < sim.blobs.length && sim.blobs.length < sim.cap; i++) {
                     b = sim.blobs[i];
                     if (!b.drain && b.y > 0.85 && b.T < LAVA.DRIP_T && b.vol > 2 * sim.Vb && rand() < 0.3 * dt) {
-                        var dv = b.vol * 0.15;
-                        b.vol -= dv; b.r = radiusOf(b.vol);
-                        var d = makeBlob(b.x, Math.max(0, b.y - b.r * 0.9), dv, b.T);
+                        // The drop starts at the parent with volume 0 and fills while it
+                        // moves down to the underside
+                        var d = makeBlob(b.x, b.y, 0, b.T);
                         d.vy = -0.02; d.vx = b.vx;
                         d.mergeCooldown = b.mergeCooldown = LAVA.MERGE_COOLDOWN;
+                        addFill(b, d, LAVA.FILL_TIME, b.vol * 0.15, 0, -Math.min(b.y, 0.9 * b.r), 0);
                         sim.blobs.push(d);
                         sim.events.drips++;
                     }
@@ -963,6 +983,7 @@ void main() {
                 var nw = Math.max(0.05, Number(aspect) || sim.width);
                 var sx = nw / sim.width;
                 for (var i = 0; i < sim.blobs.length; i++) sim.blobs[i].x *= sx;
+                for (var k = 0; k < sim.flows.length; k++) if (!sim.flows[k].all) sim.flows[k].sx *= sx;
                 for (var k = 0; k < sim.samples.length; k++) sim.samples[k].x *= sx;
                 sim.width = nw;
                 applyBudget();
