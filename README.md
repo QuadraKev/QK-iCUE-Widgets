@@ -16,6 +16,7 @@ Custom widgets for Corsair iCUE LCD displays (Xeneon Edge and pump LCD), built a
 | [Fidget Spinner](widgets/QKFidgetSpinner) | Swipe-to-spin fidget spinner with realistic deceleration physics |
 | [ISS Tracker](widgets/QKISSTracker) | Live ISS position over a day/night world map with orbit track and next-pass countdown |
 | [Launch Countdown](widgets/QKLaunchCountdown) | Live T-minus countdown to the next rocket launch with status badge and upcoming timeline |
+| [Lava Lamp](widgets/QKLavaLamp) | Realistic lava lamp with rising and sinking wax, a Fill and a Lamp style, and drag-to-stir touch |
 | [Magic 8 Ball](widgets/QKMagic8Ball) | Fortune-telling widget with the classic 20 Magic 8 Ball answers |
 | [Paint](widgets/QKPaint) | Finger-painting app for the touchscreen |
 | [Simon](widgets/QKSimon) | Simon Says memory game |

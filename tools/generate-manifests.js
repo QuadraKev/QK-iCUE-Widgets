@@ -78,6 +78,15 @@ const widgets = [
     version: '1.0.0',
   },
   {
+    folder: 'QKLavaLamp',
+    id: 'com.quadrakev.lavalamp',
+    name: 'Lava Lamp',
+    description: 'Realistic lava lamp with wax blobs that heat, rise, cool and sink. Drag to stir the wax.',
+    devices: [{ type: 'dashboard_lcd' }],
+    interactive: true,
+    version: '1.0.0',
+  },
+  {
     folder: 'QKMagic8Ball',
     id: 'com.quadrakev.magic8ball',
     name: 'Magic 8 Ball',
