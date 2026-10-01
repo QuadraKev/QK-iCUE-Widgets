@@ -1056,8 +1056,11 @@ if (W.createSim) {
   shB.vy = 0.3;
   sh.step(STEP);
   const shFirst = shB.stretch;
+  const shVy1 = shB.vy;   // the vy that integrate low-passed (the forces already acted on it)
+  const shRate = Math.min(1, W.LAVA.KSHAPE * STEP);
   run(sh, 59, function () { shB.vy = 0.3; shB.T = 0.5; });
-  check('stretch: one step after a jump in vy the stretch has moved less than a quarter of the way', shFirst - 1 < 0.2);
+  check('stretch: one step after a jump in vy the stretch has moved less than a quarter of the way',
+    shVy1 > 0.05 && shFirst > 1 && shFirst - 1 <= W.LAVA.KS * shRate * shVy1 + 1e-9);
   check('stretch: after 1 s the stretch has reached the fast-blob value', shB.stretch > 1.7);
 
   // The tail sits on the stretch axis, 0.8 r behind the smoothed vertical motion, and a
@@ -1081,6 +1084,19 @@ if (W.createSim) {
   }
   check('tail: every drawn tail sits on its blob vertical axis, 0.8 r behind the smoothed motion', twSeen > 1000 && twOnAxis);
   check('tail: no visible tail switches sides between two frames', twFlips === 0);
+
+  // The tail weight does not pop to 1 in one step: after a jump in vy it is at most what the
+  // low-passed svy allows
+  const tp = W.createSim({ seed: 58, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(tp);
+  tp.pool.T = 0;
+  const tpB = addBlob(tp, 1.2, 0.5, tp.Vb, 0.5);
+  tpB.vy = 0.3;
+  tp.step(STEP);
+  const tpW = tp.tails[0].w;
+  const tpMax = W.LAVA.KT * Math.min(1, W.LAVA.KSHAPE * STEP) * Math.abs(tpB.vy);
+  check('tail: one step after a jump in vy the tail weight is at most what the low-passed motion allows',
+    tp.blobs[0] === tpB && tpB.vy > 0.05 && tpW > 0 && tpW <= tpMax + 1e-9 && tpW < 0.5);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');
