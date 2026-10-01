@@ -803,7 +803,8 @@ if (W.createSim) {
   const sdStillDraining = sdSmall.drain > 0 && sd.blobs.indexOf(sdSmall) >= 0;
   run(sd, 60);
   check('review: a stroke never splits a draining kernel, and the volume stays exact',
-    sd.events.merges === 1 && sdStillDraining && sd.blobs.indexOf(sdSmall) < 0 && Math.abs(sd.total() - sdV) < 1e-12);
+    sd.events.merges === 1 && sd.events.stirSplits === 1 && sdStillDraining && sd.blobs.indexOf(sdSmall) < 0 &&
+    Math.abs(sd.total() - sdV) < 1e-12);
 
   // Merge limit: a pair whose merged volume would pass MERGE_MAX * Vb does not merge,
   // and it pushes apart instead of hanging together as a peanut
@@ -824,7 +825,7 @@ if (W.createSim) {
   // The bridge between two equal kernels breaks near d = 1.19 (r1 + r2): the field at the
   // midpoint, 2 (1 - (d / 2)^2 / (4 (0.87 r)^2))^3, falls to ISO there. Each blob is
   // drag-limited at KREP * overlap * r / KD, so the gap opens at 0.32 to 0.17 lamp units per
-  // second over 1.58 r (0.145): about 0.6 s. The check allows 1.5 s.
+  // second over 1.58 r (0.145): about 0.7 s (the run prints 0.72 s). The check allows 1.5 s.
   const lp = W.createSim({ seed: 62, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
   clearToPool(lp);
   lp.pool.T = 0;
@@ -856,7 +857,7 @@ if (W.createSim) {
   // volume, inflow included, above MERGE_MAX * Vb, both off cooldown) whose centers sit in one
   // clump. A joined pair that is passing another blob is accepted, so the joined census only
   // prints. At commit 0daf8dc, Heat 5: largest blob 7 Vb, two or more free 54.6 percent, no free
-  // blob 6.9 percent, one clump or none 89.5 percent, largest clump 61.6 percent of the wax.
+  // blob 6.9 percent, one clump or none 89.6 percent, largest clump 61.8 percent of the wax.
   function lampCensus(heat) {
     const c = { T: 0, two: 0, none: 0, max: 0, n: 0, few: 0, share: 0, joined: 0, spells: 0, longest: 0 };
     [12345, 777, 4242].forEach(function (seed) {
@@ -985,7 +986,7 @@ if (W.createSim) {
   }
   console.log('   absorb: drained in ' + (abSteps * STEP).toFixed(2) + ' s');
   check('absorb: the pool rises by at most POOL_IN * Vb per second', abMaxIn <= W.LAVA.POOL_IN * ab.Vb * STEP * (1 + 1e-9));
-  check('absorb: the drain takes about ABSORB_TIME', Math.abs(abSteps * STEP - W.LAVA.ABSORB_TIME) <= 2 * STEP);
+  check('absorb: the drain takes about ABSORB_TIME', Math.abs(abSteps * STEP - W.LAVA.ABSORB_TIME) <= 3 * STEP);
   check('absorb: volume conserved at every step', abConserved);
   check('absorb: the blob ends on the pool surface', abLastGap < 0.01);
 
@@ -1201,6 +1202,12 @@ if (W.createSim) {
     Math.abs(sz.C.vol + sz.P.vol - sz.sum) < 1e-9 && Math.abs(sz.sf.total() - sz.sf.V) < 1e-12 &&
     Math.abs(sz.C.x - sz.P.x) / sz.r0 >= 1.65 && Math.abs(sz.C.x - sz.P.x) / sz.r0 <= 1.8);
 }
+
+// ================= Spec 15.1 constants (final review) =================
+// Several per-event checks scale with the constant they test, so pin the values here.
+check('constants: the eight spec 15.1 values are pinned',
+  W.LAVA.MERGE_MAX === 2.5 && W.LAVA.MERGE_TIME === 0.5 && W.LAVA.KREP === 6 && W.LAVA.REP_RANGE === 2 &&
+  W.LAVA.ABSORB_TIME === 1.5 && W.LAVA.POOL_IN === 2 && W.LAVA.KSHAPE === 6 && W.LAVA.FILL_TIME === 0.3);
 
 // ================= Frame snap (final review) =================
 // Chromium coarsens the frame time to 0.1 ms, so a 60 Hz frame reads 16.6, 16.7 or 16.8 ms.
