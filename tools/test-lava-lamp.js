@@ -318,15 +318,25 @@ if (W.createSim && W.stirFactor) {
   clearToPool(s1);
   const big = addBlob(s1, 1.2, 0.5, 1.5 * s1.Vb, 0.5);
   const before = s1.blobs.length;
+  const bigR0 = big.r;
   s1.stir(big.x, big.y, 2.5, 0);
   check('stir: a fast stroke through a blob adds one blob', s1.blobs.length === before + 1);
   check('stir: the split conserves volume', Math.abs(s1.total() - s1.V) < 1e-12);
   const s1Child = s1.blobs[1];
   check('stir: the child starts empty at the parent position', s1.blobs.length === 2 && s1Child.vol === 0 &&
     s1Child.x === big.x && s1Child.y === big.y);
-  run(s1, 30);
-  check('stir: after 0.5 s the halves sit on either side of the stroke line',
-    (big.y - 0.5) * (s1Child.y - 0.5) < 0 && Math.abs(big.vol - s1Child.vol) < 1e-12);
+  // The stroke runs along +x, so across the stroke is y and along it is x. The drag slows the small
+  // child, so it trails the parent along the stroke. Measured (seed 21): when the fill ends the
+  // halves sit 1.053 r0 apart across the stroke and the child is 0.504 r0 behind along it;
+  // at 0.5 s they sit 1.095 r0 apart and the child is 0.224 r0 behind.
+  run(s1, 19);
+  const s1AcrossEnd = Math.abs(s1Child.y - big.y) / bigR0, s1LagEnd = (big.x - s1Child.x) / bigR0;
+  run(s1, 11);
+  check('stir: after 0.5 s the halves sit on either side of the stroke line, about r0 apart across it, and the child lags along it',
+    (big.y - 0.5) * (s1Child.y - 0.5) < 0 && Math.abs(big.vol - s1Child.vol) < 1e-12 &&
+    s1AcrossEnd >= 0.95 && s1AcrossEnd <= 1.2 && s1LagEnd <= 0.75 &&
+    Math.abs(s1Child.y - big.y) / bigR0 >= 0.95 && Math.abs(s1Child.y - big.y) / bigR0 <= 1.25 &&
+    (big.x - s1Child.x) / bigR0 <= 0.35);
   check('stir: the halves carry the merge cooldown', s1.blobs.every(b => b.mergeCooldown > 0));
 
   // Split gates: a fast stroke must not split a blob on cooldown or under the volume floor
@@ -1126,7 +1136,12 @@ if (W.createSim) {
     if (Math.abs(fs1.total() - fsTotal) >= 1e-12) fsConserved = false;
   }
   check('split: after FILL_TIME the halves hold equal volume', Math.abs(fsC.vol - fsP.vol) < 1e-12 && Math.abs(fsC.vol - 0.5 * fsV0) < 1e-12);
-  check('split: after FILL_TIME the halves sit about r apart', Math.hypot(fsC.x - fsP.x, fsC.y - fsP.y) >= 0.9 * fsR0);
+  // The parent rises straight up, so across the motion is x and along it is y. The drag slows the
+  // small child, so it trails the parent. Measured (seed 58): 1.052 r0 apart across the motion,
+  // the child 0.256 r0 behind along it.
+  check('split: after FILL_TIME the halves sit 1 r0 apart across the motion and the child lags at most 0.4 r0 along it',
+    Math.abs(fsC.x - fsP.x) / fsR0 >= 0.95 && Math.abs(fsC.x - fsP.x) / fsR0 <= 1.15 &&
+    (fsP.y - fsC.y) / fsR0 <= 0.4);
   check('split: volume conserved at every step', fsConserved);
 
   // A drip: the drop starts empty at the parent and fills while it moves to the underside
@@ -1157,6 +1172,34 @@ if (W.createSim) {
     if (Math.abs(rv.total() - rv.V) >= 1e-9 || !allFinite(rv)) rvOk = false;
   }
   check('review: settings changes during merges, drains and fills keep the volume exact and the state finite', rvOk);
+
+  // Review: a settings change in the middle of a split fill scales `need` and `sx` with it
+  function splitFillWith(change) {
+    const sf = W.createSim({ seed: 58, aspect: 2.43, heat: 5, waxAmount: 5 });
+    clearToPool(sf);
+    sf.pool.T = 0;
+    const sfP = addBlob(sf, 1.2, 0.5, 2.5 * sf.Vb, 0.9);
+    sfP.vy = sfP.svy = 0.3; sfP.stretch = 1.8;
+    const sfR0 = sfP.r, sfVol0 = sfP.vol, sfV0 = sf.V;
+    run(sf, 6);
+    const sfC = sf.blobs[sf.blobs.indexOf(sfP) + 1];
+    const sfMid = sf.flows.length === 1 && sfC.vol > 0 && sfC.vol < 0.5 * sfVol0;
+    change(sf);
+    run(sf, Math.ceil(W.LAVA.FILL_TIME / STEP));
+    return { sf: sf, P: sfP, C: sfC, r0: sfR0, sum: sfVol0 * sf.V / sfV0, mid: sfMid };
+  }
+  // Measured (seed 58): across the motion the halves end 1.054 r0 apart after Wax Amount 9
+  // and 1.723 r0 apart after a resize to aspect 4 (1.05 r0 times 4 / 2.43).
+  const sw = splitFillWith(function (s) { s.setWaxAmount(9); });
+  check('review: Wax Amount changed in the middle of a split fill leaves equal halves at the scaled volume',
+    sw.mid && sw.sf.flows.length === 0 && Math.abs(sw.C.vol - sw.P.vol) < 1e-12 &&
+    Math.abs(sw.C.vol + sw.P.vol - sw.sum) < 1e-9 && Math.abs(sw.sf.total() - sw.sf.V) < 1e-12 &&
+    Math.abs(sw.C.x - sw.P.x) / sw.r0 >= 1.0 && Math.abs(sw.C.x - sw.P.x) / sw.r0 <= 1.1);
+  const sz = splitFillWith(function (s) { s.resize(4); });
+  check('review: resize in the middle of a split fill leaves equal halves at the scaled separation',
+    sz.mid && sz.sf.flows.length === 0 && Math.abs(sz.C.vol - sz.P.vol) < 1e-12 &&
+    Math.abs(sz.C.vol + sz.P.vol - sz.sum) < 1e-9 && Math.abs(sz.sf.total() - sz.sf.V) < 1e-12 &&
+    Math.abs(sz.C.x - sz.P.x) / sz.r0 >= 1.65 && Math.abs(sz.C.x - sz.P.x) / sz.r0 <= 1.8);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');
