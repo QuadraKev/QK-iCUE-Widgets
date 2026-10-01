@@ -641,7 +641,7 @@ if (W.mapPointer && W.computeLampLayout) {
 //          motion of its run. After the fix the ratio stays under 1.6 on 12 seeds.
 //   guard: a coarse absolute flip bound against uniformly jerky motion, twice the worst
 //          frame flip of 12 seeds after the fix (lamp 4.21e-3 and 7.46e-3, Fill 2.44e-2 and
-//          3.12e-2 at 1/60 and 1/30 s). Commit 0daf8dc reaches 6.6e-2 (lamp) and 3.1e-1 (Fill).
+//          3.12e-2 at 1/60 and 1/30 s). Commit 0daf8dc reaches 7.2e-2 (lamp) and 7.0e-1 (Fill).
 //   pool:  the pool level moves at most 1.5 times the ordinary maximum, which is two buds
 //          feeding at Vb per second each: 3 * Vb / width per second.
 const CONT_KERNEL_R = 0.87, CONT_ISO = 0.3, CONT_RATIO = 3;
