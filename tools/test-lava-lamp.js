@@ -946,5 +946,105 @@ if (W.createSim) {
     rcFirst && rc.events.merges === 2 && rcC.drain > 0 && !rcB.drain && rcFlowC !== undefined && rcFlowC.to === rcB);
 }
 
+// ================= Absorption drain and empty buds (2026-10-01 amendment) =================
+if (W.createSim) {
+  // A cold blob whose bottom touches the pool drains into it over ABSORB_TIME
+  const ab = W.createSim({ seed: 53, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(ab);
+  ab.pool.T = 0;   // too cold to bud while the check runs
+  const abB = addBlob(ab, 1.2, 0.5, 2 * ab.Vb, 0.3);
+  abB.y = ab.pool.vol / ab.width + 0.95 * abB.r;   // the bottom dips just under the surface
+  const abV = ab.total();
+  let abPool = ab.pool.vol;
+  ab.step(STEP);
+  check('absorb: the blob starts to drain and stays drawn', ab.events.absorbs === 1 && ab.blobs.indexOf(abB) >= 0 && abB.drain > 0);
+  let abMaxIn = ab.pool.vol - abPool, abConserved = true, abSteps = 1, abLastGap = Infinity;
+  abPool = ab.pool.vol;
+  while (ab.blobs.indexOf(abB) >= 0 && abSteps < 600) {
+    abLastGap = Math.abs(abB.y - ab.pool.vol / ab.width);
+    ab.step(STEP); abSteps++;
+    abMaxIn = Math.max(abMaxIn, ab.pool.vol - abPool); abPool = ab.pool.vol;
+    if (Math.abs(ab.total() - abV) >= 1e-12) abConserved = false;
+  }
+  console.log('   absorb: drained in ' + (abSteps * STEP).toFixed(2) + ' s');
+  check('absorb: the pool rises by at most POOL_IN * Vb per second', abMaxIn <= W.LAVA.POOL_IN * ab.Vb * STEP * (1 + 1e-9));
+  check('absorb: the drain takes about ABSORB_TIME', Math.abs(abSteps * STEP - W.LAVA.ABSORB_TIME) <= 2 * STEP);
+  check('absorb: volume conserved at every step', abConserved);
+  check('absorb: the blob ends on the pool surface', abLastGap < 0.01);
+
+  // Several blobs draining at once share POOL_IN
+  const ab3 = W.createSim({ seed: 54, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(ab3);
+  ab3.pool.T = 0;
+  const ab3Blobs = [0.4, 1.2, 2.0].map(x => addBlob(ab3, x, 0.5, 2.4 * ab3.Vb, 0.3));
+  ab3Blobs.forEach(b => { b.y = ab3.pool.vol / ab3.width + 0.95 * b.r; });
+  let ab3Pool = ab3.pool.vol, ab3MaxIn = 0;
+  for (let i = 0; i < 300; i++) {
+    ab3.step(STEP);
+    ab3MaxIn = Math.max(ab3MaxIn, ab3.pool.vol - ab3Pool); ab3Pool = ab3.pool.vol;
+  }
+  check('absorb: three blobs draining at once still fill the pool at most POOL_IN * Vb per second',
+    ab3.events.absorbs === 3 && ab3MaxIn <= W.LAVA.POOL_IN * ab3.Vb * STEP * (1 + 1e-9));
+
+  // A dome clearly above the pool does not start to vanish
+  const ah = W.createSim({ seed: 55, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(ah);
+  ah.pool.T = 0;
+  const ahB = addBlob(ah, 1.2, 0.5, 2 * ah.Vb, 0.3);
+  ahB.y = ah.pool.vol / ah.width + 1.3 * ahB.r;   // the bottom sits 0.3 r above the surface
+  ah.step(STEP);
+  check('absorb: a blob whose bottom is clear of the pool does not drain', ah.events.absorbs === 0 && !ahB.drain);
+
+  // Buds start empty, and the feeding buds together gain at most Vb per second each.
+  // Measured on the bud volumes, so a drain into the pool in the same step cannot hide an
+  // over-draw.
+  const bz = W.createSim({ seed: 56, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
+  const bzVols = [];
+  bz.onBud = function (b) { bzVols.push(b.vol); };
+  let bzWorst = 0;
+  for (let i = 0; i < 60 * 60; i++) {
+    const before = new Map(bz.blobs.filter(b => b.target > 0).map(b => [b, b.vol]));
+    bz.step(STEP);
+    let gain = 0;
+    for (const b of bz.blobs) {
+      if (before.has(b)) gain += b.vol - before.get(b);
+      else if (b.target > 0) gain += b.vol;   // a bud born in this step
+    }
+    bzWorst = Math.max(bzWorst, gain - before.size * bz.Vb * STEP);
+  }
+  check('bud: every bud starts with volume 0', bzVols.length > 5 && bzVols.every(v => v === 0));
+  check('bud: in no step do the buds gain more than Vb per second each', bzWorst <= 1e-12);
+
+  // A free blob with no volume, no target and no inflow is removed, and nothing else changes
+  const zv = W.createSim({ seed: 63, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(zv);
+  zv.pool.T = 0;
+  const zvKeep = addBlob(zv, 0.8, 0.5, zv.Vb, 0.5);
+  const zvGone = addBlob(zv, 1.6, 0.5, 0, 0.5);
+  const zvV = zv.total();
+  zv.step(STEP);
+  check('zero volume: an empty free blob is removed and the volume stays exact',
+    zv.blobs.indexOf(zvGone) < 0 && zv.blobs.indexOf(zvKeep) >= 0 && zv.blobs.length === 1 && Math.abs(zv.total() - zvV) < 1e-12);
+
+  // No blob that is not draining (free blobs and feeding buds) keeps its center under the
+  // pool surface for more than 0.5 s (lamp census runs, 3 seeds x 300 s)
+  let slabWorst = 0;
+  [12345, 777, 4242].forEach(function (seed) {
+    const sim = W.createSim({ seed: seed, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
+    const since = new Map();
+    for (let i = 0; i < 300 * 60; i++) {
+      sim.step(STEP);
+      for (const b of sim.blobs) {
+        if (!b.drain && b.y < sim.pool.thickness) {
+          if (!since.has(b)) since.set(b, sim.time);
+          slabWorst = Math.max(slabWorst, sim.time - since.get(b));
+        } else since.delete(b);
+      }
+    }
+  });
+  console.log('   slab: longest stay of a blob center under the pool surface ' + slabWorst.toFixed(2) + ' s');
+  check('slab: no blob that is not draining keeps its center under the pool surface for more than 0.5 s', slabWorst <= 0.5);
+}
+
 console.log(ran + ' checks, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

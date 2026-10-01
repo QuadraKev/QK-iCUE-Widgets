@@ -458,7 +458,9 @@ void main() {
             MERGE_MAX: 2.5,      // a merge never makes a blob larger than this many Vb
             MERGE_TIME: 0.5,     // seconds for the smaller blob to drain into the larger one
             KREP: 6,             // push between blobs that are too big to merge
-            REP_RANGE: 2         // that push reaches out to this many times r1 + r2
+            REP_RANGE: 2,        // that push reaches out to this many times r1 + r2
+            ABSORB_TIME: 1.5,    // seconds for an absorbed blob to drain into the pool
+            POOL_IN: 2           // the pool takes at most this many Vb per second from draining blobs
         };
 
         function lavaClamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -548,8 +550,9 @@ void main() {
             }
 
             // Volume moves between bodies over time, never in one step. A flow drains the
-            // whole volume of `from` into `to` over `left` seconds and pulls `from` onto
-            // the receiver. The source is removed when its volume reaches 0.
+            // whole volume of `from` into `to` (a blob, or null for the pool) over `left`
+            // seconds and pulls `from` onto the receiver (the pool surface for the pool).
+            // The source is removed when its volume reaches 0.
             function addFlow(from, to, time) {
                 sim.flows.push({ from: from, to: to, left: time });
             }
@@ -564,22 +567,40 @@ void main() {
             }
 
             function runFlows(dt) {
-                for (var k = 0; k < sim.flows.length; k++) {
-                    var f = sim.flows[k], src = f.from, dst = f.to;
-                    var a = Math.min(1, dt / Math.max(f.left, dt));
+                var k, f;
+                // Blobs that drain into the pool share POOL_IN * Vb per second. When they ask
+                // for more, every pool flow slows by the same factor.
+                var want = 0;
+                for (k = 0; k < sim.flows.length; k++) {
+                    f = sim.flows[k];
+                    if (f.to === null) want += f.from.vol / Math.max(f.left, dt);
+                }
+                var slow = want > 0 ? Math.min(1, LAVA.POOL_IN * sim.Vb / want) : 1;
+                for (k = 0; k < sim.flows.length; k++) {
+                    f = sim.flows[k];
+                    var src = f.from, dst = f.to;
+                    var fdt = dst === null ? dt * slow : dt;
+                    var a = Math.min(1, fdt / Math.max(f.left, dt));
                     var dv = src.vol * a;
-                    f.left -= dt;
+                    f.left -= fdt;
                     src.vol -= dv; src.r = radiusOf(src.vol);
-                    var m = dst.vol + dv;
-                    if (m > 0) {
-                        // The receiver takes each increment at the source position, velocity and T
-                        var w = dv / m;
-                        dst.x += (src.x - dst.x) * w; dst.y += (src.y - dst.y) * w;
-                        dst.vx += (src.vx - dst.vx) * w; dst.vy += (src.vy - dst.vy) * w;
-                        dst.T += (src.T - dst.T) * w;
+                    if (dst === null) {
+                        var pv = sim.pool.vol + dv;
+                        if (pv > 0) sim.pool.T = (sim.pool.T * sim.pool.vol + src.T * dv) / pv;
+                        sim.pool.vol = pv;
+                        src.y += (poolTop() - src.y) * a;
+                    } else {
+                        var m = dst.vol + dv;
+                        if (m > 0) {
+                            // The receiver takes each increment at the source position, velocity and T
+                            var w = dv / m;
+                            dst.x += (src.x - dst.x) * w; dst.y += (src.y - dst.y) * w;
+                            dst.vx += (src.vx - dst.vx) * w; dst.vy += (src.vy - dst.vy) * w;
+                            dst.T += (src.T - dst.T) * w;
+                        }
+                        dst.vol = m; dst.r = radiusOf(m);
+                        src.x += (dst.x - src.x) * a; src.y += (dst.y - src.y) * a;
                     }
-                    dst.vol = m; dst.r = radiusOf(m);
-                    src.x += (dst.x - src.x) * a; src.y += (dst.y - src.y) * a;
                     if (a >= 1) {
                         src.vol = 0; src.r = 0;
                         var idx = sim.blobs.indexOf(src);
@@ -795,7 +816,7 @@ void main() {
                 for (i = 0; i < sim.blobs.length; i++) {
                     b = sim.blobs[i];
                     if (b.target <= 0) continue;
-                    if (b.y - b.r < top) {
+                    if (b.y - b.r <= top) {
                         var flow = Math.min(sim.Vb * dt, b.target - b.vol, sim.pool.vol);
                         if (flow > 0) { b.vol += flow; sim.pool.vol -= flow; b.r = radiusOf(b.vol); }
                         b.T = Math.max(b.T, sim.pool.T);
@@ -807,11 +828,12 @@ void main() {
                 top = poolTop();
                 for (i = sim.blobs.length - 1; i >= 0; i--) {
                     b = sim.blobs[i];
+                    // A free blob with no volume and nothing on its way in draws nothing: drop it
+                    if (!b.drain && b.vol <= 0 && b.target <= 0 && inbound(b) === 0) { sim.blobs.splice(i, 1); continue; }
                     if (!b.drain && b.target <= 0 && b.T < LAVA.TN && b.y < top + LAVA.ABSORB_DEPTH * b.r && inbound(b) === 0) {
-                        var nv = sim.pool.vol + b.vol;
-                        sim.pool.T = (sim.pool.T * sim.pool.vol + b.T * b.vol) / nv;
-                        sim.pool.vol = nv;
-                        sim.blobs.splice(i, 1);
+                        // It drains into the pool over ABSORB_TIME and sinks onto the surface
+                        b.drain = 1;
+                        addFlow(b, null, LAVA.ABSORB_TIME);
                         sim.events.absorbs++;
                     }
                 }
@@ -822,10 +844,9 @@ void main() {
                     free < sim.N && sim.blobs.length < sim.cap) {
                     var target = sim.Vb * lavaLerp(0.6, 1.4, rand());
                     var rt = radiusOf(target);
-                    var vol0 = Math.min(target * 0.1, sim.pool.vol);
-                    sim.pool.vol -= vol0;
                     var x = lavaLerp(Math.min(rt, sim.width / 2), Math.max(sim.width - rt, sim.width / 2), rand());
-                    var bud = makeBlob(x, poolTop(), vol0, 1);
+                    // The bud starts empty and grows only through the pool flow above
+                    var bud = makeBlob(x, poolTop(), 0, 1);
                     bud.target = target;
                     bud.mergeCooldown = LAVA.MERGE_COOLDOWN;
                     sim.blobs.push(bud);
@@ -1195,8 +1216,9 @@ void main() {
                 var n = Math.min(sim.blobs.length, slice.count);
                 for (var k = 0; k < n; k++) {
                     var b = sim.blobs[k], t = sim.tails[k] || ZERO_TAIL, o = (first + k) * 4;
-                    blobBuf[o] = b.x; blobBuf[o + 1] = b.y; blobBuf[o + 2] = b.r * KERNEL_R; blobBuf[o + 3] = b.stretch;
-                    tailBuf[o] = t.x; tailBuf[o + 1] = t.y; tailBuf[o + 2] = t.r * KERNEL_R; tailBuf[o + 3] = t.w;
+                    // A bud or a split child starts at radius 0, and the shader divides by r^2
+                    blobBuf[o] = b.x; blobBuf[o + 1] = b.y; blobBuf[o + 2] = Math.max(b.r * KERNEL_R, 1e-6); blobBuf[o + 3] = b.stretch;
+                    tailBuf[o] = t.x; tailBuf[o + 1] = t.y; tailBuf[o + 2] = Math.max(t.r * KERNEL_R, 1e-6); tailBuf[o + 3] = t.w;
                 }
                 sliceBuf[i * 2] = first;
                 sliceBuf[i * 2 + 1] = n;
