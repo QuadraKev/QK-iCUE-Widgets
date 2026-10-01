@@ -627,5 +627,120 @@ if (W.mapPointer && W.computeLampLayout) {
   check('mapPointer implemented', false);
 }
 
+// ================= Continuity (2026-10-01 amendment) =================
+// No simulation event may change the rendered wax or the pool level by more than an
+// ordinary frame does. This ports the render field (render() uploads r * KERNEL_R, the
+// shader sums Wyvill kernels, stretched ellipses, half-weight tails and the pool capsule,
+// and draws the wax where F > ISO) onto a grid in lamp units, then measures every frame of
+// a long seeded run:
+//   flip = grid area (lamp units^2) whose F crossed ISO between two frames
+//   pool = change of pool.thickness between two frames (lamp units)
+// Gates per run:
+//   ratio: the largest frame flip is at most CONT_RATIO times the 99.9th percentile of the
+//          frame flips of the same run, so no single frame stands out from the ordinary
+//          motion of its run. After the fix the ratio stays under 1.6 on 12 seeds.
+//   guard: a coarse absolute flip bound against uniformly jerky motion, twice the worst
+//          frame flip of 12 seeds after the fix (lamp 4.21e-3 and 7.46e-3, Fill 2.44e-2 and
+//          3.12e-2 at 1/60 and 1/30 s). Commit 0daf8dc reaches 6.6e-2 (lamp) and 3.1e-1 (Fill).
+//   pool:  the pool level moves at most 1.5 times the ordinary maximum, which is two buds
+//          feeding at Vb per second each: 3 * Vb / width per second.
+const CONT_KERNEL_R = 0.87, CONT_ISO = 0.3, CONT_RATIO = 3;
+function contGrid(aspect, h, masked) {
+  const nx = Math.ceil(aspect / h), ny = Math.ceil(1 / h);
+  const inside = new Uint8Array(nx * ny);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    inside[j * nx + i] = !masked || W.insideBottle((i + 0.5) * h, (j + 0.5) * h, aspect) ? 1 : 0;
+  }
+  return { h: h, nx: nx, ny: ny, inside: inside };
+}
+function contField(sim, G, out) {
+  const h = G.h, nx = G.nx, ny = G.ny;
+  out.fill(0);
+  for (let k = 0; k < sim.blobs.length; k++) {
+    const b = sim.blobs[k], R = b.r * CONT_KERNEL_R;
+    if (R > 0) {
+      const sq = Math.sqrt(Math.max(b.stretch, 1)), ax = 1 / sq, ay = sq, r2 = R * R;
+      const i0 = Math.max(0, Math.floor((b.x - 2 * R * ax) / h) - 1), i1 = Math.min(nx - 1, Math.ceil((b.x + 2 * R * ax) / h) + 1);
+      const j0 = Math.max(0, Math.floor((b.y - 2 * R * ay) / h) - 1), j1 = Math.min(ny - 1, Math.ceil((b.y + 2 * R * ay) / h) + 1);
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const dx = ((i + 0.5) * h - b.x) / ax, dy = ((j + 0.5) * h - b.y) / ay;
+        const q = (dx * dx + dy * dy) / r2;
+        if (q < 4) { const t = 1 - 0.25 * q; out[j * nx + i] += t * t * t; }
+      }
+    }
+    const tl = sim.tails[k];
+    if (!tl || !(tl.w > 0) || !(tl.r > 0)) continue;
+    const TR = tl.r * CONT_KERNEL_R, tr2 = TR * TR, w = 0.5 * tl.w;
+    const i0 = Math.max(0, Math.floor((tl.x - 2 * TR) / h) - 1), i1 = Math.min(nx - 1, Math.ceil((tl.x + 2 * TR) / h) + 1);
+    const j0 = Math.max(0, Math.floor((tl.y - 2 * TR) / h) - 1), j1 = Math.min(ny - 1, Math.ceil((tl.y + 2 * TR) / h) + 1);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const dx = (i + 0.5) * h - tl.x, dy = (j + 0.5) * h - tl.y;
+      const q = (dx * dx + dy * dy) / tr2;
+      if (q < 4) { const t = 1 - 0.25 * q; out[j * nx + i] += w * t * t * t; }
+    }
+  }
+  const pr = Math.max(sim.pool.thickness * CONT_KERNEL_R, 1e-4), pr2 = pr * pr;
+  for (let j = 0; j < ny; j++) {
+    const dy = (j + 0.5) * h, q = dy * dy / pr2;
+    if (q >= 4) break;
+    const t = 1 - 0.25 * q, v = t * t * t;
+    for (let i = 0; i < nx; i++) out[j * nx + i] += v;
+  }
+}
+function contRun(sim, G, dt, seconds) {
+  const F0 = new Float64Array(G.nx * G.ny), F1 = new Float64Array(G.nx * G.ny);
+  contField(sim, G, F0);
+  const flips = [];
+  let maxPool = 0;
+  const steps = Math.round(seconds / dt);
+  for (let s = 0; s < steps; s++) {
+    const th0 = sim.pool.thickness;
+    sim.step(dt);
+    contField(sim, G, F1);
+    let n = 0;
+    for (let k = 0; k < F0.length; k++) if (G.inside[k] && ((F0[k] > CONT_ISO) !== (F1[k] > CONT_ISO))) n++;
+    flips.push(n * G.h * G.h);
+    maxPool = Math.max(maxPool, Math.abs(sim.pool.thickness - th0));
+    F0.set(F1);
+  }
+  flips.sort((a, b) => a - b);
+  return { maxFlip: flips[flips.length - 1], p999: flips[Math.floor(0.999 * (flips.length - 1))], maxPool: maxPool };
+}
+if (W.createSim && W.insideBottle) {
+  const CONT = [
+    { name: 'lamp 0.42', h: 0.004, masked: true, seconds: 180, seeds: [12345, 5, 8], guard: { 60: 0.0085, 30: 0.015 },
+      make: seed => W.createSim({ seed: seed, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 }) },
+    { name: 'fill 2.43', h: 0.008, masked: false, seconds: 120, seeds: [12345, 1], guard: { 60: 0.05, 30: 0.065 },
+      make: seed => W.createSim({ seed: seed, aspect: 2.43, heat: 5, waxAmount: 5 }) }
+  ];
+  CONT.forEach(function (c) {
+    [60, 30].forEach(function (fps) {
+      const dt = 1 / fps;
+      let ratio = 0, maxFlip = 0, poolOver = 0;
+      c.seeds.forEach(function (seed) {
+        const sim = c.make(seed);
+        const r = contRun(sim, contGrid(sim.width, c.h, c.masked), dt, c.seconds);
+        ratio = Math.max(ratio, r.maxFlip / r.p999);
+        maxFlip = Math.max(maxFlip, r.maxFlip);
+        poolOver = Math.max(poolOver, r.maxPool / (3 * sim.Vb / sim.width * dt));
+      });
+      const tag = 'continuity ' + c.name + ' at 1/' + fps + ' s';
+      console.log('   ' + tag + ' (' + c.seeds.length + ' seeds): largest flip / p99.9 ' + ratio.toFixed(2) + ' (bound ' + CONT_RATIO +
+        '), largest flip ' + maxFlip.toExponential(2) + ' (guard ' + c.guard[fps] + '), pool step / bound ' + poolOver.toFixed(2));
+      check(tag + ': no frame flips more than ' + CONT_RATIO + ' times the 99.9th percentile of its run', ratio <= CONT_RATIO);
+      check(tag + ': no frame passes the coarse flip guard', maxFlip <= c.guard[fps]);
+      check(tag + ': no frame moves the pool level more than an ordinary frame', poolOver <= 1);
+    });
+  });
+
+  // Frame-rate independence: one 1/30 s frame is exactly two 1/60 s frames
+  const fr1 = W.createSim({ seed: 61, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
+  const fr2 = W.createSim({ seed: 61, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
+  for (let i = 0; i < 1800; i++) { fr1.step(1 / 30); fr2.step(1 / 60); fr2.step(1 / 60); }
+  check('frame rate: 1800 frames at 1/30 s give the same state as 3600 frames at 1/60 s', snapshot(fr1) === snapshot(fr2));
+} else {
+  check('continuity check implemented', false);
+}
+
 console.log(ran + ' checks, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
