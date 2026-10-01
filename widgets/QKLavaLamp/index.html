@@ -201,6 +201,7 @@ out vec4 fragColor;
 
 const float ISO = 0.3;
 const float NORMAL_K = 0.1;
+const float DEPTH_K = 0.35;   // field distance over which the wax depth saturates
 const float SHEEN = 0.08;     // wide dim sheen: one fifth of the probe's 0.4. Set 0.0 to remove.
 const float RIM = 0.1;        // Fresnel rim: a trace only
 
@@ -284,7 +285,7 @@ void main() {
     // ---- Edge and normal
     float fw = max(length(g) * 1.5 / pxPerUnit, 0.02);
     float edge = smoothstep(ISO - fw, ISO + fw, F);
-    float h = clamp((F - ISO) / 0.6, 0.0, 1.0);
+    float h = 1.0 - exp(-max(F - ISO, 0.0) / DEPTH_K);   // saturates with no corner, so the core has no edge
     vec3 n = normalize(vec3(-g * NORMAL_K * (1.0 - h), 0.5 + h));   // tilt fades with depth
 
     // ---- Wax: matte, translucent, lit from the bulb below
@@ -999,7 +1000,7 @@ void main() {
         // Widget state
         // ================================================================
         var MAX_LAMPS = 6;
-        var FRAME_MIN = 1 / 30 - 0.002;   // render at most 30 times per second
+        var FRAME_MIN = 1 / 60 - 0.002;   // render at most 60 times per second
         var KERNEL_R = 0.87;              // a lone kernel's iso contour sits at r / 0.87, so upload r * 0.87
         var ZERO_TAIL = { x: 0, y: 0, r: 0, w: 0 };
 
@@ -1246,7 +1247,7 @@ void main() {
         }
 
         // ================================================================
-        // Frame loop: physics by real elapsed time, render at most 30 FPS
+        // Frame loop: physics by real elapsed time, render at most 60 FPS
         // ================================================================
         function frame(nowMs) {
             if (!running) return;
