@@ -17,7 +17,7 @@ Drag across the wax to stir it. A fast stroke through a blob cuts it in two. The
 - Heat setting for the pace of the cycle, Wax Amount setting for the number of blobs
 - Drag to stir, with a fast stroke to split a blob
 - Matte, translucent wax lit from the bulb below
-- Rendering at native resolution, capped at 30 frames per second
+- Rendering at native resolution, capped at 60 frames per second
 
 ---
 
