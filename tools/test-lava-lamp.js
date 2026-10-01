@@ -10,7 +10,7 @@ if (!m) { console.error('FAIL: @testable markers not found in index.html'); proc
 
 const exportNames = ['LAVA', 'createSim', 'heatScale', 'waxBudget', 'stirFactor', 'lavaPrng',
   'LAMP_GEOM', 'computeLampLayout', 'computeFillLayout', 'insideBottle', 'mapPointer',
-  'PRESETS', 'parseHexColor', 'resolveColors', 'contrastRatio', 'lampSlice', 'haloFor'];
+  'PRESETS', 'parseHexColor', 'resolveColors', 'contrastRatio', 'lampSlice', 'haloFor', 'snapFrameTime'];
 const fn = new Function(m[1] + '\nreturn {' + exportNames.map(n => n + ': (typeof ' + n + ' !== "undefined" ? ' + n + ' : undefined)').join(',') + '};');
 const W = fn();
 
@@ -1200,6 +1200,37 @@ if (W.createSim) {
     sz.mid && sz.sf.flows.length === 0 && Math.abs(sz.C.vol - sz.P.vol) < 1e-12 &&
     Math.abs(sz.C.vol + sz.P.vol - sz.sum) < 1e-9 && Math.abs(sz.sf.total() - sz.sf.V) < 1e-12 &&
     Math.abs(sz.C.x - sz.P.x) / sz.r0 >= 1.65 && Math.abs(sz.C.x - sz.P.x) / sz.r0 <= 1.8);
+}
+
+// ================= Frame snap (final review) =================
+// Chromium coarsens the frame time to 0.1 ms, so a 60 Hz frame reads 16.6, 16.7 or 16.8 ms.
+// Without the snap the accumulator sits on its boundary and runs 0 substeps in one frame and
+// 2 in the next. Counts the substeps of 900 frames fed through snapFrameTime.
+function frameCadence(periodMs) {
+  const sim = W.createSim({ seed: 5, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
+  const counts = {};
+  let prev = 0, real = 0, kept = true;
+  for (let k = 1; k <= 900; k++) {
+    const t = Math.floor(k * periodMs * 10) / 10;
+    const raw = (t - prev) / 1000;
+    prev = t; real += raw;
+    const elapsed = W.snapFrameTime(raw);
+    if (elapsed !== raw) kept = false;
+    const t0 = sim.time;
+    sim.step(elapsed);
+    const n = Math.round((sim.time - t0) / STEP);
+    counts[n] = (counts[n] || 0) + 1;
+  }
+  return { counts: counts, real: real, simTime: sim.time, kept: kept };
+}
+if (typeof W.snapFrameTime === 'function') {
+  const c60 = frameCadence(1000 / 60), c30 = frameCadence(1000 / 30), c144 = frameCadence(3000 / 144);
+  check('frame snap: 900 frames at 60 Hz each run one substep', c60.counts[1] === 900);
+  check('frame snap: 900 frames at 30 Hz each run two substeps', c30.counts[2] === 900);
+  check('frame snap: 20.83 ms frames are not snapped and keep real time',
+    c144.kept && Math.abs(c144.simTime - c144.real) <= STEP);
+} else {
+  check('frame snap: snapFrameTime implemented', false);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');

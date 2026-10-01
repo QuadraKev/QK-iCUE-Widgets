@@ -504,6 +504,15 @@ void main() {
             return Math.exp(-age / LAVA.STIR_TAU);
         }
 
+        // A display frame is never exactly a whole number of substeps on the clock. Snap a
+        // near miss to the substep grid, so a 60 Hz display runs one substep in every frame
+        // and not none in one frame and two in the next.
+        function snapFrameTime(elapsed) {
+            var whole = Math.round(elapsed / LAVA.SUBSTEP) * LAVA.SUBSTEP;
+            if (whole > 0 && Math.abs(elapsed - whole) < 0.002) return whole;
+            return elapsed;
+        }
+
         function createSim(opts) {
             opts = opts || {};
             var rand = lavaPrng(opts.seed || 1);
@@ -1382,6 +1391,7 @@ void main() {
             var elapsed = now - lastRender;
             if (elapsed < FRAME_MIN) return;
             lastRender = now;
+            elapsed = snapFrameTime(elapsed);
             for (var i = 0; i < lamps.length; i++) lamps[i].sim.step(elapsed);
             render(now);
         }
