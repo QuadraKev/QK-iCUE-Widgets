@@ -904,6 +904,46 @@ if (W.createSim) {
   check('clumps: the lamp draws one clump or none at most 25 percent of the time', cn.few / cn.n <= 0.25);
   check('clumps: the largest clump holds at most 45 percent of the wax on average', cn.share / cn.n <= 0.45);
   lampCensus(10);   // printed for the record, no pass bound
+
+  // Merge chain: X drains into B, then B meets the larger C and starts to drain. The flow from
+  // X must retarget to C, or it keeps feeding a blob that is itself draining away.
+  const ch = W.createSim({ seed: 53, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(ch);
+  ch.pool.T = 0;
+  const chB = addBlob(ch, 1.2, 0.6, 0.4 * ch.Vb, 0.5);
+  const chX = addBlob(ch, 1.2 + 0.4 * (chB.r + Math.sqrt(0.2 * ch.Vb / Math.PI)), 0.6, 0.2 * ch.Vb, 0.5);
+  const chC = addBlob(ch, 2.0, 0.6, 1.0 * ch.Vb, 0.5);
+  const chV = ch.total();
+  ch.step(STEP);
+  const chFirst = ch.events.merges === 1 && chX.drain > 0 && !chB.drain;
+  chC.x = chB.x + 0.3 * (chB.r + chC.r); chC.y = chB.y;
+  ch.step(STEP);
+  const chFlowX = ch.flows.find(f => f.from === chX);
+  const chRetarget = ch.events.merges === 2 && chB.drain > 0 && !chC.drain && chFlowX !== undefined && chFlowX.to === chC;
+  let chConserved = Math.abs(ch.total() - chV) < 1e-12;
+  for (let i = 0; i < Math.ceil(W.LAVA.MERGE_TIME / STEP) + 2 && (ch.blobs.indexOf(chX) >= 0 || ch.blobs.indexOf(chB) >= 0); i++) {
+    ch.step(STEP);
+    if (Math.abs(ch.total() - chV) >= 1e-12) chConserved = false;
+  }
+  check('merge: a flow into a blob that starts to drain retargets to the new receiver, and the volume stays exact',
+    chFirst && chRetarget && chConserved && ch.blobs.indexOf(chX) < 0 && ch.blobs.indexOf(chB) < 0 &&
+    ch.blobs.indexOf(chC) >= 0 && Math.abs(chC.vol - 1.6 * ch.Vb) < 1e-12);
+
+  // Receiver choice: B (0.5 Vb) still receives A (0.4 Vb) when it meets C (0.8 Vb). B counts
+  // 0.9 Vb with its inbound volume, so C is the smaller one and drains into B.
+  const rc = W.createSim({ seed: 54, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(rc);
+  rc.pool.T = 0;
+  const rcB = addBlob(rc, 1.2, 0.6, 0.5 * rc.Vb, 0.5);
+  const rcA = addBlob(rc, 1.2 + 0.4 * (rcB.r + Math.sqrt(0.4 * rc.Vb / Math.PI)), 0.6, 0.4 * rc.Vb, 0.5);
+  const rcC = addBlob(rc, 2.0, 0.6, 0.8 * rc.Vb, 0.5);
+  rc.step(STEP);
+  const rcFirst = rc.events.merges === 1 && rcA.drain > 0 && !rcB.drain;
+  rcC.x = rcB.x + 0.3 * (rcB.r + rcC.r); rcC.y = rcB.y;
+  rc.step(STEP);
+  const rcFlowC = rc.flows.find(f => f.from === rcC);
+  check('merge: the receiver is chosen by volume plus inbound volume',
+    rcFirst && rc.events.merges === 2 && rcC.drain > 0 && !rcB.drain && rcFlowC !== undefined && rcFlowC.to === rcB);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');
