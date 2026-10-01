@@ -742,5 +742,169 @@ if (W.createSim && W.insideBottle) {
   check('continuity check implemented', false);
 }
 
+// ================= Merge drain and merge limit (2026-10-01 amendment) =================
+if (W.createSim) {
+  // Merge drain: the smaller blob drains into the larger one over MERGE_TIME
+  const md = W.createSim({ seed: 51, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(md);
+  md.pool.T = 0;   // keeps the pool too cold to bud during the check
+  const mBig = addBlob(md, 1.2, 0.5, 1.2 * md.Vb, 0.5);
+  const smallR = Math.sqrt(0.6 * md.Vb / Math.PI);
+  const mSmall = addBlob(md, 1.2 + 0.4 * (mBig.r + smallR), 0.5, 0.6 * md.Vb, 0.5);
+  const mdV = md.total(), small0 = mSmall.vol;
+  md.step(STEP);
+  check('merge: the pair starts to merge and both kernels stay', md.events.merges === 1 &&
+    md.blobs.indexOf(mBig) >= 0 && md.blobs.indexOf(mSmall) >= 0 && mSmall.drain > 0 && !mBig.drain);
+  let mdMaxDrop = small0 - mSmall.vol, mdConserved = Math.abs(md.total() - mdV) < 1e-12, mdShrinks = true;
+  let mdSteps = 0, mdPrevVol = mSmall.vol, mdPrevD = Math.hypot(mSmall.x - mBig.x, mSmall.y - mBig.y), mdCloser = true;
+  for (let i = 0; i < Math.ceil(W.LAVA.MERGE_TIME / STEP) + 2 && md.blobs.indexOf(mSmall) >= 0; i++) {
+    md.step(STEP);
+    mdSteps++;
+    mdMaxDrop = Math.max(mdMaxDrop, mdPrevVol - mSmall.vol);
+    if (mSmall.vol > mdPrevVol) mdShrinks = false;
+    if (Math.abs(md.total() - mdV) >= 1e-12) mdConserved = false;
+    const d = Math.hypot(mSmall.x - mBig.x, mSmall.y - mBig.y);
+    if (d > mdPrevD + 1e-12) mdCloser = false;
+    mdPrevVol = mSmall.vol; mdPrevD = d;
+  }
+  check('merge: no step moves more than MERGE_TIME allows', mdMaxDrop <= small0 * STEP / W.LAVA.MERGE_TIME * (1 + 1e-9));
+  check('merge: the draining kernel only shrinks and only closes in', mdSteps >= W.LAVA.MERGE_TIME / STEP - 1 && mdShrinks && mdCloser);
+  check('merge: volume conserved at every step', mdConserved);
+  check('merge: the drained kernel is removed and the larger blob holds both volumes',
+    md.blobs.indexOf(mSmall) < 0 && md.blobs.indexOf(mBig) >= 0 && Math.abs(mBig.vol - 1.8 * md.Vb) < 1e-12);
+
+  // Review: a fast stroke through a merging pair never splits the draining kernel, and the
+  // volume stays exact through the split, the drain and the stir
+  const sd = W.createSim({ seed: 59, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(sd);
+  sd.pool.T = 0;
+  const sdBig = addBlob(sd, 1.2, 0.5, 1.2 * sd.Vb, 0.5);
+  const sdSmall = addBlob(sd, 1.2 + 0.4 * (sdBig.r + Math.sqrt(0.6 * sd.Vb / Math.PI)), 0.5, 0.6 * sd.Vb, 0.5);
+  const sdV = sd.total();
+  sd.step(STEP);
+  sd.stir(sdSmall.x, sdSmall.y, 2.5, 0);
+  const sdStillDraining = sdSmall.drain > 0 && sd.blobs.indexOf(sdSmall) >= 0;
+  run(sd, 60);
+  check('review: a stroke never splits a draining kernel, and the volume stays exact',
+    sd.events.merges === 1 && sdStillDraining && sd.blobs.indexOf(sdSmall) < 0 && Math.abs(sd.total() - sdV) < 1e-12);
+
+  // Merge limit: a pair whose merged volume would pass MERGE_MAX * Vb does not merge,
+  // and it pushes apart instead of hanging together as a peanut
+  const ml = W.createSim({ seed: 52, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(ml);
+  ml.pool.T = 0;
+  const la = addBlob(ml, 1.2, 0.5, 1.5 * ml.Vb, 0.5);
+  const lb = addBlob(ml, 1.2 + 0.8 * la.r, 0.5, 1.5 * ml.Vb, 0.5);   // d = 0.4 (r1 + r2): inside the merge distance
+  ml.step(STEP);
+  check('merge limit: a pair above MERGE_MAX * Vb does not merge', ml.events.merges === 0 && !la.drain && !lb.drain);
+  run(ml, 60);
+  const mlD = Math.hypot(la.x - lb.x, la.y - lb.y);
+  console.log('   merge limit: pair distance after 1 s is ' + (mlD / (la.r + lb.r)).toFixed(2) + ' (r1 + r2)');
+  check('merge limit: after 1 s the pair has pushed apart past touching, to at least 1.2 (r1 + r2)', mlD >= 1.2 * (la.r + lb.r));
+
+  // An over-limit pair with no relative drive stops drawing as one clump. One lamp (aspect
+  // 0.42, tapered walls), two 1.5 Vb blobs side by side at equal temperature, d = 0.4 (r1 + r2).
+  // The bridge between two equal kernels breaks near d = 1.19 (r1 + r2): the field at the
+  // midpoint, 2 (1 - (d / 2)^2 / (4 (0.87 r)^2))^3, falls to ISO there. Each blob is
+  // drag-limited at KREP * overlap * r / KD, so the gap opens at 0.32 to 0.17 lamp units per
+  // second over 1.58 r (0.145): about 0.6 s. The check allows 1.5 s.
+  const lp = W.createSim({ seed: 62, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
+  clearToPool(lp);
+  lp.pool.T = 0;
+  const lpA = addBlob(lp, 0.21, 0.5, 1.5 * lp.Vb, 0.5);
+  const lpB = addBlob(lp, 0.21, 0.5, 1.5 * lp.Vb, 0.5);
+  lpA.x -= 0.4 * lpA.r; lpB.x += 0.4 * lpB.r;
+  const lpG = contGrid(lp.width, 0.004, true), lpF = new Float64Array(lpG.nx * lpG.ny);
+  function lpJoined() {   // F > ISO all along the segment between the two centers
+    contField(lp, lpG, lpF);
+    for (let t = 0; t <= 1; t += 0.01) {
+      const x = lpA.x + (lpB.x - lpA.x) * t, y = lpA.y + (lpB.y - lpA.y) * t;
+      if (lpF[Math.floor(y / lpG.h) * lpG.nx + Math.floor(x / lpG.h)] <= CONT_ISO) return false;
+    }
+    return true;
+  }
+  let lpApart = -1;
+  for (let i = 1; i <= 90 && lpApart < 0; i++) {
+    lp.step(STEP);
+    if (!lpJoined()) lpApart = i * STEP;
+  }
+  console.log('   merge limit: the lamp pair stops drawing as one clump after ' + lpApart.toFixed(2) + ' s');
+  check('merge limit: in the lamp an over-limit pair at equal temperature stops drawing as one clump within 1.5 s',
+    lp.events.merges === 0 && lp.blobs.indexOf(lpA) >= 0 && lp.blobs.indexOf(lpB) >= 0 && lpApart > 0);
+
+  // Lamp census: one lamp (VXL Lamp style: aspect 0.42, taper 0.8), Wax 5, three seeds x 300 s.
+  // Kernels, every substep after 20 s: a blob counts as free when it is not draining, holds at
+  // least 0.25 Vb and sits clear of the pool. Drawn clumps, every 0.1 s: the connected areas of
+  // F > ISO (contField, Task 1) that do not touch the pool, and the over-limit pairs (merged
+  // volume, inflow included, above MERGE_MAX * Vb, both off cooldown) whose centers sit in one
+  // clump. A joined pair that is passing another blob is accepted, so the joined census only
+  // prints. At commit 0daf8dc, Heat 5: largest blob 7 Vb, two or more free 54.6 percent, no free
+  // blob 6.9 percent, one clump or none 89.5 percent, largest clump 61.6 percent of the wax.
+  function lampCensus(heat) {
+    const c = { T: 0, two: 0, none: 0, max: 0, n: 0, few: 0, share: 0, joined: 0, spells: 0, longest: 0 };
+    [12345, 777, 4242].forEach(function (seed) {
+      const sim = W.createSim({ seed: seed, aspect: 0.42, heat: heat, waxAmount: 5, cap: 64, taper: 0.8 });
+      const G = contGrid(sim.width, 0.004, true), F = new Float64Array(G.nx * G.ny), lab = new Int32Array(G.nx * G.ny);
+      const since = new Map();
+      const inflow = b => (sim.flows || []).reduce((v, f) => v + (f.to === b ? (f.all === false ? f.need : f.from.vol) : 0), 0);
+      for (let i = 0; i < 300 * 60; i++) {
+        sim.step(STEP);
+        for (const b of sim.blobs) c.max = Math.max(c.max, b.vol / sim.Vb);
+        if (sim.time <= 20) continue;
+        const top = sim.pool.thickness;
+        const nFree = sim.blobs.filter(b => !b.drain && b.vol >= 0.25 * sim.Vb && b.y - b.r > top).length;
+        c.T += STEP; if (nFree >= 2) c.two += STEP; if (nFree === 0) c.none += STEP;
+        if (i % 6) continue;
+        contField(sim, G, F); lab.fill(0);
+        const poolRows = Math.ceil((top + 0.01) / G.h), areas = [0], pool = [true];
+        for (let s0 = 0; s0 < F.length; s0++) {
+          if (lab[s0] || !G.inside[s0] || F[s0] <= CONT_ISO) continue;
+          const id = areas.length, stack = [s0];
+          areas.push(0); pool.push(false); lab[s0] = id;
+          while (stack.length) {
+            const k = stack.pop(), x = k % G.nx, y = (k - x) / G.nx;
+            areas[id]++; if (y < poolRows) pool[id] = true;
+            [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].forEach(function (p) {
+              if (p[0] < 0 || p[1] < 0 || p[0] >= G.nx || p[1] >= G.ny) return;
+              const kk = p[1] * G.nx + p[0];
+              if (!lab[kk] && G.inside[kk] && F[kk] > CONT_ISO) { lab[kk] = id; stack.push(kk); }
+            });
+          }
+        }
+        let clumps = 0, largest = 0;
+        for (let id = 1; id < areas.length; id++) if (!pool[id]) { clumps++; largest = Math.max(largest, areas[id] * G.h * G.h); }
+        c.n++; if (clumps <= 1) c.few++; c.share += largest / sim.V;
+        const labelAt = b => lab[Math.min(G.ny - 1, Math.floor(b.y / G.h)) * G.nx + Math.min(G.nx - 1, Math.max(0, Math.floor(b.x / G.h)))];
+        const cand = sim.blobs.filter(b => !b.drain && b.mergeCooldown === 0), now = new Set();
+        for (let a = 0; a < cand.length; a++) for (let d = a + 1; d < cand.length; d++) {
+          const p = cand[a], q = cand[d];
+          if (p.vol + inflow(p) + q.vol + inflow(q) <= W.LAVA.MERGE_MAX * sim.Vb) continue;
+          const lp0 = labelAt(p);
+          if (lp0 && lp0 === labelAt(q)) { const key = p.id + ':' + q.id; now.add(key); if (!since.has(key)) since.set(key, sim.time); }
+        }
+        if (now.size) c.joined++;
+        for (const [key, t0] of since) if (!now.has(key)) {
+          if (sim.time - t0 > 3) c.spells++;
+          c.longest = Math.max(c.longest, sim.time - t0);
+          since.delete(key);
+        }
+      }
+    });
+    console.log('   census Heat ' + heat + ': largest ' + c.max.toFixed(2) + ' Vb, two or more free ' + (100 * c.two / c.T).toFixed(1) +
+      '%, none free ' + (100 * c.none / c.T).toFixed(1) + '%, one clump or none ' + (100 * c.few / c.n).toFixed(1) +
+      '%, largest clump ' + (100 * c.share / c.n).toFixed(1) + '% of the wax');
+    console.log('   joined Heat ' + heat + ': an over-limit pair draws as one clump in ' + (100 * c.joined / c.n).toFixed(1) +
+      '% of samples, ' + c.spells + ' spells over 3 s, longest ' + c.longest.toFixed(1) + ' s');
+    return c;
+  }
+  const cn = lampCensus(5);
+  check('census: the largest blob stays at or below MERGE_MAX * Vb', cn.max <= W.LAVA.MERGE_MAX * (1 + 1e-9));
+  check('census: the lamp holds two or more free blobs at least 85 percent of the time', cn.two / cn.T >= 0.85);
+  check('census: the lamp holds no free blob at most 3 percent of the time', cn.none / cn.T <= 0.03);
+  check('clumps: the lamp draws one clump or none at most 25 percent of the time', cn.few / cn.n <= 0.25);
+  check('clumps: the largest clump holds at most 45 percent of the wax on average', cn.share / cn.n <= 0.45);
+  lampCensus(10);   // printed for the record, no pass bound
+}
+
 console.log(ran + ' checks, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
