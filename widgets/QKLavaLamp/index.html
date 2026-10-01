@@ -460,7 +460,8 @@ void main() {
             KREP: 6,             // push between blobs that are too big to merge
             REP_RANGE: 2,        // that push reaches out to this many times r1 + r2
             ABSORB_TIME: 1.5,    // seconds for an absorbed blob to drain into the pool
-            POOL_IN: 2           // the pool takes at most this many Vb per second from draining blobs
+            POOL_IN: 2,          // the pool takes at most this many Vb per second from draining blobs
+            KSHAPE: 6            // per second: low-pass rate of the stretch and the tail
         };
 
         function lavaClamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -546,7 +547,7 @@ void main() {
 
             function makeBlob(x, y, vol, T) {
                 return { id: nextId++, x: x, y: y, vx: 0, vy: 0, vol: vol, r: radiusOf(vol),
-                         T: T, stretch: 1, mergeCooldown: 0, target: 0, drain: 0 };
+                         T: T, stretch: 1, mergeCooldown: 0, target: 0, drain: 0, svy: 0 };
             }
 
             // Volume moves between bodies over time, never in one step. A flow drains the
@@ -736,7 +737,9 @@ void main() {
                     if (b.x > cx + hw) { b.x = cx + hw; if (b.vx > 0) b.vx = 0; }
                     if (b.y < 0) { b.y = 0; if (b.vy < 0) b.vy = 0; }
                     if (b.y > 1) { b.y = 1; if (b.vy > 0) b.vy = 0; }
-                    b.stretch = 1 + lavaClamp(LAVA.KS * Math.abs(b.vy), 0, 0.8);
+                    // Stretch and tail follow a low-passed vy, so neither jumps in one frame
+                    b.svy += (b.vy - b.svy) * Math.min(1, LAVA.KSHAPE * dt);
+                    b.stretch = 1 + lavaClamp(LAVA.KS * Math.abs(b.svy), 0, 0.8);
                     if (b.mergeCooldown > 0) b.mergeCooldown = Math.max(0, b.mergeCooldown - dt);
                 }
             }
@@ -893,12 +896,14 @@ void main() {
                 sim.tails.length = sim.blobs.length;
                 for (var i = 0; i < sim.blobs.length; i++) {
                     var b = sim.blobs[i];
-                    var sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+                    // The tail sits on the stretch axis (vertical), behind the smoothed motion,
+                    // so the blob and its tail are symmetric about that axis
+                    var sp = Math.abs(b.svy);
                     var w = lavaClamp(LAVA.KT * sp, 0, 1);
                     var tl = sim.tails[i] || (sim.tails[i] = { x: 0, y: 0, r: 0, w: 0 });
                     if (sp < 1e-6 || w < 0.01) { tl.x = b.x; tl.y = b.y; tl.r = 0; tl.w = 0; continue; }
-                    tl.x = b.x - b.vx / sp * 0.8 * b.r;
-                    tl.y = b.y - b.vy / sp * 0.8 * b.r;
+                    tl.x = b.x;
+                    tl.y = b.y - (b.svy > 0 ? 0.8 : -0.8) * b.r;
                     tl.r = 0.5 * b.r;
                     tl.w = w;
                 }

@@ -24,7 +24,7 @@ function check(name, cond) {
 // ---- helpers
 const STEP = 1 / 60;
 function finiteBlob(b) {
-  return ['x', 'y', 'vx', 'vy', 'vol', 'r', 'T', 'stretch', 'mergeCooldown', 'target'].every(k => Number.isFinite(b[k]));
+  return ['x', 'y', 'vx', 'vy', 'vol', 'r', 'T', 'stretch', 'mergeCooldown', 'target', 'svy'].every(k => Number.isFinite(b[k]));
 }
 function allFinite(sim) {
   return sim.blobs.every(finiteBlob) && Number.isFinite(sim.pool.vol) && Number.isFinite(sim.pool.T) &&
@@ -63,7 +63,7 @@ function clearToPool(sim) {
 function addBlob(sim, x, y, vol, T) {
   sim.pool.vol -= vol;
   const b = { id: 90000 + sim.blobs.length, x: x, y: y, vx: 0, vy: 0, vol: vol, r: Math.sqrt(vol / Math.PI),
-              T: T, stretch: 1, mergeCooldown: 0, target: 0 };
+              T: T, stretch: 1, mergeCooldown: 0, target: 0, drain: 0, svy: 0 };
   sim.blobs.push(b);
   return b;
 }
@@ -201,7 +201,7 @@ if (W.createSim) {
   const sc = W.createSim({ seed: 7, aspect: 0.42, heat: 5, waxAmount: 5, taper: TAPER });
   clearToPool(sc);
   const scb = addBlob(sc, sc.width / 2 - taperHalfW(sc.width, TAPER, 0.5), 0.5, 2.5 * sc.Vb, 0.9);
-  scb.vy = 0.3;
+  scb.vy = scb.svy = 0.3; scb.stretch = 1.8;   // primed: rising fast, already stretched
   sc.step(STEP);
   check('split children stay inside the tapered walls', sc.events.splits === 1 &&
     sc.blobs.every(b => Math.abs(b.x - sc.width / 2) <= taperHalfW(sc.width, TAPER, b.y) + 1e-9));
@@ -218,7 +218,7 @@ if (W.createSim) {
   }
   function capSplit(cap) {
     const c = capSetup(cap, 7, 0.5, 2.5, 0.9);
-    c.primed.vy = 0.3;
+    c.primed.vy = c.primed.svy = 0.3; c.primed.stretch = 1.8;
     c.sim.step(STEP);
     return c.sim;
   }
@@ -1044,6 +1044,43 @@ if (W.createSim) {
   });
   console.log('   slab: longest stay of a blob center under the pool surface ' + slabWorst.toFixed(2) + ' s');
   check('slab: no blob that is not draining keeps its center under the pool surface for more than 0.5 s', slabWorst <= 0.5);
+}
+
+// ================= Stretch and tail (2026-10-01 amendment) =================
+if (W.createSim) {
+  // A sudden vy does not stretch the blob in one step; it gets there in about a second
+  const sh = W.createSim({ seed: 57, aspect: 2.43, heat: 5, waxAmount: 5 });
+  clearToPool(sh);
+  sh.pool.T = 0;
+  const shB = addBlob(sh, 1.2, 0.5, sh.Vb, 0.5);
+  shB.vy = 0.3;
+  sh.step(STEP);
+  const shFirst = shB.stretch;
+  run(sh, 59, function () { shB.vy = 0.3; shB.T = 0.5; });
+  check('stretch: one step after a jump in vy the stretch has moved less than a quarter of the way', shFirst - 1 < 0.2);
+  check('stretch: after 1 s the stretch has reached the fast-blob value', shB.stretch > 1.7);
+
+  // The tail sits on the stretch axis, 0.8 r behind the smoothed vertical motion, and a
+  // visible tail (weight 0.05 or more) never switches sides between two frames
+  const tw = W.createSim({ seed: 12345, aspect: 0.42, heat: 5, waxAmount: 5, cap: 64, taper: 0.8 });
+  let twOnAxis = true, twFlips = 0, twSeen = 0, prev = new Map();
+  for (let i = 0; i < 120 * 60; i++) {
+    tw.step(STEP);
+    const now = new Map();
+    tw.blobs.forEach(function (b, k) {
+      const tl = tw.tails[k];
+      if (!(tl.w > 0)) return;
+      twSeen++;
+      const side = tl.y < b.y ? -1 : 1;
+      if (tl.x !== b.x || Math.abs(Math.abs(tl.y - b.y) - 0.8 * b.r) > 1e-12 || side !== (b.svy > 0 ? -1 : 1)) twOnAxis = false;
+      const p = prev.get(b);
+      if (p && tl.w >= 0.05 && p.w >= 0.05 && p.side !== side) twFlips++;
+      now.set(b, { side: side, w: tl.w });
+    });
+    prev = now;
+  }
+  check('tail: every drawn tail sits on its blob vertical axis, 0.8 r behind the smoothed motion', twSeen > 1000 && twOnAxis);
+  check('tail: no visible tail switches sides between two frames', twFlips === 0);
 }
 
 console.log(ran + ' checks, ' + failed + ' failed');
